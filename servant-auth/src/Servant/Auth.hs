@@ -26,4 +26,7 @@ data FormLogin form
 
 -- * Setting cookies
 
-data SetCookie
+data SetCookies
+
+{-data IsSecure = Secure | NotSecure-}
+{-data IsHttpOnly = HttpOnly | NotHttpOnly-}

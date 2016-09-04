@@ -38,6 +38,7 @@ library
     , monad-time
     , time
     , servant-server
+    , blaze-builder
   exposed-modules:
       Servant.Auth.Server
       Servant.Auth.Server.Internal
@@ -68,6 +69,7 @@ test-suite doctest
     , monad-time
     , time
     , servant-server
+    , blaze-builder
     , doctest >= 0.9 && < 0.12
     , Glob >= 0.7 && < 0.8
     , yaml == 0.8.*
@@ -95,6 +97,7 @@ test-suite spec
     , monad-time
     , time
     , servant-server
+    , blaze-builder
     , servant-auth-server
     , hspec > 2 && < 3
     , QuickCheck >= 2.8 && < 2.9

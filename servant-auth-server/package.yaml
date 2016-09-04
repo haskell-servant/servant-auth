@@ -26,6 +26,7 @@ dependencies:
   - monad-time
   - time
   - servant-server
+  - blaze-builder
 
 default-extensions:
   - AutoDeriveTypeable
