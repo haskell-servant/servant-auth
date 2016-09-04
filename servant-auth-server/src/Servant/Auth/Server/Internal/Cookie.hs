@@ -10,7 +10,7 @@ import           Data.CaseInsensitive (CI)
 import           Network.Wai          (requestHeaders)
 import           Web.Cookie
 
-import Servant.Auth.Server.Internal.JWT
+import Servant.Auth.Server.Internal.JWT (FromJWT(decodeJWT))
 import Servant.Auth.Server.Internal.Types
 
 
@@ -26,9 +26,9 @@ cookieAuthCheck config = do
     -- JWT-Cookie *must* be HttpOnly and Secure
     lookup "JWT-Cookie" cookies
   val <- liftIO $ runExceptT $ do
-     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict jwtCookie
-     Jose.validateJWSJWT (jwtValidationSettings config) (jwk config) unverifiedJWT
-     return $ decodeJWT unverifiedJWT
+    unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict jwtCookie
+    Jose.validateJWSJWT (jwtValidationSettings config) (jwk config) unverifiedJWT
+    return $ decodeJWT unverifiedJWT
   either (\(_ :: Jose.JWTError) -> mzero) return val
 
 data CookieAuthConfig = CookieAuthConfig

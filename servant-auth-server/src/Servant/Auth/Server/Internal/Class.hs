@@ -17,6 +17,9 @@ class IsAuth a ctx v where
 instance FromJWT usr => IsAuth Cookie CookieAuthConfig usr where
   runAuth _ = cookieAuthCheck
 
+instance FromJWT usr => IsAuth JWT JWTAuthConfig usr where
+  runAuth _ = jwtAuthCheck
+
 -- * Helper
 
 class AreAuths (as :: [*]) ctx v where
