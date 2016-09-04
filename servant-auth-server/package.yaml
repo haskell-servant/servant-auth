@@ -25,6 +25,7 @@ dependencies:
   - jose
   - monad-time
   - time
+  - servant-server
 
 default-extensions:
   - AutoDeriveTypeable

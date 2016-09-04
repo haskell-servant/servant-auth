@@ -37,10 +37,13 @@ library
     , jose
     , monad-time
     , time
+    , servant-server
   exposed-modules:
       Servant.Auth.Server
+      Servant.Auth.Server.Internal
       Servant.Auth.Server.Internal.Class
       Servant.Auth.Server.Internal.Cookie
+      Servant.Auth.Server.Internal.FormLogin
       Servant.Auth.Server.Internal.JWT
       Servant.Auth.Server.Internal.Types
   default-language: Haskell2010
@@ -64,6 +67,7 @@ test-suite doctest
     , jose
     , monad-time
     , time
+    , servant-server
     , doctest >= 0.9 && < 0.12
     , Glob >= 0.7 && < 0.8
     , yaml == 0.8.*
@@ -90,6 +94,7 @@ test-suite spec
     , jose
     , monad-time
     , time
+    , servant-server
     , servant-auth-server
     , hspec > 2 && < 3
     , QuickCheck >= 2.8 && < 2.9
