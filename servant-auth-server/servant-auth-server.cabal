@@ -39,6 +39,7 @@ library
     , time
     , servant-server
     , blaze-builder
+    , reflection
   exposed-modules:
       Servant.Auth.Server
       Servant.Auth.Server.Internal
@@ -70,6 +71,7 @@ test-suite doctest
     , time
     , servant-server
     , blaze-builder
+    , reflection
     , doctest >= 0.9 && < 0.12
     , Glob >= 0.7 && < 0.8
     , yaml == 0.8.*
@@ -98,6 +100,7 @@ test-suite spec
     , time
     , servant-server
     , blaze-builder
+    , reflection
     , servant-auth-server
     , hspec > 2 && < 3
     , QuickCheck >= 2.8 && < 2.9

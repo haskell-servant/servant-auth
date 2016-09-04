@@ -27,6 +27,7 @@ dependencies:
   - time
   - servant-server
   - blaze-builder
+  - reflection
 
 default-extensions:
   - AutoDeriveTypeable
