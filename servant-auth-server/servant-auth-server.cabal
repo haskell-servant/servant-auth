@@ -32,6 +32,11 @@ library
     , cookie >= 0.4 && < 0.5
     , wai
     , mtl
+    , bytestring
+    , case-insensitive
+    , jose
+    , monad-time
+    , time
   exposed-modules:
       Servant.Auth.Server
       Servant.Auth.Server.Internal.Class
@@ -54,6 +59,11 @@ test-suite doctest
     , cookie >= 0.4 && < 0.5
     , wai
     , mtl
+    , bytestring
+    , case-insensitive
+    , jose
+    , monad-time
+    , time
     , doctest >= 0.9 && < 0.12
     , Glob >= 0.7 && < 0.8
     , yaml == 0.8.*
@@ -75,6 +85,11 @@ test-suite spec
     , cookie >= 0.4 && < 0.5
     , wai
     , mtl
+    , bytestring
+    , case-insensitive
+    , jose
+    , monad-time
+    , time
     , servant-auth-server
     , hspec > 2 && < 3
     , QuickCheck >= 2.8 && < 2.9

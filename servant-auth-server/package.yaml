@@ -20,6 +20,11 @@ dependencies:
   - cookie >= 0.4 && < 0.5
   - wai
   - mtl
+  - bytestring
+  - case-insensitive
+  - jose
+  - monad-time
+  - time
 
 default-extensions:
   - AutoDeriveTypeable

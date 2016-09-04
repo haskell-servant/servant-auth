@@ -1,22 +1,39 @@
 module Servant.Auth.Server.Internal.Cookie where
 
-import Web.Cookie
+import           Control.Monad.Except
+import           Control.Monad.Reader
+import qualified Crypto.JOSE          as Jose
+import qualified Crypto.JWT           as Jose
+import qualified Data.ByteString      as BS
+import qualified Data.ByteString.Lazy as BSL
+import           Data.CaseInsensitive (CI)
+import           Network.Wai          (requestHeaders)
+import           Web.Cookie
+
+import Servant.Auth.Server.Internal.JWT
 import Servant.Auth.Server.Internal.Types
 
 
-{-inCookieWithCSRF :: Request -> BS.ByteString -> CI (BS.ByteString) -> Handler Jose.JWT-}
-{-inCookieWithCSRF req xsrfCookieName headerName = do-}
-  {-cookies <- maybe (throwError err401) (return . parseCookies) $ lookup "Cookie" $ requestHeaders req-}
-  {-xsrfCookie <- maybe (throwError err401) return $ lookup xsrfCookieName cookies-}
-  {-xsrfHeader <- maybe (throwError err401) return $ lookup headerName $ requestHeaders req-}
-  {-when (xsrfCookie /= xsrfHeader) $-}
-    {-throwError err401 { errBody = "CSRF check failed" }-}
-  {-jwtCookie <- maybe (throwError err401) return $ lookup "JWT-Cookie" cookies-}
-  {-case Jose.decodeCompact $ BSL.fromStrict jwtCookie of-}
-    {-Left (_ :: Jose.Error) -> throwError err401-}
-    {-Right v -> return v-}
-
-cookieAuthCheck :: AuthCheck usr
-cookieAuthCheck = do
+cookieAuthCheck :: FromJWT usr => CookieAuthConfig -> AuthCheck usr
+cookieAuthCheck config = do
   req <- ask
+  jwtCookie <- maybe mempty return $ do
+    cookies' <- lookup "Cookie" $ requestHeaders req
+    let cookies = parseCookies cookies'
+    xsrfCookie <- lookup (xsrfCookieName config) cookies
+    xsrfHeader <- lookup (xsrfHeaderName config) $ requestHeaders req
+    guard $ xsrfCookie == xsrfHeader
+    -- JWT-Cookie *must* be HttpOnly and Secure
+    lookup "JWT-Cookie" cookies
+  val <- liftIO $ runExceptT $ do
+     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict jwtCookie
+     Jose.validateJWSJWT (jwtValidationSettings config) (jwk config) unverifiedJWT
+     return $ decodeJWT unverifiedJWT
+  either (\(_ :: Jose.JWTError) -> mzero) return val
 
+data CookieAuthConfig = CookieAuthConfig
+  { jwk                   :: Jose.JWK
+  , xsrfCookieName        :: BS.ByteString
+  , xsrfHeaderName        :: CI (BS.ByteString)
+  , jwtValidationSettings :: Jose.JWTValidationSettings
+  }

@@ -1,10 +1,13 @@
 module Servant.Auth.Server.Internal.Types where
 
 {-import Control.Monad (ap)-}
+import Control.Applicative
 import Network.Wai (Request)
 import GHC.Generics (Generic)
 import Data.Monoid
 import Control.Monad.Reader
+import Control.Monad.Time
+import Data.Time (getCurrentTime)
 
 data AuthResult val
   = BadPassword
@@ -46,6 +49,7 @@ instance Applicative AuthCheck where
 
 instance Monad AuthCheck where
   return = AuthCheck . return . return . return
+  fail _ = AuthCheck . const $ return Indefinite
   AuthCheck ac >>= f = AuthCheck $ \req -> do
     aresult <- ac req
     case aresult of
@@ -57,3 +61,17 @@ instance Monad AuthCheck where
 instance MonadReader Request AuthCheck where
   ask = AuthCheck $ \x -> return (Authorized x)
   local f (AuthCheck check) = AuthCheck $ \req -> check (f req)
+
+instance MonadIO AuthCheck where
+  liftIO action = AuthCheck $ const $ Authorized <$> action
+
+instance MonadTime AuthCheck where
+  currentTime = liftIO $ getCurrentTime
+
+instance Alternative AuthCheck where
+  empty = mzero
+  (<|>) = mplus
+
+instance MonadPlus AuthCheck where
+  mzero = mempty
+  mplus = (<>)
