@@ -2,17 +2,17 @@ module Servant.Auth.Server.Internal.Types where
 
 {-import Control.Monad (ap)-}
 import Control.Applicative
-import Network.Wai (Request)
-import GHC.Generics (Generic)
-import Data.Monoid
 import Control.Monad.Reader
 import Control.Monad.Time
-import Data.Time (getCurrentTime)
+import Data.Monoid
+import Data.Time            (getCurrentTime)
+import GHC.Generics         (Generic)
+import Network.Wai          (Request)
 
 data AuthResult val
   = BadPassword
   | NoSuchUser
-  | Authorized val
+  | Authenticated val
   | Indefinite
   deriving (Eq, Show, Read, Generic, Ord, Functor)
 
@@ -22,8 +22,8 @@ instance Monoid (AuthResult val) where
   x `mappend` _ = x
 
 instance Monad AuthResult where
-  return = Authorized
-  Authorized v >>= f = f v
+  return = Authenticated
+  Authenticated v >>= f = f v
   BadPassword  >>= _ = BadPassword
   NoSuchUser   >>= _ = NoSuchUser
   Indefinite   >>= _ = Indefinite
@@ -53,17 +53,17 @@ instance Monad AuthCheck where
   AuthCheck ac >>= f = AuthCheck $ \req -> do
     aresult <- ac req
     case aresult of
-      Authorized usr -> runAuthCheck (f usr) req
-      BadPassword    -> return BadPassword
-      NoSuchUser     -> return NoSuchUser
-      Indefinite     -> return Indefinite
+      Authenticated usr -> runAuthCheck (f usr) req
+      BadPassword       -> return BadPassword
+      NoSuchUser        -> return NoSuchUser
+      Indefinite        -> return Indefinite
 
 instance MonadReader Request AuthCheck where
-  ask = AuthCheck $ \x -> return (Authorized x)
+  ask = AuthCheck $ \x -> return (Authenticated x)
   local f (AuthCheck check) = AuthCheck $ \req -> check (f req)
 
 instance MonadIO AuthCheck where
-  liftIO action = AuthCheck $ const $ Authorized <$> action
+  liftIO action = AuthCheck $ const $ Authenticated <$> action
 
 instance MonadTime AuthCheck where
   currentTime = liftIO $ getCurrentTime

@@ -26,8 +26,8 @@ instance FromJWT usr => IsAuth JWT JWTAuthConfig usr where
 class AreAuths (as :: [*]) (ctxs :: [*]) v where
   runAuths :: proxy as -> Context ctxs -> AuthCheck v
 
-instance (HasContextEntry ctxs ctx, IsAuth a ctx v) => AreAuths '[a] ctxs v where
-  runAuths _ ctxs = runAuth (Proxy :: Proxy a) (getContextEntry ctxs)
+instance  AreAuths '[] ctxs v where
+  runAuths _ _ = mempty
 
 instance ( IsAuth a ctx v, HasContextEntry ctxs ctx, AreAuths as ctxs v
          ) => AreAuths (a ': as) ctxs v where

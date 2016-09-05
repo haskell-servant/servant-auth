@@ -31,6 +31,15 @@ cookieAuthCheck config = do
     return $ decodeJWT unverifiedJWT
   either (\(_ :: Jose.JWTError) -> mzero) return val
 
+defaultCookieAuthConfig :: Jose.JWK -> CookieAuthConfig
+defaultCookieAuthConfig key = CookieAuthConfig
+  { jwk                   = key
+  , xsrfCookieName        = "XSRF-TOKEN"
+  , xsrfHeaderName        = "X-XSRF-TOKEN"
+  , jwtValidationSettings = Jose.defaultJWTValidationSettings
+  }
+
+
 data CookieAuthConfig = CookieAuthConfig
   { jwk                   :: Jose.JWK
   , xsrfCookieName        :: BS.ByteString

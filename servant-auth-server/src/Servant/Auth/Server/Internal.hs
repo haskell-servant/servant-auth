@@ -64,4 +64,3 @@ instance ( HasServer api ctx, HasContextEntry ctx v
       -- TODO: Should we set cookies in the FailFatal case as well? Presumably not
       -- in the Fail case though
       setCookies f         = f
-

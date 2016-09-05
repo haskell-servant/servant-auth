@@ -40,6 +40,8 @@ library
     , servant-server
     , blaze-builder
     , reflection
+    , unordered-containers
+    , aeson
   exposed-modules:
       Servant.Auth.Server
       Servant.Auth.Server.Internal
@@ -72,10 +74,13 @@ test-suite doctest
     , servant-server
     , blaze-builder
     , reflection
+    , unordered-containers
+    , aeson
     , doctest >= 0.9 && < 0.12
     , Glob >= 0.7 && < 0.8
     , yaml == 0.8.*
   other-modules:
+      Servant.Auth.ServerSpec
       Spec
   default-language: Haskell2010
 
@@ -101,9 +106,19 @@ test-suite spec
     , servant-server
     , blaze-builder
     , reflection
+    , unordered-containers
+    , aeson
     , servant-auth-server
     , hspec > 2 && < 3
     , QuickCheck >= 2.8 && < 2.9
+    , aeson
+    , wai
+    , lens
+    , warp
+    , wreq
+    , http-types
+    , http-client
   other-modules:
       Doctest
+      Servant.Auth.ServerSpec
   default-language: Haskell2010

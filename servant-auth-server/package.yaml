@@ -28,6 +28,9 @@ dependencies:
   - servant-server
   - blaze-builder
   - reflection
+  - unordered-containers
+  - aeson
+
 
 default-extensions:
   - AutoDeriveTypeable
@@ -62,6 +65,13 @@ tests:
       - servant-auth-server
       - hspec > 2 && < 3
       - QuickCheck >= 2.8 && < 2.9
+      - aeson
+      - wai
+      - lens
+      - warp
+      - wreq
+      - http-types
+      - http-client
   doctest:
     main:            Doctest.hs
     source-dirs:     test
