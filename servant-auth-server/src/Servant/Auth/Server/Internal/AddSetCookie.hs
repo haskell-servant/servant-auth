@@ -1,9 +1,12 @@
 module Servant.Auth.Server.Internal.AddSetCookie where
 
-import Servant
-import Web.Cookie
-import qualified Data.ByteString as BS
-import Blaze.ByteString.Builder (toByteString)
+import           Blaze.ByteString.Builder (toByteString)
+import qualified Data.ByteString          as BS
+import Crypto.Random
+import Crypto.Random.DRBG (CtrDRBG)
+import qualified Data.ByteString.Base64 as BS64
+import           Servant
+import           Web.Cookie
 
 type family AddSetCookieApi a where
   AddSetCookieApi (a :> b) = a :> AddSetCookieApi b
@@ -20,7 +23,7 @@ type family AddedSetCookie a where
   AddedSetCookie old = Headers '[Header "Set-Cookie" BS.ByteString] old
 
 class AddSetCookie orig where
-  addSetCookie :: SetCookie -> orig -> AddedSetCookie orig
+  addSetCookie :: [SetCookie] -> orig -> AddedSetCookie orig
 
 instance {-# OVERLAPS #-} AddSetCookie oldb => AddSetCookie (a -> oldb) where
   addSetCookie cookie oldfn = \val -> addSetCookie cookie $ oldfn val
@@ -32,4 +35,12 @@ instance {-# OVERLAPPABLE #-}
   (AddedSetCookie old ~ Headers '[Header "Set-Cookie" BS.ByteString] old)
        => AddSetCookie old where
   addSetCookie cookie val
-    = addHeader (toByteString $ renderSetCookie cookie) val :: Headers '[Header "Set-Cookie" BS.ByteString] old
+    = addHeader (toByteString $ foldMap renderSetCookie cookie) val :: Headers '[Header "Set-Cookie" BS.ByteString] old
+
+
+csrfCookie :: IO BS.ByteString
+csrfCookie = do
+   g <- newGenIO :: IO CtrDRBG
+   case genBytes 16 g of
+     Left e -> error $ show e
+     Right (r, _) -> return $ BS64.encode r

@@ -4,12 +4,12 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import qualified Crypto.JOSE          as Jose
 import qualified Crypto.JWT           as Jose
+import           Crypto.Util          (constTimeEq)
 import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as BSL
 import           Data.CaseInsensitive (CI)
 import           Network.Wai          (requestHeaders)
 import           Web.Cookie
-import Servant
 
 import Servant.Auth.Server.Internal.JWT   (FromJWT (decodeJWT),
                                            JWTAuthConfig (..),
@@ -25,7 +25,7 @@ cookieAuthCheck config = do
     let cookies = parseCookies cookies'
     xsrfCookie <- lookup (xsrfCookieName config) cookies
     xsrfHeader <- lookup (xsrfHeaderName config) $ requestHeaders req
-    guard $ xsrfCookie == xsrfHeader
+    guard $ xsrfCookie `constTimeEq` xsrfHeader
     -- JWT-Cookie *must* be HttpOnly and Secure
     lookup "JWT-Cookie" cookies
   verifiedJWT <- liftIO $ runExceptT $ do

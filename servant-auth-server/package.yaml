@@ -26,11 +26,14 @@ dependencies:
   - monad-time
   - time
   - servant-server
+  - base64-bytestring
   - blaze-builder
   - reflection
   - unordered-containers
   - aeson
   - lens
+  - crypto-api
+  - DRBG
 
 
 default-extensions:

@@ -38,11 +38,14 @@ library
     , monad-time
     , time
     , servant-server
+    , base64-bytestring
     , blaze-builder
     , reflection
     , unordered-containers
     , aeson
     , lens
+    , crypto-api
+    , DRBG
   exposed-modules:
       Servant.Auth.Server
       Servant.Auth.Server.Internal
@@ -74,11 +77,14 @@ test-suite spec
     , monad-time
     , time
     , servant-server
+    , base64-bytestring
     , blaze-builder
     , reflection
     , unordered-containers
     , aeson
     , lens
+    , crypto-api
+    , DRBG
     , servant-auth-server
     , hspec > 2 && < 3
     , QuickCheck >= 2.8 && < 2.9
