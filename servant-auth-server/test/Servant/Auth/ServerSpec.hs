@@ -29,12 +29,40 @@ import           Test.QuickCheck
 
 spec :: Spec
 spec = do
+  authSpec
   jwtAuthSpec
 
+------------------------------------------------------------------------------
+-- * Auth {{{
+
+authSpec :: Spec
+authSpec
+  = describe "The Auth combinator"
+  $ around (testWithApplication . return $ app jwtAndCookieApi) $ do
+
+  let url port = "http://localhost:" <> show port
+
+      claims val = emptyClaimsSet & unregisteredClaims . at "dat" .~ Just val
+
+      shouldHTTPErrorWith act stat = act `shouldThrow` \e -> case e of
+        StatusCodeException x _ _ -> x == stat
+        _ -> False
+
+  it "returns a 401 if all authentications are Indefinite" $ \port -> do
+    get (url port) `shouldHTTPErrorWith` status401
+
+  it "succeeds if one authentication suceeds" $ const pending
+  it "fails (403) if one authentication fails" $ const pending
+
+
+-- }}}
+------------------------------------------------------------------------------
+-- * JWT Auth {{{
 
 jwtAuthSpec :: Spec
 jwtAuthSpec
-  = describe "JWT authentication" $ around (testWithApplication $ return app) $ do
+  = describe "JWT authentication"
+  $ around (testWithApplication . return $ app jwtOnlyApi) $ do
 
   let url port = "http://localhost:" <> show port
 
@@ -86,28 +114,7 @@ jwtAuthSpec
     opts <- addJwtToHeader jwt
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
-{-
-  it "accepts JWTs created with makeJWT and the same config" $ \port -> property
-                                                             $ \user -> do
-    jwt <- runExceptT $ makeJWT cfg user Nothing AlwaysValid
-    opts <- case jwt of
-        Left e -> fail $ show e
-        Right v -> return
-          $ defaults & header "Authorization" .~ ["Bearer " <> unToken v]
-    resp <- getWith opts (url port)
-    resp ^. responseStatus `shouldBe` status200
-    resp ^? responseBody `shouldBe` Just (encode . length $ name user)
-
-  it "allows checking the JTI" $ \port -> property $ \user -> do
-    jwt <- runExceptT $ makeJWT cfg user (Just "revoked!") AlwaysValid
-    opts <- case jwt of
-        Left e -> fail $ show e
-        Right v -> return
-          $ defaults & header "Authorization" .~ ["Bearer " <> unToken v]
-    getWith opts (url port) `shouldHTTPErrorWith` status403
-
-    -}
-
+-- }}}
 ------------------------------------------------------------------------------
 -- * API and Server {{{
 
@@ -116,17 +123,26 @@ type API auths = Auth auths User :> Get '[JSON] Int
 jwtOnlyApi :: Proxy (API '[JWT])
 jwtOnlyApi = Proxy
 
+jwtAndCookieApi :: Proxy (API '[JWT, Cookie])
+jwtAndCookieApi = Proxy
+
 theKey :: JWK
 theKey = unsafePerformIO . genJWK $ OctGenParam 256
 {-# NOINLINE theKey #-}
 
-app :: Application
-app = serveWithContext jwtOnlyApi ctx server
+-- | Takes a proxy parameter indicating which authentication systems to enable.
+app :: AreAuths auths '[CookieAuthConfig, JWTAuthConfig] User
+  => Proxy (API auths) -> Application
+app api = serveWithContext api ctx server
   where
-    ctx = cfg :. EmptyContext
+    jwtCfg :: JWTAuthConfig
+    jwtCfg = defaultJWTAuthConfig theKey
 
-cfg :: JWTAuthConfig
-cfg = defaultJWTAuthConfig theKey
+    cookieCfg :: CookieAuthConfig
+    cookieCfg = defaultCookieAuthConfig theKey
+
+    ctx = cookieCfg :. jwtCfg :. EmptyContext
+
 
 server :: Server (API auths)
 server = getInt

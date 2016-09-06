@@ -10,7 +10,9 @@ import           Data.CaseInsensitive (CI)
 import           Network.Wai          (requestHeaders)
 import           Web.Cookie
 
-import Servant.Auth.Server.Internal.JWT (FromJWT(decodeJWT))
+import Servant.Auth.Server.Internal.JWT   (FromJWT (decodeJWT),
+                                           JWTAuthConfig (..),
+                                           defaultJWTAuthConfig)
 import Servant.Auth.Server.Internal.Types
 
 
@@ -27,7 +29,8 @@ cookieAuthCheck config = do
     lookup "JWT-Cookie" cookies
   verifiedJWT <- liftIO $ runExceptT $ do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict jwtCookie
-    Jose.validateJWSJWT (jwtValidationSettings config) (jwk config) unverifiedJWT
+    let jwtCfg = jwtConfig config
+    Jose.validateJWSJWT (jwtValidationSettings jwtCfg) (jwk jwtCfg) unverifiedJWT
     return unverifiedJWT
   case verifiedJWT of
     Left (_ :: Jose.JWTError) -> mzero
@@ -37,16 +40,14 @@ cookieAuthCheck config = do
 
 defaultCookieAuthConfig :: Jose.JWK -> CookieAuthConfig
 defaultCookieAuthConfig key = CookieAuthConfig
-  { jwk                   = key
-  , xsrfCookieName        = "XSRF-TOKEN"
+  { xsrfCookieName        = "XSRF-TOKEN"
   , xsrfHeaderName        = "X-XSRF-TOKEN"
-  , jwtValidationSettings = Jose.defaultJWTValidationSettings
+  , jwtConfig = defaultJWTAuthConfig key
   }
 
 
 data CookieAuthConfig = CookieAuthConfig
-  { jwk                   :: Jose.JWK
-  , xsrfCookieName        :: BS.ByteString
-  , xsrfHeaderName        :: CI (BS.ByteString)
-  , jwtValidationSettings :: Jose.JWTValidationSettings
+  { xsrfCookieName :: BS.ByteString
+  , xsrfHeaderName :: CI (BS.ByteString)
+  , jwtConfig      :: JWTAuthConfig
   }
