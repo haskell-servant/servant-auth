@@ -9,6 +9,7 @@ import qualified Data.ByteString.Lazy as BSL
 import           Data.CaseInsensitive (CI)
 import           Network.Wai          (requestHeaders)
 import           Web.Cookie
+import Servant
 
 import Servant.Auth.Server.Internal.JWT   (FromJWT (decodeJWT),
                                            JWTAuthConfig (..),

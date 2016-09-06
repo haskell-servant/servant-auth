@@ -46,6 +46,7 @@ library
   exposed-modules:
       Servant.Auth.Server
       Servant.Auth.Server.Internal
+      Servant.Auth.Server.Internal.AddSetCookie
       Servant.Auth.Server.Internal.Class
       Servant.Auth.Server.Internal.Cookie
       Servant.Auth.Server.Internal.FormLogin
