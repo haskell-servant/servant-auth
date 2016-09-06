@@ -23,6 +23,7 @@ import Servant.Server.Internal.RoutingApplication
 
 instance ( HasServer (AddSetCookieApi api) ctxs, AreAuths auths ctxs v
          , AddSetCookie (ServerT api Handler)
+         , ToJWT v
          , ServerT (AddSetCookieApi api) Handler ~ AddedSetCookie (ServerT api Handler)
          ) => HasServer (Auth auths v :> api) ctxs where
   type ServerT (Auth auths v :> api) m = AuthResult v -> ServerT api m
@@ -37,5 +38,9 @@ instance ( HasServer (AddSetCookieApi api) ctxs, AreAuths auths ctxs v
       authCheck = withRequest $ \req -> liftIO $
         runAuthCheck (runAuths (Proxy :: Proxy auths) context) req
 
+      makeCookies :: AuthResult v -> [Cookie.SetCookie]
+      makeCookies v = _
+
+
       go :: AddSetCookie old => (AuthResult v -> old) -> AuthResult v -> AddedSetCookie old
-      go fn authResult = addSetCookie undefined $ fn authResult
+      go fn authResult = addSetCookie (makeCookies authResult) $ fn authResult
