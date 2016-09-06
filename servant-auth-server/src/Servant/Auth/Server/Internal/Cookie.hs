@@ -25,11 +25,15 @@ cookieAuthCheck config = do
     guard $ xsrfCookie == xsrfHeader
     -- JWT-Cookie *must* be HttpOnly and Secure
     lookup "JWT-Cookie" cookies
-  val <- liftIO $ runExceptT $ do
+  verifiedJWT <- liftIO $ runExceptT $ do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict jwtCookie
     Jose.validateJWSJWT (jwtValidationSettings config) (jwk config) unverifiedJWT
-    return $ decodeJWT unverifiedJWT
-  either (\(_ :: Jose.JWTError) -> mzero) return val
+    return unverifiedJWT
+  case verifiedJWT of
+    Left (_ :: Jose.JWTError) -> mzero
+    Right v -> case decodeJWT v of
+      Left _ -> mzero
+      Right v' -> return v'
 
 defaultCookieAuthConfig :: Jose.JWK -> CookieAuthConfig
 defaultCookieAuthConfig key = CookieAuthConfig

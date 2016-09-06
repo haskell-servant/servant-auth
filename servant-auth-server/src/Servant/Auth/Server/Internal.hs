@@ -4,6 +4,7 @@ module Servant.Auth.Server.Internal where
 import           Blaze.ByteString.Builder
 import           Control.Monad.Trans      (liftIO)
 import qualified Crypto.JOSE              as Jose
+import qualified Crypto.JWT               as Jose
 import qualified Data.ByteString.Lazy     as BSL
 import qualified Data.ByteString.Char8    as BSC
 import           Data.Reflection
@@ -30,6 +31,7 @@ instance ( HasServer api ctxs, AreAuths auths ctxs v
       authCheck = withRequest $ \req -> liftIO $
         runAuthCheck (runAuths (Proxy :: Proxy auths) context) req
 
+{-
 instance ( HasServer api ctx, HasContextEntry ctx v
          , ToJWT v
          , Reifies isHttpOnly IsHttpOnly
@@ -45,7 +47,7 @@ instance ( HasServer api ctx, HasContextEntry ctx v
       value = getContextEntry context
 
       cookies :: Cookie.SetCookie
-      cookies = case Jose.encodeCompact $ encodeJWT value of
+      cookies = case Jose.createJWSJWT (encodeJWT value) >>= Jose.encodeCompact of
         Left (_ :: Jose.Error) -> Cookie.def -- TODO. Really, types should be
                                              -- such that this doesn't happen
         Right v -> Cookie.def
@@ -64,3 +66,4 @@ instance ( HasServer api ctx, HasContextEntry ctx v
       -- TODO: Should we set cookies in the FailFatal case as well? Presumably not
       -- in the Fail case though
       setCookies f         = f
+      -}

@@ -1,6 +1,5 @@
 module Servant.Auth.Server.Internal.Types where
 
-{-import Control.Monad (ap)-}
 import Control.Applicative
 import Control.Monad.Reader
 import Control.Monad.Time

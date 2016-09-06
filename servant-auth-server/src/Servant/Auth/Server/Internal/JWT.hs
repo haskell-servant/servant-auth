@@ -5,8 +5,7 @@ import           Control.Monad.Reader
 import qualified Crypto.JOSE                        as Jose
 import qualified Crypto.JWT                         as Jose
 import           Data.Aeson                         (FromJSON, Result (..),
-                                                     ToJSON, Value, fromJSON,
-                                                     toJSON)
+                                                     ToJSON, fromJSON, toJSON)
 import qualified Data.ByteString                    as BS
 import qualified Data.ByteString.Lazy               as BSL
 import qualified Data.HashMap.Strict                as HM
@@ -14,6 +13,7 @@ import qualified Data.Text                          as T
 import           Network.Wai                        (requestHeaders)
 import           Servant.Auth.Server.Internal.Types
 
+-- This should probably also be from ClaimSet
 class FromJWT a where
   decodeJWT :: Jose.JWT -> Either T.Text a
   default decodeJWT :: FromJSON a => Jose.JWT -> Either T.Text a
@@ -24,9 +24,9 @@ class FromJWT a where
       Success a -> Right a
 
 class ToJWT a where
-  encodeJWT :: a -> Jose.JWT
-  default encodeJWT :: ToJSON a => a -> HM.HashMap T.Text Value
-  encodeJWT a = HM.fromList $ [("dat", toJSON a)]
+  encodeJWT :: a -> Jose.ClaimsSet
+  default encodeJWT :: ToJSON a => a -> Jose.ClaimsSet
+  encodeJWT a = Jose.addClaim "dat" (toJSON a) $ Jose.emptyClaimsSet
 
 jwtAuthCheck :: FromJWT usr => JWTAuthConfig -> AuthCheck usr
 jwtAuthCheck config = do
@@ -41,10 +41,11 @@ jwtAuthCheck config = do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict token
     Jose.validateJWSJWT (jwtValidationSettings config) (jwk config) unverifiedJWT
     return unverifiedJWT
-  case verifiedJWT >>= decodeJWT of
-    Left _ -> mzero
-    Right v -> return v
-  {-either (const mzero) return $ decodeJWT verifiedJWT-}
+  case verifiedJWT of
+    Left (_ :: Jose.JWTError) -> mzero
+    Right v -> case decodeJWT v of
+      Left _ -> mzero
+      Right v' -> return v'
 
 data JWTAuthConfig = JWTAuthConfig
   { jwk                   :: Jose.JWK

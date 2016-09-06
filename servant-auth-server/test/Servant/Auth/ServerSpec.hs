@@ -72,6 +72,45 @@ jwtAuthSpec
     resp <- getWith opts (url port)
     resp ^. responseStatus `shouldBe` status200
 
+  it "fails if JWT is not signed" $ \port -> property $ \(user :: User) -> do
+    jwt <- createJWSJWT theKey (newJWSHeader (Protected, None))
+                               (claims $ toJSON user)
+    opts <- addJwtToHeader jwt
+    getWith opts (url port) `shouldHTTPErrorWith` status401
+
+  it "fails if JWT does not use expected algorithm" $ \port -> property
+                                                    $ \(user :: User) -> do
+    jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS384))
+                               (claims $ toJSON user)
+    opts <- addJwtToHeader jwt
+    getWith opts (url port) `shouldHTTPErrorWith` status401
+
+  it "fails if data is not valid JSON" $ \port -> do
+    jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256)) (claims "{{")
+    opts <- addJwtToHeader jwt
+    getWith opts (url port) `shouldHTTPErrorWith` status401
+
+{-
+  it "accepts JWTs created with makeJWT and the same config" $ \port -> property
+                                                             $ \user -> do
+    jwt <- runExceptT $ makeJWT cfg user Nothing AlwaysValid
+    opts <- case jwt of
+        Left e -> fail $ show e
+        Right v -> return
+          $ defaults & header "Authorization" .~ ["Bearer " <> unToken v]
+    resp <- getWith opts (url port)
+    resp ^. responseStatus `shouldBe` status200
+    resp ^? responseBody `shouldBe` Just (encode . length $ name user)
+
+  it "allows checking the JTI" $ \port -> property $ \user -> do
+    jwt <- runExceptT $ makeJWT cfg user (Just "revoked!") AlwaysValid
+    opts <- case jwt of
+        Left e -> fail $ show e
+        Right v -> return
+          $ defaults & header "Authorization" .~ ["Bearer " <> unToken v]
+    getWith opts (url port) `shouldHTTPErrorWith` status403
+
+    -}
 
 ------------------------------------------------------------------------------
 -- * API and Server {{{
@@ -98,6 +137,8 @@ server = getInt
   where
     getInt :: AuthResult User -> Handler Int
     getInt (Authenticated usr) = return . length $ name usr
+    getInt Indefinite = throwError err401
+    getInt _ = throwError err403
 
 -- }}}
 ------------------------------------------------------------------------------
