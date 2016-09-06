@@ -78,12 +78,8 @@ jwtAuthSpec
     opts <- addJwtToHeader jwt
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
-  it "fails if JWT does not use expected algorithm" $ \port -> property
-                                                    $ \(user :: User) -> do
-    jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS384))
-                               (claims $ toJSON user)
-    opts <- addJwtToHeader jwt
-    getWith opts (url port) `shouldHTTPErrorWith` status401
+  it "fails if JWT does not use expected algorithm" $ const $
+    pendingWith "Need https://github.com/frasertweedale/hs-jose/issues/19"
 
   it "fails if data is not valid JSON" $ \port -> do
     jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256)) (claims "{{")

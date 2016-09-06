@@ -30,6 +30,7 @@ dependencies:
   - reflection
   - unordered-containers
   - aeson
+  - lens
 
 
 default-extensions:
@@ -72,11 +73,3 @@ tests:
       - wreq
       - http-types
       - http-client
-  doctest:
-    main:            Doctest.hs
-    source-dirs:     test
-    dependencies:
-      - doctest >= 0.9 && < 0.12
-      - Glob >= 0.7 && < 0.8
-      - yaml == 0.8.*
-
