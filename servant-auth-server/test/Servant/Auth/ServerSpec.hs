@@ -1,26 +1,27 @@
 module Servant.Auth.ServerSpec (spec) where
 
 import           Control.Lens
-import           Control.Monad
-import           Crypto.JOSE              (Alg (HS256, None, HS384), Error, JWK,
+import           Crypto.JOSE              (Alg (HS256, None), Error, JWK,
                                            KeyMaterialGenParam (OctGenParam),
                                            Protection (Protected), ToCompact,
                                            encodeCompact, genJWK, newJWSHeader)
-import           Crypto.JWT               (NumericDate (NumericDate), claimExp,
-                                           claimNbf, createJWSJWT,
+import           Crypto.JWT               (ClaimsSet, NumericDate (NumericDate),
+                                           claimExp, claimNbf, createJWSJWT,
                                            emptyClaimsSet, unregisteredClaims)
-import           Data.Aeson               (FromJSON, ToJSON, toJSON)
+import           Data.Aeson               (FromJSON, ToJSON, Value, toJSON)
+import           Data.Aeson.Lens          (_JSON)
+import qualified Data.ByteString          as BS
 import qualified Data.ByteString.Lazy     as BSL
 import           Data.Monoid
 import           Data.Time
 import           GHC.Generics             (Generic)
 import           Network.HTTP.Client      (HttpException (StatusCodeException))
-import           Network.HTTP.Types       (status200, status400, status401,
-                                           status403)
+import           Network.HTTP.Types       (Status, status200, status401)
 import           Network.Wai              (Application)
 import           Network.Wai.Handler.Warp (testWithApplication)
-import           Network.Wreq             (Options, defaults, get, getWith,
-                                           header, responseBody, responseStatus)
+import           Network.Wreq             (Options, cookies, defaults, get,
+                                           getWith, header, responseBody,
+                                           responseCookieJar, responseStatus)
 import           Servant
 import           Servant.Auth.Server
 import           System.IO.Unsafe         (unsafePerformIO)
@@ -30,6 +31,7 @@ import           Test.QuickCheck
 spec :: Spec
 spec = do
   authSpec
+  cookieAuthSpec
   jwtAuthSpec
 
 ------------------------------------------------------------------------------
@@ -40,20 +42,66 @@ authSpec
   = describe "The Auth combinator"
   $ around (testWithApplication . return $ app jwtAndCookieApi) $ do
 
-  let url port = "http://localhost:" <> show port
-
-      claims val = emptyClaimsSet & unregisteredClaims . at "dat" .~ Just val
-
-      shouldHTTPErrorWith act stat = act `shouldThrow` \e -> case e of
-        StatusCodeException x _ _ -> x == stat
-        _ -> False
-
   it "returns a 401 if all authentications are Indefinite" $ \port -> do
     get (url port) `shouldHTTPErrorWith` status401
 
-  it "succeeds if one authentication suceeds" $ const pending
-  it "fails (403) if one authentication fails" $ const pending
+  it "succeeds if one authentication suceeds" $ \port -> property $
+                                                \(user :: User) -> do
+    jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256))
+      (claims $ toJSON user)
+    opts <- addJwtToHeader jwt
+    resp <- getWith opts (url port)
+    resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
+  it "fails (403) if one authentication fails" $ const $
+    pendingWith "Authentications don't yet fail, only are Indefinite"
+
+  context "Setting cookies" $ do
+
+    it "sets cookies that it itself accepts" $ \port -> property $ \user -> do
+      jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256))
+        (claims $ toJSON user)
+      opts' <- addJwtToCookie jwt
+      let opts = addCookie (opts' & header "X-XSRF-TOKEN" .~ ["blah"]) "XSRF-TOKEN=blah"
+      resp <- getWith opts (url port)
+      let opts2 = defaults & cookies .~ Just (head $ resp ^.. responseCookieJar)
+      resp2 <- getWith opts2 (url port)
+      resp2 ^? responseBody . _JSON `shouldBe` Just (length $ name user)
+
+    it "sets the JWT cookies as HttpOnly" $ const pending
+    it "sets the JWT cookies as Secure" $ const pending
+    it "sets the CSRF cookies" $ const pending
+
+
+-- }}}
+------------------------------------------------------------------------------
+-- * Cookie Auth {{{
+
+cookieAuthSpec :: Spec
+cookieAuthSpec
+  = describe "The Auth combinator"
+  $ around (testWithApplication . return $ app cookieOnlyApi) $ do
+
+  it "fails if CSRF header and cookie don't match" $ \port -> property
+                                                   $ \(user :: User) -> do
+    jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256)) (claims $ toJSON user)
+    opts' <- addJwtToCookie jwt
+    let opts = addCookie (opts' & header "X-XSRF-TOKEN" .~ ["blah"]) "XSRF-TOKEN=blerg"
+    getWith opts (url port) `shouldHTTPErrorWith` status401
+
+  it "fails if there is no CSRF header and cookie" $ \port -> property
+                                                   $ \(user :: User) -> do
+    jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256)) (claims $ toJSON user)
+    opts <- addJwtToCookie jwt
+    getWith opts (url port) `shouldHTTPErrorWith` status401
+
+  it "suceeds if CSRF header and cookie match, and JWT is valid" $ \port -> property
+                                                                 $ \(user :: User) -> do
+    jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256)) (claims $ toJSON user)
+    opts' <- addJwtToCookie jwt
+    let opts = addCookie (opts' & header "X-XSRF-TOKEN" .~ ["blah"]) "XSRF-TOKEN=blah"
+    resp <- getWith opts (url port)
+    resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
 -- }}}
 ------------------------------------------------------------------------------
@@ -63,20 +111,6 @@ jwtAuthSpec :: Spec
 jwtAuthSpec
   = describe "JWT authentication"
   $ around (testWithApplication . return $ app jwtOnlyApi) $ do
-
-  let url port = "http://localhost:" <> show port
-
-      claims val = emptyClaimsSet & unregisteredClaims . at "dat" .~ Just val
-
-      shouldHTTPErrorWith act stat = act `shouldThrow` \e -> case e of
-        StatusCodeException x _ _ -> x == stat
-        _ -> False
-
-      addJwtToHeader :: ToCompact a => Either Error a -> IO Options
-      addJwtToHeader jwt = case jwt >>= encodeCompact of
-        Left e -> fail $ show e
-        Right v -> return
-          $ defaults & header "Authorization" .~ ["Bearer " <> BSL.toStrict v]
 
   it "fails if 'nbf' is set to a future date" $ \port -> property $
                                                 \(user :: User) -> do
@@ -123,8 +157,12 @@ type API auths = Auth auths User :> Get '[JSON] Int
 jwtOnlyApi :: Proxy (API '[JWT])
 jwtOnlyApi = Proxy
 
+cookieOnlyApi :: Proxy (API '[Cookie])
+cookieOnlyApi = Proxy
+
 jwtAndCookieApi :: Proxy (API '[JWT, Cookie])
 jwtAndCookieApi = Proxy
+
 
 theKey :: JWK
 theKey = unsafePerformIO . genJWK $ OctGenParam 256
@@ -162,6 +200,34 @@ past = parseTimeOrError True defaultTimeLocale "%Y-%m-%d" "1970-01-01"
 future :: UTCTime
 future = parseTimeOrError True defaultTimeLocale "%Y-%m-%d" "2070-01-01"
 
+addJwtToHeader :: ToCompact a => Either Error a -> IO Options
+addJwtToHeader jwt = case jwt >>= encodeCompact of
+  Left e -> fail $ show e
+  Right v -> return
+    $ defaults & header "Authorization" .~ ["Bearer " <> BSL.toStrict v]
+
+addJwtToCookie :: ToCompact a => Either Error a -> IO Options
+addJwtToCookie jwt = case jwt >>= encodeCompact of
+  Left e -> fail $ show e
+  Right v -> return
+    $ defaults & header "Cookie" .~ ["JWT-Cookie=" <> BSL.toStrict v]
+
+addCookie :: Options -> BS.ByteString -> Options
+addCookie opts cookie = opts & header "Cookie" %~ \c -> case c of
+                        [h] -> [cookie <> "; " <> h]
+                        []  -> [cookie]
+                        _   -> error "expecting single cookie header"
+
+shouldHTTPErrorWith :: IO a -> Status -> Expectation
+shouldHTTPErrorWith act stat = act `shouldThrow` \e -> case e of
+  StatusCodeException x _ _ -> x == stat
+  _ -> False
+
+url :: Int -> String
+url port = "http://localhost:" <> show port
+
+claims :: Value -> ClaimsSet
+claims val = emptyClaimsSet & unregisteredClaims . at "dat" .~ Just val
 -- }}}
 ------------------------------------------------------------------------------
 -- * Types {{{

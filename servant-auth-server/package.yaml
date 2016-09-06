@@ -69,6 +69,7 @@ tests:
       - aeson
       - wai
       - lens
+      - lens-aeson
       - warp
       - wreq
       - http-types
