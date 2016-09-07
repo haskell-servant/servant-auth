@@ -20,12 +20,10 @@ import Servant.Auth.Server.Internal.Types
 import Servant.Server.Internal.RoutingApplication
 
 instance ( HasServer (AddSetCookieApi api) ctxs, AreAuths auths ctxs v
-         , AddSetCookie (ServerT api Handler)
+         , AddSetCookie (ServerT api Handler) (ServerT (AddSetCookieApi api) Handler)
          , ToJWT v
-         , Show v
          , HasContextEntry ctxs CookieSettings
          , HasContextEntry ctxs JWTSettings
-         , ServerT (AddSetCookieApi api) Handler ~ AddedSetCookie (ServerT api Handler)
          ) => HasServer (Auth auths v :> api) ctxs where
   type ServerT (Auth auths v :> api) m = AuthResult v -> ServerT api m
 
@@ -77,6 +75,10 @@ instance ( HasServer (AddSetCookieApi api) ctxs, AreAuths auths ctxs v
       makeCookies _ = return []
 
 
-      go :: AddSetCookie old => (AuthResult v -> old)
-         -> (AuthResult v, [Cookie.SetCookie]) -> AddedSetCookie old
+      -- See note in AddSetCookie.hs about what this is doing.
+      go :: (old ~ ServerT api Handler
+            , AddSetCookie old new
+            , new ~ ServerT (AddSetCookieApi api) Handler
+            ) => (AuthResult v -> ServerT api Handler)
+         -> (AuthResult v, [Cookie.SetCookie]) -> new
       go fn (authResult, csrf) = addSetCookie csrf $ fn authResult
