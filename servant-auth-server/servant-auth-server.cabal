@@ -59,6 +59,42 @@ library
       Servant.Auth.Server.Internal.Types
   default-language: Haskell2010
 
+executable readme
+  main-is: README.lhs
+  hs-source-dirs:
+      executables
+  default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
+  ghc-options: -Wall -pgmL markdown-unlit
+  build-depends:
+      base >= 4.7 && < 4.10
+    , text
+    , servant-auth
+    , cookie >= 0.4 && < 0.5
+    , wai
+    , mtl
+    , bytestring
+    , case-insensitive
+    , jose
+    , monad-time
+    , time
+    , servant-server
+    , base64-bytestring
+    , blaze-builder
+    , reflection
+    , unordered-containers
+    , aeson
+    , lens
+    , crypto-api
+    , DRBG
+    , data-default-class
+    , servant-auth
+    , servant-auth-server
+    , servant-server
+    , warp
+    , markdown-unlit
+    , transformers
+  default-language: Haskell2010
+
 test-suite spec
   type: exitcode-stdio-1.0
   main-is: Spec.hs

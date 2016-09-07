@@ -1,5 +1,6 @@
 module Servant.Auth.Server.Internal.JWT where
 
+import           Control.Lens
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import qualified Crypto.JOSE          as Jose
@@ -11,6 +12,7 @@ import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.HashMap.Strict  as HM
 import qualified Data.Text            as T
+import           Data.Time            (UTCTime)
 import           Network.Wai          (requestHeaders)
 
 import Servant.Auth.Server.Internal.ConfigTypes
@@ -51,3 +53,28 @@ jwtAuthCheck config = do
     Right v -> case decodeJWT v of
       Left _ -> mzero
       Right v' -> return v'
+
+
+
+-- | Creates a JWT containing the specified data. The data is stored in the
+-- @dat@ claim. The token will be valid for the period specified.
+makeJWT :: ToJWT a
+  => a -> JWTSettings -> Maybe UTCTime -> ExceptT Jose.Error IO BSL.ByteString
+makeJWT v cfg expiry = ExceptT $ do
+  ejwt <- Jose.createJWSJWT (key cfg)
+                            (Jose.newJWSHeader (Jose.Protected, Jose.HS256))
+                            (addExp $ encodeJWT v)
+
+  return $ ejwt >>= Jose.encodeCompact
+  where
+   addExp claims = case expiry of
+     Nothing -> claims
+     Just e  -> claims & Jose.claimExp .~ Just (Jose.NumericDate e)
+  {-return $ Token . BSL.toStrict <$> (ejwt >>= Jose.encodeCompact)-}
+  {-where-}
+   {-ejwt' = Jose.createJWSJWT-}
+                    {-(key cfg)-}
+                    {-(Jose.newJWSHeader (Jose.Protected, Jose.HS256))-}
+                    {-(addExp Jose.emptyClaimsSet-}
+                       {-& Jose.unregisteredClaims .~ encodeJWTData dat)-}
+

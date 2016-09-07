@@ -60,7 +60,10 @@ data CookieSettings = CookieSettings
   } deriving (Eq, Show, Generic)
 
 instance Default CookieSettings where
-  def = CookieSettings
+  def = defaultCookieSettings
+
+defaultCookieSettings :: CookieSettings
+defaultCookieSettings = CookieSettings
     { cookieIsSecure = Secure
     , cookieMaxAge   = Nothing
     , cookieExpires  = Nothing

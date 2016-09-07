@@ -19,8 +19,9 @@ type family AddSetCookieApi a where
 
 type family AddedSetCookie a where
   AddedSetCookie (a -> b) = a -> AddedSetCookie b
-  AddedSetCookie (t (m old)) = t (AddedSetCookie (m old))
-  AddedSetCookie (m old) = m (AddedSetCookie old)
+  AddedSetCookie (a :<|> b ) = AddedSetCookie a :<|> AddedSetCookie b
+  {-AddedSetCookie (t (m old)) = t (AddedSetCookie (m old))-}
+  AddedSetCookie (m old) = m (Headers '[Header "Set-Cookie" BS.ByteString] old)
   AddedSetCookie old = Headers '[Header "Set-Cookie" BS.ByteString] old
 
 class AddSetCookie orig where
@@ -29,8 +30,12 @@ class AddSetCookie orig where
 instance {-# OVERLAPS #-} AddSetCookie oldb => AddSetCookie (a -> oldb) where
   addSetCookie cookie oldfn = \val -> addSetCookie cookie $ oldfn val
 
-instance (Functor m, AddSetCookie a) => AddSetCookie (m a) where
+instance ( Functor m, AddSetCookie a, AddedSetCookie (m a) ~ m (AddedSetCookie a)
+         ) => AddSetCookie (m a) where
   addSetCookie cookie v = addSetCookie cookie <$> v
+
+instance (AddSetCookie a, AddSetCookie b) => AddSetCookie (a :<|> b) where
+  addSetCookie cookie (a :<|> b) = addSetCookie cookie a :<|> addSetCookie cookie b
 
 instance {-# OVERLAPPABLE #-}
   (AddedSetCookie old ~ Headers '[Header "Set-Cookie" BS.ByteString] old)

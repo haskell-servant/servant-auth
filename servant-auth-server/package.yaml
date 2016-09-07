@@ -78,3 +78,16 @@ tests:
       - wreq
       - http-types
       - http-client
+
+executables:
+  readme:
+    main:            README.lhs
+    source-dirs:     executables
+    ghc-options:     -pgmL markdown-unlit
+    dependencies:
+      - servant-auth
+      - servant-auth-server
+      - servant-server
+      - warp
+      - markdown-unlit
+      - transformers
