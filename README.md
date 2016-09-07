@@ -74,10 +74,9 @@ CSRF protection works by requiring that there be a header of the same value as
 a distinguished cookie that is set by the server on each request. What the
 cookie and header name are can be configured (see `xsrfCookieName` and
 `xsrfHeaderName` in `CookieSettings`), but by default they are "XSRF-TOKEN" and
-"X-XSRF-TOKEN". Assuming you use the default values, this means that, if your
-client is a browser and your are using cookies, Javascript on the client must
-set the header of each request by reading the cookie. For jQuery, that might
-be:
+"X-XSRF-TOKEN". This means that, if your client is a browser and your are using
+cookies, Javascript on the client must set the header of each request by
+reading the cookie. For jQuery, and with the default values, that might be:
 
 ~~~ { .javascript }
 
