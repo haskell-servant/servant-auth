@@ -37,19 +37,3 @@ cookieAuthCheck ccfg jwtCfg = do
     Right v -> case decodeJWT v of
       Left _ -> mzero
       Right v' -> return v'
-
-{-
-defaultCookieAuthConfig :: Jose.JWK -> CookieAuthConfig
-defaultCookieAuthConfig key = CookieAuthConfig
-  { xsrfCookieName        = "XSRF-TOKEN"
-  , xsrfHeaderName        = "X-XSRF-TOKEN"
-  , jwtConfig = defaultJWTAuthConfig key
-  }
-
-
-data CookieAuthConfig = CookieAuthConfig
-  { xsrfCookieName :: BS.ByteString
-  , xsrfHeaderName :: CI (BS.ByteString)
-  , jwtConfig      :: JWTAuthConfig
-  }
--}

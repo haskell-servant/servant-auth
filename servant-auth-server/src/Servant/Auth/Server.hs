@@ -10,6 +10,7 @@ module Servant.Auth.Server
 
   -- * Cookie
   , CookieSettings(..)
+  , IsSecure(..)
 
   , AreAuths
 
@@ -21,7 +22,6 @@ module Servant.Auth.Server
 import Servant.Auth.Server.Internal ()
 import Servant.Auth.Server.Internal.Class
 import Servant.Auth.Server.Internal.JWT
-import Servant.Auth.Server.Internal.Cookie
 import Servant.Auth.Server.Internal.Types
 import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth as X

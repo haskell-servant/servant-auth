@@ -27,27 +27,3 @@ data Cookie
 
 -- | Login via a form.
 data FormLogin form
-
--- * Setting cookies
-
-data SetCookie (cookieName :: Symbol) (isSecure :: IsSecure)
-               (isHttpOnly :: IsHttpOnly) (value :: *)
-
--- 'servant' already has one of these, just without constructors
-data IsSecure = Secure | NotSecure
-  deriving (Eq, Show, Read, Generic, Ord)
-
-instance Reifies 'Secure IsSecure where
-  reflect _ = Secure
-
-instance Reifies 'NotSecure IsSecure where
-  reflect _ = NotSecure
-
-data IsHttpOnly = HttpOnly | NotHttpOnly
-  deriving (Eq, Show, Read, Generic, Ord)
-
-instance Reifies 'HttpOnly IsHttpOnly where
-  reflect _ = HttpOnly
-
-instance Reifies 'NotHttpOnly IsHttpOnly where
-  reflect _ = NotHttpOnly

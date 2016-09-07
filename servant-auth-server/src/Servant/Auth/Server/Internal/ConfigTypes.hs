@@ -1,12 +1,12 @@
 module Servant.Auth.Server.Internal.ConfigTypes where
 
-import Control.Lens
-import Crypto.JOSE  as Jose
-import Crypto.JWT  as Jose
-import GHC.Generics (Generic)
-import Data.Default.Class
-import Data.Time
-import qualified Data.ByteString as BS
+import           Control.Lens
+import           Crypto.JOSE        as Jose
+import           Crypto.JWT         as Jose
+import qualified Data.ByteString    as BS
+import           Data.Default.Class
+import           Data.Time
+import           GHC.Generics       (Generic)
 
 
 data IsMatch = Matches | DoesNotMatch

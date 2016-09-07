@@ -12,20 +12,22 @@ import           Data.Aeson               (FromJSON, ToJSON, Value, toJSON)
 import           Data.Aeson.Lens          (_JSON)
 import qualified Data.ByteString          as BS
 import qualified Data.ByteString.Lazy     as BSL
+import           Data.CaseInsensitive     (mk)
 import           Data.Foldable            (find)
 import           Data.Monoid
 import           Data.Time
 import           GHC.Generics             (Generic)
 import           Network.HTTP.Client      (HttpException (StatusCodeException),
-                                           cookie_name, cookie_value,
-                                           destroyCookieJar)
+                                           cookie_http_only, cookie_name,
+                                           cookie_value, destroyCookieJar)
 import           Network.HTTP.Types       (Status, status200, status401)
 import           Network.Wai              (Application)
 import           Network.Wai.Handler.Warp (testWithApplication)
-import           Network.Wreq             (Options, auth, cookies, defaults,
+import           Network.Wreq             (Options, auth, cookie,
+                                           cookieExpiryTime, cookies, defaults,
                                            get, getWith, header, oauth2Bearer,
-                                           responseBody, responseCookieJar,
-                                           responseStatus)
+                                           responseBody, responseCookie,
+                                           responseCookieJar, responseStatus)
 import           Servant
 import           Servant.Auth.Server
 import           System.IO.Unsafe         (unsafePerformIO)
@@ -66,20 +68,42 @@ authSpec
       jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256))
         (claims $ toJSON user)
       opts' <- addJwtToCookie jwt
-      let opts = addCookie (opts' & header "X-XSRF-TOKEN" .~ ["blah"]) "XSRF-TOKEN=blah"
+      let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
+                           (xsrfCookieName cookieCfg <> "=blah")
       resp <- getWith opts (url port)
       let (cookieJar:_) = resp ^.. responseCookieJar
-          Just xxsrf = find (\x -> cookie_name x ==  "XSRF-TOKEN")
+          Just xxsrf = find (\x -> cookie_name x == xsrfCookieName cookieCfg)
                      $ destroyCookieJar cookieJar
           opts2 = defaults
             & cookies .~ Just cookieJar
-            & header "X-XSRF-TOKEN" .~ [cookie_value xxsrf]
+            & header (mk (xsrfHeaderName cookieCfg)) .~ [cookie_value xxsrf]
       resp2 <- getWith opts2 (url port)
       resp2 ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
-    it "sets the JWT cookies as HttpOnly" $ const pending
-    it "sets the JWT cookies as Secure" $ const pending
-    it "sets the CSRF cookies" $ const pending
+    it "uses the Expiry from the configuration" $ \port -> property $ \(user :: User) -> do
+      jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256))
+        (claims $ toJSON user)
+      opts' <- addJwtToCookie jwt
+      let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
+                           (xsrfCookieName cookieCfg <> "=blah")
+      resp <- getWith opts (url port)
+      let (cookieJar:_) = resp ^.. responseCookieJar
+          Just xxsrf = find (\x -> cookie_name x == xsrfCookieName cookieCfg)
+                     $ destroyCookieJar cookieJar
+      xxsrf ^. cookieExpiryTime `shouldBe` future
+
+    it "sets the token cookie as HttpOnly" $ \port -> property $ \(user :: User) -> do
+      jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256))
+        (claims $ toJSON user)
+      opts' <- addJwtToCookie jwt
+      let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
+                           (xsrfCookieName cookieCfg <> "=blah")
+      resp <- getWith opts (url port)
+      let (cookieJar:_) = resp ^.. responseCookieJar
+          Just token = find (\x -> cookie_name x == "JWT-Cookie")
+                     $ destroyCookieJar cookieJar
+      cookie_http_only token `shouldBe` True
+
 
 
 -- }}}
@@ -95,7 +119,8 @@ cookieAuthSpec
                                                    $ \(user :: User) -> do
     jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256)) (claims $ toJSON user)
     opts' <- addJwtToCookie jwt
-    let opts = addCookie (opts' & header "X-XSRF-TOKEN" .~ ["blah"]) "XSRF-TOKEN=blerg"
+    let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
+                         (xsrfCookieName cookieCfg <> "=blerg")
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
   it "fails if there is no CSRF header and cookie" $ \port -> property
@@ -108,9 +133,11 @@ cookieAuthSpec
                                                                  $ \(user :: User) -> do
     jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256)) (claims $ toJSON user)
     opts' <- addJwtToCookie jwt
-    let opts = addCookie (opts' & header "X-XSRF-TOKEN" .~ ["blah"]) "XSRF-TOKEN=blah"
+    let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
+                         (xsrfCookieName cookieCfg <> "=blah")
     resp <- getWith opts (url port)
     resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
+
 
 -- }}}
 ------------------------------------------------------------------------------
@@ -185,6 +212,14 @@ theKey :: JWK
 theKey = unsafePerformIO . genJWK $ OctGenParam 256
 {-# NOINLINE theKey #-}
 
+
+cookieCfg :: CookieSettings
+cookieCfg = def
+  { xsrfCookieName = "TheyDinedOnMince"
+  , xsrfHeaderName = "AndSlicesOfQuince"
+  , cookieExpires = Just future
+  }
+
 -- | Takes a proxy parameter indicating which authentication systems to enable.
 app :: AreAuths auths '[CookieSettings, JWTSettings, JWK] User
   => Proxy (API auths) -> Application
@@ -192,9 +227,6 @@ app api = serveWithContext api ctx server
   where
     jwtCfg :: JWTSettings
     jwtCfg = defaultJWTSettings theKey
-
-    cookieCfg :: CookieSettings
-    cookieCfg = def
 
     ctx = cookieCfg :. jwtCfg :. theKey :. EmptyContext
 
