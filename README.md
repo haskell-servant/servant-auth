@@ -5,8 +5,34 @@ This package provides safe and easy-to-use authentication options for
 without much extra work.
 
 
+## How it works
+
+This library introduces a combinat `Auth`:
+
+~~~
+Auth (auths :: [*]) val
+~~~
+
+What `Auth [Auth1, Auth2] Something :> API` means is that `API` is protected by
+*either* `Auth1` *or* `Auth2`, and the result of authentication will be of type
+`AuthResult Something`, where :
+
+~~~
+data AuthResult val
+  = BadPassword
+  | NoSuchUser
+  | Authenticated val
+  | Indefinite
+~~~
+
+Your handlers will get a value of type `AuthResult Something`, and can decide
+what to do with it.
+
+The library additionally handles CSRF protection and cookies for you.
+
 ## API tokens
 
+The following example illustrates how to protect an API with tokens.
 
 ~~~ {.haskell}
 import Control.Concurrent (forkIO)
@@ -32,6 +58,7 @@ type Protected = "name" :> Get '[JSON] String
 
 type Unprotected = Get '[JSON] ()
 
+-- | 'Protected' will be protected by JWT tokens.
 type API = Auth '[JWT] User :> Protected
       :<|> Unprotected
 
@@ -41,7 +68,10 @@ api = Proxy
 server :: Server API
 server = protected :<|> unprotected
   where
+   -- If we get an "Authenticated v", we can trust the information in v, since
+   -- it was signed by a key we trust.
    protected (Authenticated user) = return (name user) :<|> return (email user)
+   -- Otherwise, we throw an error.
    protected _ = throwError err401 :<|> throwError err401
    unprotected = return ()
 
@@ -49,12 +79,17 @@ server = protected :<|> unprotected
 -- command line for the specified user name and email.
 main :: IO ()
 main = do
+  -- We generate the key for signing tokens. This would generally be persisted,
+  -- and kept safely
   myKey <- generateKey
+  -- Adding some configurations.
   let jwtCfg = defaultJWTSettings myKey
       cfg = defaultCookieSettings :. jwtCfg :. EmptyContext
   _ <- forkIO $ run 7249 $ serveWithContext api cfg server
+
   putStrLn "Started server on localhost:7249"
   putStrLn "Enter name and email separated by a space for a new token"
+
   forever $ do
      xs <- words <$> getLine
      case xs of
@@ -125,6 +160,8 @@ curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJkYXQiOnsiZW1haWwiOiJhbGlj
 
 ## Cookies
 
+What if, in addition to API tokens, we want to expose our API to browsers? We
+can, with a single character change
 
 ### CSRF and the frontend
 
