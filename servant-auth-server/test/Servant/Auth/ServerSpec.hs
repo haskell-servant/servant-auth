@@ -22,9 +22,10 @@ import           Network.HTTP.Client      (HttpException (StatusCodeException),
 import           Network.HTTP.Types       (Status, status200, status401)
 import           Network.Wai              (Application)
 import           Network.Wai.Handler.Warp (testWithApplication)
-import           Network.Wreq             (Options, cookies, defaults, get,
-                                           getWith, header, responseBody,
-                                           responseCookieJar, responseStatus)
+import           Network.Wreq             (Options, auth, cookies, defaults,
+                                           get, getWith, header, oauth2Bearer,
+                                           responseBody, responseCookieJar,
+                                           responseStatus)
 import           Servant
 import           Servant.Auth.Server
 import           System.IO.Unsafe         (unsafePerformIO)
@@ -155,6 +156,14 @@ jwtAuthSpec
     jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256)) (claims "{{")
     opts <- addJwtToHeader jwt
     getWith opts (url port) `shouldHTTPErrorWith` status401
+
+  it "suceeds as wreq's oauth2Bearer" $ \port -> property $ \(user :: User) -> do
+    jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256))
+                               (claims $ toJSON user)
+    resp <- case jwt >>= encodeCompact of
+      Left (e :: Error) -> fail $ show e
+      Right v -> getWith (defaults & auth ?~ oauth2Bearer (BSL.toStrict v)) (url port)
+    resp ^. responseStatus `shouldBe` status200
 
 -- }}}
 ------------------------------------------------------------------------------

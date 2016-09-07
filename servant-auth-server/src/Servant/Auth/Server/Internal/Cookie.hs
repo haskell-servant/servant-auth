@@ -5,33 +5,32 @@ import           Control.Monad.Reader
 import qualified Crypto.JOSE          as Jose
 import qualified Crypto.JWT           as Jose
 import           Crypto.Util          (constTimeEq)
-import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as BSL
-import           Data.CaseInsensitive (CI)
+import           Data.CaseInsensitive (mk)
 import           Network.Wai          (requestHeaders)
 import           Web.Cookie
 
-import Servant.Auth.Server.Internal.JWT   (FromJWT (decodeJWT),
-                                           JWTAuthConfig (..),
-                                           defaultJWTAuthConfig)
+import Servant.Auth.Server.Internal.JWT   (FromJWT (decodeJWT))
 import Servant.Auth.Server.Internal.Types
+import Servant.Auth.Server.Internal.ConfigTypes
 
 
-cookieAuthCheck :: FromJWT usr => CookieAuthConfig -> AuthCheck usr
-cookieAuthCheck config = do
+cookieAuthCheck :: FromJWT usr => CookieSettings -> JWTSettings -> AuthCheck usr
+cookieAuthCheck ccfg jwtCfg = do
   req <- ask
   jwtCookie <- maybe mempty return $ do
     cookies' <- lookup "Cookie" $ requestHeaders req
     let cookies = parseCookies cookies'
-    xsrfCookie <- lookup (xsrfCookieName config) cookies
-    xsrfHeader <- lookup (xsrfHeaderName config) $ requestHeaders req
+    xsrfCookie <- lookup (xsrfCookieName ccfg) cookies
+    xsrfHeader <- lookup (mk $ xsrfHeaderName ccfg) $ requestHeaders req
     guard $ xsrfCookie `constTimeEq` xsrfHeader
     -- JWT-Cookie *must* be HttpOnly and Secure
     lookup "JWT-Cookie" cookies
   verifiedJWT <- liftIO $ runExceptT $ do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict jwtCookie
-    let jwtCfg = jwtConfig config
-    Jose.validateJWSJWT (jwtValidationSettings jwtCfg) (jwk jwtCfg) unverifiedJWT
+    Jose.validateJWSJWT (jwtSettingsToJwtValidationSettings jwtCfg)
+                        (key jwtCfg)
+                         unverifiedJWT
     return unverifiedJWT
   case verifiedJWT of
     Left (_ :: Jose.JWTError) -> mzero
@@ -39,6 +38,7 @@ cookieAuthCheck config = do
       Left _ -> mzero
       Right v' -> return v'
 
+{-
 defaultCookieAuthConfig :: Jose.JWK -> CookieAuthConfig
 defaultCookieAuthConfig key = CookieAuthConfig
   { xsrfCookieName        = "XSRF-TOKEN"
@@ -52,3 +52,4 @@ data CookieAuthConfig = CookieAuthConfig
   , xsrfHeaderName :: CI (BS.ByteString)
   , jwtConfig      :: JWTAuthConfig
   }
+-}

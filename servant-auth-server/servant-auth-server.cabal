@@ -46,11 +46,13 @@ library
     , lens
     , crypto-api
     , DRBG
+    , data-default-class
   exposed-modules:
       Servant.Auth.Server
       Servant.Auth.Server.Internal
       Servant.Auth.Server.Internal.AddSetCookie
       Servant.Auth.Server.Internal.Class
+      Servant.Auth.Server.Internal.ConfigTypes
       Servant.Auth.Server.Internal.Cookie
       Servant.Auth.Server.Internal.FormLogin
       Servant.Auth.Server.Internal.JWT
@@ -85,6 +87,7 @@ test-suite spec
     , lens
     , crypto-api
     , DRBG
+    , data-default-class
     , servant-auth-server
     , hspec > 2 && < 3
     , QuickCheck >= 2.8 && < 2.9
