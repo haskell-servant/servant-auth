@@ -12,10 +12,13 @@ import           Data.Aeson               (FromJSON, ToJSON, Value, toJSON)
 import           Data.Aeson.Lens          (_JSON)
 import qualified Data.ByteString          as BS
 import qualified Data.ByteString.Lazy     as BSL
+import           Data.Foldable            (find)
 import           Data.Monoid
 import           Data.Time
 import           GHC.Generics             (Generic)
-import           Network.HTTP.Client      (HttpException (StatusCodeException))
+import           Network.HTTP.Client      (HttpException (StatusCodeException),
+                                           cookie_name, cookie_value,
+                                           destroyCookieJar)
 import           Network.HTTP.Types       (Status, status200, status401)
 import           Network.Wai              (Application)
 import           Network.Wai.Handler.Warp (testWithApplication)
@@ -64,7 +67,12 @@ authSpec
       opts' <- addJwtToCookie jwt
       let opts = addCookie (opts' & header "X-XSRF-TOKEN" .~ ["blah"]) "XSRF-TOKEN=blah"
       resp <- getWith opts (url port)
-      let opts2 = defaults & cookies .~ Just (head $ resp ^.. responseCookieJar)
+      let (cookieJar:_) = resp ^.. responseCookieJar
+          Just xxsrf = find (\x -> cookie_name x ==  "XSRF-TOKEN")
+                     $ destroyCookieJar cookieJar
+          opts2 = defaults
+            & cookies .~ Just cookieJar
+            & header "X-XSRF-TOKEN" .~ [cookie_value xxsrf]
       resp2 <- getWith opts2 (url port)
       resp2 ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
@@ -95,7 +103,7 @@ cookieAuthSpec
     opts <- addJwtToCookie jwt
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
-  it "suceeds if CSRF header and cookie match, and JWT is valid" $ \port -> property
+  it "succeeds if CSRF header and cookie match, and JWT is valid" $ \port -> property
                                                                  $ \(user :: User) -> do
     jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256)) (claims $ toJSON user)
     opts' <- addJwtToCookie jwt
@@ -169,7 +177,7 @@ theKey = unsafePerformIO . genJWK $ OctGenParam 256
 {-# NOINLINE theKey #-}
 
 -- | Takes a proxy parameter indicating which authentication systems to enable.
-app :: AreAuths auths '[CookieAuthConfig, JWTAuthConfig] User
+app :: AreAuths auths '[CookieAuthConfig, JWTAuthConfig, JWK] User
   => Proxy (API auths) -> Application
 app api = serveWithContext api ctx server
   where
@@ -179,7 +187,7 @@ app api = serveWithContext api ctx server
     cookieCfg :: CookieAuthConfig
     cookieCfg = defaultCookieAuthConfig theKey
 
-    ctx = cookieCfg :. jwtCfg :. EmptyContext
+    ctx = cookieCfg :. jwtCfg :. theKey :. EmptyContext
 
 
 server :: Server (API auths)

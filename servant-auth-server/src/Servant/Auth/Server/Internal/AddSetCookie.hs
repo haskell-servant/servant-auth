@@ -1,10 +1,11 @@
 module Servant.Auth.Server.Internal.AddSetCookie where
 
 import           Blaze.ByteString.Builder (toByteString)
+import           Crypto.Random
+import           Crypto.Random.DRBG       (CtrDRBG)
 import qualified Data.ByteString          as BS
-import Crypto.Random
-import Crypto.Random.DRBG (CtrDRBG)
-import qualified Data.ByteString.Base64 as BS64
+import qualified Data.ByteString.Base64   as BS64
+import           Data.Monoid
 import           Servant
 import           Web.Cookie
 
@@ -35,7 +36,12 @@ instance {-# OVERLAPPABLE #-}
   (AddedSetCookie old ~ Headers '[Header "Set-Cookie" BS.ByteString] old)
        => AddSetCookie old where
   addSetCookie cookie val
-    = addHeader (toByteString $ foldMap renderSetCookie cookie) val :: Headers '[Header "Set-Cookie" BS.ByteString] old
+    -- What is happening here is sheer awfulness. Look the other way.
+    = addHeader (foldr1 go
+                $ toByteString . renderSetCookie <$> cookie) val
+    :: Headers '[Header "Set-Cookie" BS.ByteString] old
+    where
+      go new old = old <> "\r\nSet-Cookie: " <> new
 
 
 csrfCookie :: IO BS.ByteString
