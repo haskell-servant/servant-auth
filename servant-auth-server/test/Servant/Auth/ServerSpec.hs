@@ -186,15 +186,15 @@ theKey = unsafePerformIO . genJWK $ OctGenParam 256
 {-# NOINLINE theKey #-}
 
 -- | Takes a proxy parameter indicating which authentication systems to enable.
-app :: AreAuths auths '[CookieAuthConfig, JWTAuthConfig, JWK] User
+app :: AreAuths auths '[CookieSettings, JWTSettings, JWK] User
   => Proxy (API auths) -> Application
 app api = serveWithContext api ctx server
   where
-    jwtCfg :: JWTAuthConfig
-    jwtCfg = defaultJWTAuthConfig theKey
+    jwtCfg :: JWTSettings
+    jwtCfg = defaultJWTSettings theKey
 
-    cookieCfg :: CookieAuthConfig
-    cookieCfg = defaultCookieAuthConfig theKey
+    cookieCfg :: CookieSettings
+    cookieCfg = def
 
     ctx = cookieCfg :. jwtCfg :. theKey :. EmptyContext
 

@@ -52,6 +52,8 @@ type family App ls res where
   App '[] res = res
   App (arg1 ': rest) (arg1 -> res) = App rest res
 
+-- | @AppCtx@ applies the function @res@ to the arguments in @ls@ by taking the
+-- values from the Context provided.
 class AppCtx ctx ls res where
   appCtx :: proxy ls -> Context ctx -> res -> App ls res
 
@@ -59,3 +61,6 @@ instance ( HasContextEntry ctxs ctx
          , AppCtx ctxs rest res
          ) => AppCtx ctxs (ctx ': rest) (ctx -> res) where
   appCtx _ ctx fn = appCtx (Proxy :: Proxy rest) ctx $ fn $ getContextEntry ctx
+
+instance AppCtx ctx '[] res where
+  appCtx _ _ r = r
