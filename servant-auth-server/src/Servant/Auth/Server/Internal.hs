@@ -38,9 +38,6 @@ instance ( HasServer (AddSetCookieApi api) ctxs, AreAuths auths ctxs v
       authCheck :: DelayedIO (AuthResult v, [Cookie.SetCookie])
       authCheck = withRequest $ \req -> liftIO $ do
         authResult <- runAuthCheck (runAuths (Proxy :: Proxy auths) context) req
-        case authResult of
-          Indefinite -> print req
-          _ -> return ()
         csrf' <- csrfCookie
         let csrf = Cookie.def
              { Cookie.setCookieName = xsrfCookieName cookieSettings

@@ -28,7 +28,7 @@ import           Network.Wreq             (Options, auth, cookie,
                                            get, getWith, header, oauth2Bearer,
                                            responseBody, responseCookie,
                                            responseCookieJar, responseStatus)
-import           Servant
+import           Servant                  hiding (IsSecure (..))
 import           Servant.Auth.Server
 import           System.IO.Unsafe         (unsafePerformIO)
 import           Test.Hspec
@@ -218,6 +218,7 @@ cookieCfg = def
   { xsrfCookieName = "TheyDinedOnMince"
   , xsrfHeaderName = "AndSlicesOfQuince"
   , cookieExpires = Just future
+  , cookieIsSecure = NotSecure
   }
 
 -- | Takes a proxy parameter indicating which authentication systems to enable.
