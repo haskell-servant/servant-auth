@@ -39,6 +39,7 @@ spec = do
   authSpec
   cookieAuthSpec
   jwtAuthSpec
+  throwAllSpec
 
 ------------------------------------------------------------------------------
 -- * Auth {{{
@@ -191,6 +192,18 @@ jwtAuthSpec
       Left (e :: Error) -> fail $ show e
       Right v -> getWith (defaults & auth ?~ oauth2Bearer (BSL.toStrict v)) (url port)
     resp ^. responseStatus `shouldBe` status200
+
+-- }}}
+------------------------------------------------------------------------------
+-- * ThrowAll {{{
+
+throwAllSpec :: Spec
+throwAllSpec = describe "throwAll" $ do
+
+  it "works for plain values" $ do
+    let t :: Either ServantErr Int :<|> Either ServantErr Bool :<|> Either ServantErr String
+        t = throwAll err401
+    t `shouldBe` throwError err401 :<|> throwError err401 :<|> throwError err401
 
 -- }}}
 ------------------------------------------------------------------------------

@@ -7,7 +7,7 @@ without much extra work.
 
 ## How it works
 
-This library introduces a combinat `Auth`:
+This library introduces a combinator `Auth`:
 
 ~~~
 Auth (auths :: [*]) val
@@ -160,8 +160,9 @@ curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJkYXQiOnsiZW1haWwiOiJhbGlj
 
 ## Cookies
 
-What if, in addition to API tokens, we want to expose our API to browsers? We
-can, with a single character change
+What if, in addition to API tokens, we want to expose our API to browsers? All
+we need to do is say so!
+
 
 ### CSRF and the frontend
 

@@ -19,6 +19,11 @@ import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth.Server.Internal.Types
 
 -- This should probably also be from ClaimSet
+--
+-- | How to decode data from a JWT.
+--
+-- The default implementation assumes the data is stored in the unregistered
+-- @dat@ claim, and uses the @FromJSON@ instance to decode value from there.
 class FromJWT a where
   decodeJWT :: Jose.JWT -> Either T.Text a
   default decodeJWT :: FromJSON a => Jose.JWT -> Either T.Text a
@@ -28,6 +33,10 @@ class FromJWT a where
       Error e -> Left $ T.pack e
       Success a -> Right a
 
+-- | How to encode data from a JWT.
+--
+-- The default implementation stores data in the unregistered @dat@ claim, and
+-- uses the type's @ToJSON@ instance to encode the data.
 class ToJWT a where
   encodeJWT :: a -> Jose.ClaimsSet
   default encodeJWT :: ToJSON a => a -> Jose.ClaimsSet
@@ -70,11 +79,3 @@ makeJWT v cfg expiry = ExceptT $ do
    addExp claims = case expiry of
      Nothing -> claims
      Just e  -> claims & Jose.claimExp .~ Just (Jose.NumericDate e)
-  {-return $ Token . BSL.toStrict <$> (ejwt >>= Jose.encodeCompact)-}
-  {-where-}
-   {-ejwt' = Jose.createJWSJWT-}
-                    {-(key cfg)-}
-                    {-(Jose.newJWSHeader (Jose.Protected, Jose.HS256))-}
-                    {-(addExp Jose.emptyClaimsSet-}
-                       {-& Jose.unregisteredClaims .~ encodeJWTData dat)-}
-

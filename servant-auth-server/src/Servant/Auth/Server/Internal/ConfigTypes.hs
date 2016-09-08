@@ -44,9 +44,10 @@ defaultJWTSettings k = JWTSettings { key = k, audienceMatches = const Matches }
 -- Note that having the setting @Secure@ may cause testing failures if you are
 -- not testing over HTTPS.
 data CookieSettings = CookieSettings
+  {
   -- | 'Secure' means browsers will only send cookies over HTTPS. Default:
   -- @Secure@.
-  { cookieIsSecure :: IsSecure
+   cookieIsSecure :: IsSecure
   -- | How long from now until the cookie expires. Default: @Nothing@
   , cookieMaxAge   :: Maybe DiffTime
   -- | At what time the cookie expires. Default: @Nothing@
