@@ -1,9 +1,5 @@
 module Servant.Auth where
 
-import Data.Reflection (Reifies(reflect))
-import GHC.TypeLits (Symbol)
-import GHC.Generics (Generic)
-
 -- * Authentication
 
 -- | @Auth [auth1, auth2] val :> api@ represents an API protected *either* by
