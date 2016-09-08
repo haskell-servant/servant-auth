@@ -1,9 +1,12 @@
 sudo: false
 
 env:
-  - STACK_YAML=stack-ghc-7.8.4.yaml
   - STACK_YAML=stack.yaml
   - STACK_YAML=stack-ghc-8.0.1.yaml
+
+addons:
+  apt:
+    packages: libgmp-dev
 
 install:
   # stack
@@ -13,6 +16,8 @@ install:
   - stack --version
 
 script:
+  - stack setup --no-terminal
+  - stack build --ghc-options=-Werror --no-terminal
   - stack test --ghc-options=-Werror --no-terminal
 
 

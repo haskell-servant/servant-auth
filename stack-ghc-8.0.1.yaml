@@ -3,8 +3,8 @@ packages:
 - 'servant-auth'
 - 'servant-auth-server'
 - location:
-    git: https://github.com/jkarni/hs-jose
+    git: git@github.com:jkarni/hs-jose
     commit: a265aaaab85cf16de516805e2c2f51e4d58317df
   extra-dep: true
 extra-deps:
-resolver: lts-6.7
+resolver: nightly-2016-09-07
