@@ -77,7 +77,6 @@ instance ( HasServer (AddSetCookieApi api) ctxs, AreAuths auths ctxs v
 
       -- See note in AddSetCookie.hs about what this is doing.
       go :: (old ~ ServerT api Handler
-            , AddSetCookie old new
             , new ~ ServerT (AddSetCookieApi api) Handler
             ) => (AuthResult v -> ServerT api Handler)
          -> (AuthResult v, [Cookie.SetCookie]) -> new
