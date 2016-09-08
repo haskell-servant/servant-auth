@@ -15,11 +15,13 @@ module Servant.Auth.Server
   --
   -- Additional configuration happens via 'Context'.
 
+  ----------------------------------------------------------------------------
   -- * Auth
   -- | Basic types
     Auth
   , AuthResult(..)
 
+  ----------------------------------------------------------------------------
   -- * JWT
   -- | JSON Web Tokens (JWT) are a compact and secure way of transferring
   -- information between parties. In this library, they are signed by the
@@ -46,6 +48,8 @@ module Servant.Auth.Server
   , JWTSettings(..)
   , defaultJWTSettings
 
+
+  ----------------------------------------------------------------------------
   -- * Cookie
   -- | Cookies are also a method of identifying and authenticating a user. They
   -- are particular common when the client is a browser
@@ -63,7 +67,24 @@ module Servant.Auth.Server
 
   , AreAuths
 
+  ----------------------------------------------------------------------------
+  -- * BasicAuth
+  -- ** Combinator
+  -- | Re-exported from 'servant-auth'
+  , BasicAuth
 
+  -- ** Settings
+  , BasicAuthSettings(..)
+  , defaultBasicAuthSettings
+
+  -- ** Related types
+  , Username(..)
+
+  -- *** Re-exported from 'scrypt'
+  , Pass(..)
+  , EncryptedPass(..)
+
+  ----------------------------------------------------------------------------
   -- * Utilies
   , ThrowAll(throwAll)
   , generateKey
@@ -73,16 +94,17 @@ module Servant.Auth.Server
   , Default(def)
   ) where
 
-import Servant.Auth.Server.Internal ()
-import Servant.Auth.Server.Internal.Class
-import Servant.Auth.Server.Internal.JWT
-import Servant.Auth.Server.Internal.Types
-import Servant.Auth.Server.Internal.ThrowAll
-import Servant.Auth.Server.Internal.ConfigTypes
+import Data.Default.Class                       (Default (def))
 import Servant.Auth
-import Data.Default.Class (Default(def))
+import Servant.Auth.Server.Internal             ()
+import Servant.Auth.Server.Internal.Class
+import Servant.Auth.Server.Internal.ConfigTypes
+import Servant.Auth.Server.Internal.JWT
+import Servant.Auth.Server.Internal.ThrowAll
+import Servant.Auth.Server.Internal.Types
 
-import Crypto.JOSE as Jose
+import Crypto.JOSE   as Jose
+import Crypto.Scrypt
 
 -- | Generate a key suitable for use with 'defaultConfig'.
 generateKey :: IO Jose.JWK

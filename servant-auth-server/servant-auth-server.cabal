@@ -44,13 +44,16 @@ library
     , unordered-containers
     , aeson
     , lens
+    , entropy
+    , scrypt
     , crypto-api
-    , DRBG
     , data-default-class
+    , http-api-data
   exposed-modules:
       Servant.Auth.Server
       Servant.Auth.Server.Internal
       Servant.Auth.Server.Internal.AddSetCookie
+      Servant.Auth.Server.Internal.BasicAuth
       Servant.Auth.Server.Internal.Class
       Servant.Auth.Server.Internal.ConfigTypes
       Servant.Auth.Server.Internal.Cookie
@@ -85,9 +88,11 @@ executable readme
     , unordered-containers
     , aeson
     , lens
+    , entropy
+    , scrypt
     , crypto-api
-    , DRBG
     , data-default-class
+    , http-api-data
     , servant-auth
     , servant-auth-server
     , servant-server
@@ -122,9 +127,11 @@ test-suite spec
     , unordered-containers
     , aeson
     , lens
+    , entropy
+    , scrypt
     , crypto-api
-    , DRBG
     , data-default-class
+    , http-api-data
     , servant-auth-server
     , hspec > 2 && < 3
     , QuickCheck >= 2.8 && < 2.9

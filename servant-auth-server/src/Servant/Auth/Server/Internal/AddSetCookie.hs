@@ -1,14 +1,13 @@
-{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE PolyKinds            #-}
 {-# LANGUAGE UndecidableInstances #-}
 module Servant.Auth.Server.Internal.AddSetCookie where
 
 import           Blaze.ByteString.Builder (toByteString)
-import           Crypto.Random
-import           Crypto.Random.DRBG       (CtrDRBG)
 import qualified Data.ByteString          as BS
 import qualified Data.ByteString.Base64   as BS64
 import           Data.Monoid
 import           Servant
+import           System.Entropy           (getEntropy)
 import           Web.Cookie
 
 -- What are we doing here? Well, the idea is to add headers to the response,
@@ -56,8 +55,4 @@ instance {-# OVERLAPPABLE #-}
 
 
 csrfCookie :: IO BS.ByteString
-csrfCookie = do
-   g <- newGenIO :: IO CtrDRBG
-   case genBytes 16 g of
-     Left e -> error $ show e
-     Right (r, _) -> return $ BS64.encode r
+csrfCookie = BS64.encode <$> getEntropy 32

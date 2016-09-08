@@ -169,6 +169,31 @@ curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJkYXQiOnsiZW1haWwiOiJhbGlj
 What if, in addition to API tokens, we want to expose our API to browsers? All
 we need to do is say so!
 
+mainWithCookies :: IO ()
+mainWithCookies = do
+  -- We *also* need a key to sign the cookies
+  myKey <- generateKey
+  -- Adding some configurations. 'Cookie' requires, in addition to
+  -- CookieSettings, JWTSettings (for signing), so everything is just as before
+  let jwtCfg = defaultJWTSettings myKey
+      cfg = defaultCookieSettings :. jwtCfg :. EmptyContext
+      --- Here is the actual change
+      api = Proxy :: Proxy (API '[JWT])
+  _ <- forkIO $ run 7249 $ serveWithContext api cfg server
+
+  putStrLn "Started server on localhost:7249"
+  putStrLn "Enter name and email separated by a space for a new token"
+
+  forever $ do
+     xs <- words <$> getLine
+     case xs of
+       [name', email'] -> do
+         etoken <- runExceptT $ makeJWT (User name' email') jwtCfg Nothing
+         case etoken of
+           Left e -> putStrLn $ "Error generating token:t" ++ show e
+           Right v -> putStrLn $ "New token:\t" ++ show v
+       _ -> putStrLn "Expecting a name and email separated by spaces"
+
 
 ### CSRF and the frontend
 

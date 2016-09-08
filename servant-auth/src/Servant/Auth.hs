@@ -21,5 +21,12 @@ data JWT
 -- header, for CSRF protection.
 data Cookie
 
+
+-- We could use 'servant''s BasicAuth, but then we don't get control over the
+-- documentation (also, we don't currently depend on servant!)
+--
+-- | Basic Auth.
+data BasicAuth
+
 -- | Login via a form.
 data FormLogin form
