@@ -7,4 +7,5 @@ packages:
     commit: a265aaaab85cf16de516805e2c2f51e4d58317df
   extra-dep: true
 extra-deps:
+apply-ghc-options: targets
 resolver: lts-6.7

@@ -28,12 +28,6 @@ data AuthResult val
 Your handlers will get a value of type `AuthResult Something`, and can decide
 what to do with it.
 
-The library additionally handles CSRF protection and cookies for you.
-
-## API tokens
-
-The following example illustrates how to protect an API with tokens.
-
 ~~~ {.haskell}
 import Control.Concurrent (forkIO)
 import Control.Monad (forever)
@@ -41,6 +35,7 @@ import Control.Monad.Trans.Except (runExceptT)
 import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics (Generic)
 import Network.Wai.Handler.Warp (run)
+import System.Environment (getArgs)
 import Servant
 import Servant.Auth.Server
 
@@ -58,14 +53,10 @@ type Protected = "name" :> Get '[JSON] String
 
 type Unprotected = Get '[JSON] ()
 
--- | 'Protected' will be protected by JWT tokens.
-type API = Auth '[JWT] User :> Protected
-      :<|> Unprotected
+-- | 'Protected' will be protected by 'auths', which we still have to specify.
+type API auths = Auth auths User :> Protected :<|> Unprotected
 
-api :: Proxy API
-api = Proxy
-
-server :: Server API
+server :: Server (API auths)
 server = protected :<|> unprotected
   where
    -- If we get an "Authenticated v", we can trust the information in v, since
@@ -75,16 +66,31 @@ server = protected :<|> unprotected
    protected _ = throwError err401 :<|> throwError err401
    unprotected = return ()
 
+~~~
+
+The code is common to all authentications. In order to pick one or more specific
+authentication methods, all we need to do is provide the expect configuration
+parameters.
+
+## API tokens
+
+The following example illustrates how to protect an API with tokens.
+
+
+~~~ {.haskell}
 -- In main, we fork the server, and allow new tokens to be created in the
 -- command line for the specified user name and email.
-main :: IO ()
-main = do
+mainWithJWT :: IO ()
+mainWithJWT = do
   -- We generate the key for signing tokens. This would generally be persisted,
   -- and kept safely
   myKey <- generateKey
-  -- Adding some configurations.
+  -- Adding some configurations. All authentications require CookieSettings to
+  -- be in the context.
   let jwtCfg = defaultJWTSettings myKey
       cfg = defaultCookieSettings :. jwtCfg :. EmptyContext
+      --- Here we actually make concrete
+      api = Proxy :: Proxy (API '[JWT])
   _ <- forkIO $ run 7249 $ serveWithContext api cfg server
 
   putStrLn "Started server on localhost:7249"
@@ -106,7 +112,7 @@ And indeed:
 
 ~~~ { . bash }
 
-./readme
+./readme JWT
 
     Started server on localhost:7249
     Enter name and email separated by a space for a new token
@@ -191,3 +197,21 @@ $.ajaxPrefilter(function(opts, origOpts, xhr) {
 
 I *believe* nothing at all needs to be done if you're using Angular's `$http`
 directive, but I haven't tested this.
+
+# Note on this README
+
+This README is a literate haskell file. Here is 'main', allowing you to pick
+between the examples above.
+
+~~~ { .haskell }
+
+main :: IO ()
+main = do
+  args <- getArgs
+  let usage = "Usage: readme (JWT|Cookie)"
+  case args of
+    ["JWT"] -> mainWithJWT
+    ["Cookie"] -> error "not implemented yet"
+    e -> error $ "Arguments: \"" ++ unwords e ++ "\" not understood\n" ++ usage
+
+~~~

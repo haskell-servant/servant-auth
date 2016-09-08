@@ -23,10 +23,9 @@ import           Network.HTTP.Client      (HttpException (StatusCodeException),
 import           Network.HTTP.Types       (Status, status200, status401)
 import           Network.Wai              (Application)
 import           Network.Wai.Handler.Warp (testWithApplication)
-import           Network.Wreq             (Options, auth, cookie,
-                                           cookieExpiryTime, cookies, defaults,
-                                           get, getWith, header, oauth2Bearer,
-                                           responseBody, responseCookie,
+import           Network.Wreq             (Options, auth, cookieExpiryTime,
+                                           cookies, defaults, get, getWith,
+                                           header, oauth2Bearer, responseBody,
                                            responseCookieJar, responseStatus)
 import           Servant                  hiding (IsSecure (..))
 import           Servant.Auth.Server
@@ -276,9 +275,9 @@ addJwtToCookie jwt = case jwt >>= encodeCompact of
     $ defaults & header "Cookie" .~ ["JWT-Cookie=" <> BSL.toStrict v]
 
 addCookie :: Options -> BS.ByteString -> Options
-addCookie opts cookie = opts & header "Cookie" %~ \c -> case c of
-                        [h] -> [cookie <> "; " <> h]
-                        []  -> [cookie]
+addCookie opts cookie' = opts & header "Cookie" %~ \c -> case c of
+                        [h] -> [cookie' <> "; " <> h]
+                        []  -> [cookie']
                         _   -> error "expecting single cookie header"
 
 shouldHTTPErrorWith :: IO a -> Status -> Expectation
