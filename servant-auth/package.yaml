@@ -16,7 +16,6 @@ ghc-options: -Wall
 dependencies:
   - base >= 4.7 && < 4.10
   - text
-  - reflection
 
 default-extensions:
   - AutoDeriveTypeable

@@ -73,16 +73,15 @@ module Servant.Auth.Server
   -- | Re-exported from 'servant-auth'
   , BasicAuth
 
+  -- ** Classes
+  , FromBasicAuthData(..)
+
   -- ** Settings
-  , BasicAuthSettings(..)
-  , defaultBasicAuthSettings
+  , BasicAuthCfg
 
   -- ** Related types
-  , Username(..)
-
-  -- *** Re-exported from 'scrypt'
-  , Pass(..)
-  , EncryptedPass(..)
+  , BasicAuthData(..)
+  , IsPasswordCorrect(..)
 
   ----------------------------------------------------------------------------
   -- * Utilies
@@ -97,14 +96,15 @@ module Servant.Auth.Server
 import Data.Default.Class                       (Default (def))
 import Servant.Auth
 import Servant.Auth.Server.Internal             ()
+import Servant.Auth.Server.Internal.BasicAuth
 import Servant.Auth.Server.Internal.Class
 import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth.Server.Internal.JWT
 import Servant.Auth.Server.Internal.ThrowAll
 import Servant.Auth.Server.Internal.Types
 
+import Servant (BasicAuthData(..))
 import Crypto.JOSE   as Jose
-import Crypto.Scrypt
 
 -- | Generate a key suitable for use with 'defaultConfig'.
 generateKey :: IO Jose.JWK

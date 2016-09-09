@@ -3,10 +3,11 @@ module Servant.Auth.Server.Internal.Class where
 
 import Servant.Auth
 import Data.Monoid
-import Servant
+import Servant hiding (BasicAuth)
 
 import Servant.Auth.Server.Internal.Types
 import Servant.Auth.Server.Internal.ConfigTypes
+import Servant.Auth.Server.Internal.BasicAuth
 import Servant.Auth.Server.Internal.Cookie
 import Servant.Auth.Server.Internal.JWT
 
@@ -24,6 +25,10 @@ instance FromJWT usr => IsAuth Cookie usr where
 instance FromJWT usr => IsAuth JWT usr where
   type AuthArgs JWT = '[JWTSettings]
   runAuth _ _ = jwtAuthCheck
+
+instance FromBasicAuthData usr => IsAuth BasicAuth usr where
+  type AuthArgs BasicAuth = '[BasicAuthCfg]
+  runAuth _ _ = basicAuthCheck
 
 -- * Helper
 

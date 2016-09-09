@@ -27,7 +27,7 @@ import           Network.Wreq             (Options, auth, cookieExpiryTime,
                                            cookies, defaults, get, getWith,
                                            header, oauth2Bearer, responseBody,
                                            responseCookieJar, responseStatus)
-import           Servant                  hiding (IsSecure (..))
+import           Servant                  hiding (IsSecure (..), BasicAuth)
 import           Servant.Auth.Server
 import           System.IO.Unsafe         (unsafePerformIO)
 import           Test.Hspec
@@ -39,6 +39,7 @@ spec = do
   cookieAuthSpec
   jwtAuthSpec
   throwAllSpec
+  basicAuthSpec
 
 ------------------------------------------------------------------------------
 -- * Auth {{{
@@ -145,7 +146,7 @@ cookieAuthSpec
 
 jwtAuthSpec :: Spec
 jwtAuthSpec
-  = describe "JWT authentication"
+  = describe "The JWT combinator"
   $ around (testWithApplication . return $ app jwtOnlyApi) $ do
 
   it "fails if 'nbf' is set to a future date" $ \port -> property $
@@ -194,6 +195,18 @@ jwtAuthSpec
 
 -- }}}
 ------------------------------------------------------------------------------
+-- * Basic Auth {{{
+
+basicAuthSpec :: Spec
+basicAuthSpec = describe "The BasicAuth combinator"
+  $ around (testWithApplication . return $ app basicAuthApi) $ do
+
+  it "succeeds with the correct password and username" $ const pending
+  it "fails with non-existent user" $ const pending
+  it "fails with incorrect password" $ const pending
+
+-- }}}
+------------------------------------------------------------------------------
 -- * ThrowAll {{{
 
 throwAllSpec :: Spec
@@ -216,9 +229,11 @@ jwtOnlyApi = Proxy
 cookieOnlyApi :: Proxy (API '[Cookie])
 cookieOnlyApi = Proxy
 
+basicAuthApi :: Proxy (API '[BasicAuth])
+basicAuthApi = Proxy
+
 jwtAndCookieApi :: Proxy (API '[JWT, Cookie])
 jwtAndCookieApi = Proxy
-
 
 theKey :: JWK
 theKey = unsafePerformIO . genJWK $ OctGenParam 256
@@ -233,14 +248,22 @@ cookieCfg = def
   , cookieIsSecure = NotSecure
   }
 
+jwtCfg :: JWTSettings
+jwtCfg = defaultJWTSettings theKey
+
+instance FromBasicAuthData User where
+  fromBasicAuthData (BasicAuthData usr pwd) _
+    = return $ if usr == "ali" && pwd == "Open sesame"
+      then Authenticated $ User "ali" "ali@the-thieves-den.com"
+      else Indefinite
+
+type instance BasicAuthCfg = JWK
+
 -- | Takes a proxy parameter indicating which authentication systems to enable.
 app :: AreAuths auths '[CookieSettings, JWTSettings, JWK] User
   => Proxy (API auths) -> Application
 app api = serveWithContext api ctx server
   where
-    jwtCfg :: JWTSettings
-    jwtCfg = defaultJWTSettings theKey
-
     ctx = cookieCfg :. jwtCfg :. theKey :. EmptyContext
 
 
