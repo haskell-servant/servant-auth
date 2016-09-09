@@ -24,7 +24,6 @@ class FromBasicAuthData a where
   fromBasicAuthData :: BasicAuthData -> BasicAuthCfg -> IO (AuthResult a)
 
 basicAuthCheck :: FromBasicAuthData usr => BasicAuthCfg -> AuthCheck usr
-basicAuthCheck cfg = AuthCheck $ \req -> do
-  case decodeBAHdr req of
-    Nothing -> return Indefinite
-    Just baData -> fromBasicAuthData baData cfg
+basicAuthCheck cfg = AuthCheck $ \req -> case decodeBAHdr req of
+  Nothing -> return Indefinite
+  Just baData -> fromBasicAuthData baData cfg

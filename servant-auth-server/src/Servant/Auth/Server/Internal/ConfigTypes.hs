@@ -1,4 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Servant.Auth.Server.Internal.ConfigTypes where
 
 import           Control.Lens

@@ -84,7 +84,7 @@ instance MonadIO AuthCheck where
   liftIO action = AuthCheck $ const $ Authenticated <$> action
 
 instance MonadTime AuthCheck where
-  currentTime = liftIO $ getCurrentTime
+  currentTime = liftIO getCurrentTime
 
 instance Alternative AuthCheck where
   empty = mzero

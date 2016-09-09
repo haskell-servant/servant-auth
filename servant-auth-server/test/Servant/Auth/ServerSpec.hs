@@ -246,7 +246,7 @@ throwAllSpec = describe "throwAll" $ do
   it "works for function types" $ property $ \i -> do
     let t :: Int -> (Either ServantErr Bool :<|> Either ServantErr String)
         t = throwAll err401
-        expected = \_ -> throwError err401 :<|> throwError err401
+        expected _ = throwError err401 :<|> throwError err401
     t i `shouldBe` expected i
 
 -- }}}

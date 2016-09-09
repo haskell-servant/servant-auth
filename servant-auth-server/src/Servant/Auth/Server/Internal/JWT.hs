@@ -40,7 +40,7 @@ class FromJWT a where
 class ToJWT a where
   encodeJWT :: a -> Jose.ClaimsSet
   default encodeJWT :: ToJSON a => a -> Jose.ClaimsSet
-  encodeJWT a = Jose.addClaim "dat" (toJSON a) $ Jose.emptyClaimsSet
+  encodeJWT a = Jose.addClaim "dat" (toJSON a) Jose.emptyClaimsSet
 
 jwtAuthCheck :: FromJWT usr => JWTSettings -> AuthCheck usr
 jwtAuthCheck config = do
@@ -66,7 +66,8 @@ jwtAuthCheck config = do
 
 
 -- | Creates a JWT containing the specified data. The data is stored in the
--- @dat@ claim. The token will be valid for the period specified.
+-- @dat@ claim. The 'Maybe UTCTime' argument indicates the time at which the
+-- token expires.
 makeJWT :: ToJWT a
   => a -> JWTSettings -> Maybe UTCTime -> IO (Either Jose.Error BSL.ByteString)
 makeJWT v cfg expiry = do
