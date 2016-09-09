@@ -194,20 +194,8 @@ mainWithCookies = do
       cfg = defaultCookieSettings :. jwtCfg :. EmptyContext
       --- Here is the actual change
       api = Proxy :: Proxy (API '[JWT])
-  _ <- forkIO $ run 7249 $ serveWithContext api cfg server
+  run 7249 $ serveWithContext api cfg server
 
-  putStrLn "Started server on localhost:7249"
-  putStrLn "Enter name and email separated by a space for a new token"
-
-  forever $ do
-     xs <- words <$> getLine
-     case xs of
-       [name', email'] -> do
-         etoken <- makeJWT (User name' email') jwtCfg Nothing
-         case etoken of
-           Left e -> putStrLn $ "Error generating token:t" ++ show e
-           Right v -> putStrLn $ "New token:\t" ++ show v
-       _ -> putStrLn "Expecting a name and email separated by spaces"
 
 -- Here is the login handler
 checkCreds :: Login -> Handler NoContent
