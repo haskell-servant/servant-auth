@@ -68,8 +68,8 @@ jwtAuthCheck config = do
 -- | Creates a JWT containing the specified data. The data is stored in the
 -- @dat@ claim. The token will be valid for the period specified.
 makeJWT :: ToJWT a
-  => a -> JWTSettings -> Maybe UTCTime -> ExceptT Jose.Error IO BSL.ByteString
-makeJWT v cfg expiry = ExceptT $ do
+  => a -> JWTSettings -> Maybe UTCTime -> IO (Either Jose.Error BSL.ByteString)
+makeJWT v cfg expiry = do
   ejwt <- Jose.createJWSJWT (key cfg)
                             (Jose.newJWSHeader (Jose.Protected, Jose.HS256))
                             (addExp $ encodeJWT v)

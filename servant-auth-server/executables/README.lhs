@@ -31,7 +31,6 @@ what to do with it.
 ~~~ {.haskell}
 import Control.Concurrent (forkIO)
 import Control.Monad (forever)
-import Control.Monad.Trans.Except (runExceptT)
 import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics (Generic)
 import Network.Wai.Handler.Warp (run)
@@ -100,7 +99,7 @@ mainWithJWT = do
      xs <- words <$> getLine
      case xs of
        [name', email'] -> do
-         etoken <- runExceptT $ makeJWT (User name' email') jwtCfg Nothing
+         etoken <- makeJWT (User name' email') jwtCfg Nothing
          case etoken of
            Left e -> putStrLn $ "Error generating token:t" ++ show e
            Right v -> putStrLn $ "New token:\t" ++ show v

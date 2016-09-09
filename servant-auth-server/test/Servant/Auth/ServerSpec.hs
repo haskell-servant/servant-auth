@@ -5,8 +5,9 @@ import           Crypto.JOSE              (Alg (HS256, None), Error, JWK,
                                            KeyMaterialGenParam (OctGenParam),
                                            Protection (Protected), ToCompact,
                                            encodeCompact, genJWK, newJWSHeader)
-import           Crypto.JWT               (ClaimsSet, NumericDate (NumericDate),
-                                           claimExp, claimNbf, createJWSJWT,
+import           Crypto.JWT               (Audience (..), ClaimsSet,
+                                           NumericDate (NumericDate), claimAud,
+                                           claimNbf, createJWSJWT,
                                            emptyClaimsSet, unregisteredClaims)
 import           Data.Aeson               (FromJSON, ToJSON, Value, toJSON)
 import           Data.Aeson.Lens          (_JSON)
@@ -23,11 +24,12 @@ import           Network.HTTP.Client      (HttpException (StatusCodeException),
 import           Network.HTTP.Types       (Status, status200, status401)
 import           Network.Wai              (Application)
 import           Network.Wai.Handler.Warp (testWithApplication)
-import           Network.Wreq             (Options, auth, cookieExpiryTime,
-                                           cookies, defaults, get, getWith,
-                                           header, oauth2Bearer, responseBody,
-                                           responseCookieJar, responseStatus)
-import           Servant                  hiding (IsSecure (..), BasicAuth)
+import           Network.Wreq             (Options, auth, basicAuth,
+                                           cookieExpiryTime, cookies, defaults,
+                                           get, getWith, header, oauth2Bearer,
+                                           responseBody, responseCookieJar,
+                                           responseStatus)
+import           Servant                  hiding (BasicAuth, IsSecure (..))
 import           Servant.Auth.Server
 import           System.IO.Unsafe         (unsafePerformIO)
 import           Test.Hspec
@@ -54,8 +56,8 @@ authSpec
 
   it "succeeds if one authentication suceeds" $ \port -> property $
                                                 \(user :: User) -> do
-    jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256))
-      (claims $ toJSON user)
+    jwt <- makeJWT user jwtCfg Nothing -- (newJWSHeader (Protected, HS256))
+      {-(claims $ toJSON user)-}
     opts <- addJwtToHeader jwt
     resp <- getWith opts (url port)
     resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
@@ -149,24 +151,37 @@ jwtAuthSpec
   = describe "The JWT combinator"
   $ around (testWithApplication . return $ app jwtOnlyApi) $ do
 
+  it "fails if 'aud' does not match predicate" $ \port -> property $
+                                                \(user :: User) -> do
+    jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256))
+      (claims (toJSON user) & claimAud .~ Just (Audience ["boo"]))
+    opts <- addJwtToHeader (jwt >>= encodeCompact)
+    getWith opts (url port) `shouldHTTPErrorWith` status401
+
+  it "succeeds if 'aud' does match predicate" $ \port -> property $
+                                                \(user :: User) -> do
+    jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256))
+      (claims (toJSON user) & claimAud .~ Just (Audience ["anythingElse"]))
+    opts <- addJwtToHeader (jwt >>= encodeCompact)
+    resp <- getWith opts (url port)
+    resp ^. responseStatus `shouldBe` status200
+
   it "fails if 'nbf' is set to a future date" $ \port -> property $
                                                 \(user :: User) -> do
     jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256))
       (claims (toJSON user) & claimNbf .~ Just (NumericDate future))
-    opts <- addJwtToHeader jwt
+    opts <- addJwtToHeader (jwt >>= encodeCompact)
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
   it "fails if 'exp' is set to a past date" $ \port -> property $
                                               \(user :: User) -> do
-    jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256))
-      (claims (toJSON user) & claimExp .~ Just (NumericDate past))
+    jwt <- makeJWT user jwtCfg (Just past)
     opts <- addJwtToHeader jwt
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
   it "succeeds if 'exp' is set to a future date" $ \port -> property $
                                                    \(user :: User) -> do
-    jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256))
-      (claims (toJSON user) & claimExp .~ Just (NumericDate future))
+    jwt <- makeJWT user jwtCfg (Just future)
     opts <- addJwtToHeader jwt
     resp <- getWith opts (url port)
     resp ^. responseStatus `shouldBe` status200
@@ -174,7 +189,7 @@ jwtAuthSpec
   it "fails if JWT is not signed" $ \port -> property $ \(user :: User) -> do
     jwt <- createJWSJWT theKey (newJWSHeader (Protected, None))
                                (claims $ toJSON user)
-    opts <- addJwtToHeader jwt
+    opts <- addJwtToHeader (jwt >>= encodeCompact)
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
   it "fails if JWT does not use expected algorithm" $ const $
@@ -182,7 +197,7 @@ jwtAuthSpec
 
   it "fails if data is not valid JSON" $ \port -> do
     jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256)) (claims "{{")
-    opts <- addJwtToHeader jwt
+    opts <- addJwtToHeader (jwt >>= encodeCompact)
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
   it "suceeds as wreq's oauth2Bearer" $ \port -> property $ \(user :: User) -> do
@@ -201,9 +216,20 @@ basicAuthSpec :: Spec
 basicAuthSpec = describe "The BasicAuth combinator"
   $ around (testWithApplication . return $ app basicAuthApi) $ do
 
-  it "succeeds with the correct password and username" $ const pending
-  it "fails with non-existent user" $ const pending
-  it "fails with incorrect password" $ const pending
+  it "succeeds with the correct password and username" $ \port -> do
+    resp <- getWith (defaults & auth ?~ basicAuth "ali" "Open sesame") (url port)
+    resp ^. responseStatus `shouldBe` status200
+
+  it "fails with non-existent user" $ \port -> do
+    getWith (defaults & auth ?~ basicAuth "thief" "Open sesame") (url port)
+      `shouldHTTPErrorWith` status401
+
+  it "fails with incorrect password" $ \port -> do
+    getWith (defaults & auth ?~ basicAuth "ali" "phatic") (url port)
+      `shouldHTTPErrorWith` status401
+
+  it "fails with no auth header" $ \port -> do
+    get (url port) `shouldHTTPErrorWith` status401
 
 -- }}}
 ------------------------------------------------------------------------------
@@ -216,6 +242,12 @@ throwAllSpec = describe "throwAll" $ do
     let t :: Either ServantErr Int :<|> Either ServantErr Bool :<|> Either ServantErr String
         t = throwAll err401
     t `shouldBe` throwError err401 :<|> throwError err401 :<|> throwError err401
+
+  it "works for function types" $ property $ \i -> do
+    let t :: Int -> (Either ServantErr Bool :<|> Either ServantErr String)
+        t = throwAll err401
+        expected = \_ -> throwError err401 :<|> throwError err401
+    t i `shouldBe` expected i
 
 -- }}}
 ------------------------------------------------------------------------------
@@ -249,7 +281,8 @@ cookieCfg = def
   }
 
 jwtCfg :: JWTSettings
-jwtCfg = defaultJWTSettings theKey
+jwtCfg = (defaultJWTSettings theKey) { audienceMatches = \x ->
+    if x == "boo" then DoesNotMatch else Matches }
 
 instance FromBasicAuthData User where
   fromBasicAuthData (BasicAuthData usr pwd) _
@@ -257,6 +290,8 @@ instance FromBasicAuthData User where
       then Authenticated $ User "ali" "ali@the-thieves-den.com"
       else Indefinite
 
+-- Could be anything, really, but since this is already in the cfg we don't
+-- have to add it
 type instance BasicAuthCfg = JWK
 
 -- | Takes a proxy parameter indicating which authentication systems to enable.
@@ -285,8 +320,8 @@ past = parseTimeOrError True defaultTimeLocale "%Y-%m-%d" "1970-01-01"
 future :: UTCTime
 future = parseTimeOrError True defaultTimeLocale "%Y-%m-%d" "2070-01-01"
 
-addJwtToHeader :: ToCompact a => Either Error a -> IO Options
-addJwtToHeader jwt = case jwt >>= encodeCompact of
+addJwtToHeader :: Either Error BSL.ByteString -> IO Options
+addJwtToHeader jwt = case jwt of
   Left e -> fail $ show e
   Right v -> return
     $ defaults & header "Authorization" .~ ["Bearer " <> BSL.toStrict v]
