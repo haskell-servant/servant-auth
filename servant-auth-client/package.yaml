@@ -9,13 +9,17 @@ author:              Julian K. Arni
 maintainer:          jkarni@gmail.com
 copyright:           (c) Julian K. Arni
 github:              jkarni/servant-auth-client
-tested-with:         GHC == 7.8.3, GHC == 7.10.2, GHC == 8.0.1
+tested-with:         GHC == 7.10.2, GHC == 8.0.1
 
 ghc-options: -Wall
 
 dependencies:
   - base >= 4.7 && < 4.10
   - text
+  - bytestring
+  - servant-client
+  - servant-auth
+  - servant
 
 default-extensions:
   - AutoDeriveTypeable
@@ -50,6 +54,17 @@ tests:
       - servant-auth-client
       - hspec > 2 && < 3
       - QuickCheck >= 2.8 && < 2.9
+      - aeson
+      - bytestring
+      - http-client
+      - http-types
+      - servant-auth-server
+      - servant-server
+      - time
+      - transformers
+      - wai
+      - warp
+      - jose
   doctest:
     main:            Doctest.hs
     source-dirs:     test

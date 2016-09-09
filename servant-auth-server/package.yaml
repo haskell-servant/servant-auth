@@ -9,7 +9,7 @@ author:              Julian K. Arni
 maintainer:          jkarni@gmail.com
 copyright:           (c) Julian K. Arni
 github:              jkarni/servant-auth-server
-tested-with:         GHC == 7.8.3, GHC == 7.10.2, GHC == 8.0.1
+tested-with:         GHC == 7.10.2, GHC == 8.0.1
 
 ghc-options: -Wall
 

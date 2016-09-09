@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Servant.Auth where
 
 -- * Authentication
@@ -5,6 +6,8 @@ module Servant.Auth where
 -- | @Auth [auth1, auth2] val :> api@ represents an API protected *either* by
 -- @auth1@ or @auth2@
 data Auth (auths :: [*]) val
+
+-- ** Combinators
 
 -- | A JSON Web Token (JWT) in the the Authorization header:
 --
