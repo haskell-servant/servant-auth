@@ -1,0 +1,79 @@
+-- This file has been generated from package.yaml by hpack version 0.14.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           servant-auth-docs
+version:        0.1.0.0
+description:    Please see README.md
+homepage:       http://github.com/jkarni/servant-auth-docs#readme
+bug-reports:    https://github.com/jkarni/servant-auth-docs/issues
+author:         Julian K. Arni
+maintainer:     jkarni@gmail.com
+copyright:      (c) Julian K. Arni
+license:        BSD3
+license-file:   LICENSE
+tested-with:    GHC == 7.10.2, GHC == 8.0.1
+build-type:     Simple
+cabal-version:  >= 1.10
+
+source-repository head
+  type: git
+  location: https://github.com/jkarni/servant-auth-docs
+
+library
+  hs-source-dirs:
+      src
+  default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
+  ghc-options: -Wall
+  build-depends:
+      base >= 4.7 && < 4.10
+    , text
+    , servant-docs
+    , servant
+    , servant-auth
+    , lens
+  exposed-modules:
+      Servant.Auth.Docs
+  default-language: Haskell2010
+
+test-suite doctest
+  type: exitcode-stdio-1.0
+  main-is: Doctest.hs
+  hs-source-dirs:
+      test
+  default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
+  ghc-options: -Wall
+  build-depends:
+      base >= 4.7 && < 4.10
+    , text
+    , servant-docs
+    , servant
+    , servant-auth
+    , lens
+    , doctest >= 0.9 && < 0.12
+    , Glob >= 0.7 && < 0.8
+    , yaml == 0.8.*
+  other-modules:
+      Spec
+  default-language: Haskell2010
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs:
+      test
+  default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
+  ghc-options: -Wall
+  build-depends:
+      base >= 4.7 && < 4.10
+    , text
+    , servant-docs
+    , servant
+    , servant-auth
+    , lens
+    , servant-auth-docs
+    , hspec > 2 && < 3
+    , QuickCheck >= 2.8 && < 2.9
+  other-modules:
+      Doctest
+  default-language: Haskell2010
