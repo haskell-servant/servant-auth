@@ -1,6 +1,31 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Servant.Auth.Docs
   (
+  -- | The purpose of this package is provide the instance for 'servant-auth'
+  -- combinators needed for 'servant-docs' documentation generation.
+  --
+  -- >>> type API = Auth '[JWT, Cookie, BasicAuth] Int :> Get '[JSON] Int
+  -- >>> putStr $ markdown $ docs (Proxy :: Proxy API)
+  -- ## GET /
+  -- ...
+  -- #### Authentication
+  -- ...
+  -- This part of the API is protected by the following authentication mechanisms:
+  -- ...
+  --  * JSON Web Tokens ([JWTs](https://en.wikipedia.org/wiki/JSON_Web_Token))
+  --  * [Cookies](https://en.wikipedia.org/wiki/HTTP_cookie)
+  --  * [Basic Authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
+  -- ...
+  -- ...
+  -- Clients must supply the following data
+  -- ...
+  -- One of the following:
+  -- ...
+  --  * A JWT Token signed with this server's key
+  --  * Cookies automatically set by browsers, plus a header
+  --  * Cookies automatically set by browsers, plus a header
+  -- ...
+
   -- * Re-export
     JWT
   , BasicAuth
@@ -17,29 +42,6 @@ import Servant.Auth
 import Servant.Docs          hiding (pretty)
 import Servant.Docs.Internal (DocAuthentication (..), authInfo)
 
--- |
---
--- >>> type API = Auth '[JWT, Cookie, BasicAuth] Int :> Get '[JSON] Int
--- >>> putStr $ markdown $ docs (Proxy :: Proxy API)
--- ## GET /
--- ...
--- #### Authentication
--- ...
--- This part of the API is protected by the following authentication mechanisms:
--- ...
---  * JSON Web Tokens ([JWTs](https://en.wikipedia.org/wiki/JSON_Web_Token))
---  * [Cookies](https://en.wikipedia.org/wiki/HTTP_cookie)
---  * [Basic Authentication](https://en.wikipedia.org/wiki/Basic_access_authentication)
--- ...
--- ...
--- Clients must supply the following data
--- ...
--- One of the following:
--- ...
---  * A JWT Token signed with this server's key
---  * Cookies automatically set by browsers, plus a header
---  * Cookies automatically set by browsers, plus a header
--- ...
 instance (AllDocs auths, HasDocs api) => HasDocs (Auth auths r :> api) where
   docsFor _ (endpoint, action) =
     docsFor (Proxy :: Proxy api) (endpoint, action & authInfo %~ (|> info))

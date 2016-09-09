@@ -17,10 +17,10 @@ wwwAuthenticatedErr realm = err401 { errHeaders = [mkBAChallengerHdr realm] }
 type family BasicAuthCfg
 
 class FromBasicAuthData a where
-    -- | Whether the username exists and the password is correct.
-    -- Note that, rather than passing a 'Pass' to the function, we pass a
-    -- function that checks an 'EncryptedPass'. This is to make sure you don't
-    -- accidentally do something untoward with the password, like store it.
+  -- | Whether the username exists and the password is correct.
+  -- Note that, rather than passing a 'Pass' to the function, we pass a
+  -- function that checks an 'EncryptedPass'. This is to make sure you don't
+  -- accidentally do something untoward with the password, like store it.
   fromBasicAuthData :: BasicAuthData -> BasicAuthCfg -> IO (AuthResult a)
 
 basicAuthCheck :: FromBasicAuthData usr => BasicAuthCfg -> AuthCheck usr
