@@ -1,5 +1,7 @@
 # servant-auth
 
+[![Build Status](https://travis-ci.org/plow-technologies/servant-auth.svg?branch=master)](https://travis-ci.org/plow-technologies/servant-auth)
+
 This package provides safe and easy-to-use authentication options for
 `servant`. The same API can be protected via login and cookies, or API tokens,
 without much extra work.
@@ -9,7 +11,7 @@ without much extra work.
 
 This library introduces a combinator `Auth`:
 
-~~~
+~~~ {.haskell ignore}
 Auth (auths :: [*]) val
 ~~~
 
@@ -17,7 +19,7 @@ What `Auth [Auth1, Auth2] Something :> API` means is that `API` is protected by
 *either* `Auth1` *or* `Auth2`, and the result of authentication will be of type
 `AuthResult Something`, where :
 
-~~~
+~~~ {.haskell ignore}
 data AuthResult val
   = BadPassword
   | NoSuchUser
@@ -109,7 +111,7 @@ mainWithJWT = do
 
 And indeed:
 
-~~~ { . bash }
+~~~ {.bash}
 
 ./readme JWT
 
@@ -168,6 +170,7 @@ curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJkYXQiOnsiZW1haWwiOiJhbGlj
 What if, in addition to API tokens, we want to expose our API to browsers? All
 we need to do is say so!
 
+~~~ {.haskell}
 mainWithCookies :: IO ()
 mainWithCookies = do
   -- We *also* need a key to sign the cookies
@@ -187,12 +190,13 @@ mainWithCookies = do
      xs <- words <$> getLine
      case xs of
        [name', email'] -> do
-         etoken <- runExceptT $ makeJWT (User name' email') jwtCfg Nothing
+         etoken <- makeJWT (User name' email') jwtCfg Nothing
          case etoken of
            Left e -> putStrLn $ "Error generating token:t" ++ show e
            Right v -> putStrLn $ "New token:\t" ++ show v
        _ -> putStrLn "Expecting a name and email separated by spaces"
 
+~~~
 
 ### CSRF and the frontend
 
@@ -235,7 +239,7 @@ main = do
   let usage = "Usage: readme (JWT|Cookie)"
   case args of
     ["JWT"] -> mainWithJWT
-    ["Cookie"] -> error "not implemented yet"
+    ["Cookie"] -> mainWithCookies
     e -> error $ "Arguments: \"" ++ unwords e ++ "\" not understood\n" ++ usage
 
 ~~~
