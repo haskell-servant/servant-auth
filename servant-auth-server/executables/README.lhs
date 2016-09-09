@@ -31,6 +31,7 @@ Your handlers will get a value of type `AuthResult Something`, and can decide
 what to do with it.
 
 ~~~ {.haskell}
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 import Control.Concurrent (forkIO)
 import Control.Monad (forever)
 import Data.Aeson (FromJSON, ToJSON)
@@ -48,24 +49,36 @@ instance ToJWT User
 instance FromJSON User
 instance FromJWT User
 
+data Login = Login { username :: String, password :: String }
+   deriving (Eq, Show, Read, Generic)
+
+instance ToJSON Login
+instance FromJSON Login
 
 type Protected = "name" :> Get '[JSON] String
             :<|> "email" :> Get '[JSON] String
+            :<|> "login" :> ReqBody '[JSON] Login :> PostNoContent '[JSON] NoContent
+
+
+-- | 'Protected' will be protected by 'auths', which we still have to specify.
+protected :: AuthResult User -> Server Protected
+-- If we get an "Authenticated v", we can trust the information in v, since
+-- it was signed by a key we trust.
+protected (Authenticated user) =
+  return (name user) :<|> return (email user) :<|> const (return NoContent)
+-- Otherwise, if the user is logging in, we check the credentials. If not,
+-- we reject the requests as unauthenticated.
+protected _ = throwError err401 :<|> throwError err401 :<|> checkCreds
 
 type Unprotected = Get '[JSON] ()
 
--- | 'Protected' will be protected by 'auths', which we still have to specify.
-type API auths = Auth auths User :> Protected :<|> Unprotected
+unprotected :: Server Unprotected
+unprotected = return ()
+
+type API auths = (Auth auths User :> Protected) :<|> Unprotected
 
 server :: Server (API auths)
 server = protected :<|> unprotected
-  where
-   -- If we get an "Authenticated v", we can trust the information in v, since
-   -- it was signed by a key we trust.
-   protected (Authenticated user) = return (name user) :<|> return (email user)
-   -- Otherwise, we throw an error.
-   protected _ = throwError err401 :<|> throwError err401
-   unprotected = return ()
 
 ~~~
 
@@ -196,6 +209,10 @@ mainWithCookies = do
            Right v -> putStrLn $ "New token:\t" ++ show v
        _ -> putStrLn "Expecting a name and email separated by spaces"
 
+-- Here is the login handler
+checkCreds :: Login -> Handler NoContent
+checkCreds (Login "Ali Baba" "Open Sesame") = return NoContent
+checkCreds _ = throwError err401
 ~~~
 
 ### CSRF and the frontend
