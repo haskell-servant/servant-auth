@@ -1,0 +1,60 @@
+name:                servant-auth-client
+version:             0.1.0.0
+synopsis:
+description:         Please see README.md
+homepage:            http://github.com/jkarni/servant-auth-client#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Julian K. Arni
+maintainer:          jkarni@gmail.com
+copyright:           (c) Julian K. Arni
+github:              jkarni/servant-auth-client
+tested-with:         GHC == 7.8.3, GHC == 7.10.2, GHC == 8.0.1
+
+ghc-options: -Wall
+
+dependencies:
+  - base >= 4.7 && < 4.10
+  - text
+
+default-extensions:
+  - AutoDeriveTypeable
+  - ConstraintKinds
+  - DataKinds
+  - DefaultSignatures
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveTraversable
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - KindSignatures
+  - MultiParamTypeClasses
+  - OverloadedStrings
+  - RankNTypes
+  - ScopedTypeVariables
+  - TypeFamilies
+  - TypeOperators
+
+library:
+  source-dirs:      src
+  other-modules:    []
+
+tests:
+  spec:
+    main:            Spec.hs
+    source-dirs:     test
+    dependencies:
+      - servant-auth-client
+      - hspec > 2 && < 3
+      - QuickCheck >= 2.8 && < 2.9
+  doctest:
+    main:            Doctest.hs
+    source-dirs:     test
+    dependencies:
+      - doctest >= 0.9 && < 0.12
+      - Glob >= 0.7 && < 0.8
+      - yaml == 0.8.*
+
