@@ -18,8 +18,11 @@ install:
 script:
   - stack setup --no-terminal
   - stack build --ghc-options=-Werror --no-terminal
-  - stack test --ghc-options=-Werror --no-terminal
+  - stack test --ghc-options=-Werror --no-terminal --coverage
 
+after_script:
+  - travis_retry curl -L https://github.com/rubik/stack-hpc-coveralls/releases/download/v0.0.3.0/shc-linux-x64-$GHCVER.tar.bz2 | tar -xj
+  - ./shc combined all
 
 cache:
   directories:
