@@ -44,11 +44,12 @@ library
     , unordered-containers
     , aeson
     , lens
-    , entropy
     , scrypt
-    , crypto-api
     , data-default-class
+    , crypto-api
+    , cryptonite
     , http-api-data
+    , servant-client
   exposed-modules:
       Servant.Auth.Server
       Servant.Auth.Server.Internal
@@ -59,6 +60,7 @@ library
       Servant.Auth.Server.Internal.Cookie
       Servant.Auth.Server.Internal.FormLogin
       Servant.Auth.Server.Internal.JWT
+      Servant.Auth.Server.Internal.OpenID
       Servant.Auth.Server.Internal.ThrowAll
       Servant.Auth.Server.Internal.Types
   default-language: Haskell2010
@@ -88,11 +90,12 @@ executable readme
     , unordered-containers
     , aeson
     , lens
-    , entropy
     , scrypt
-    , crypto-api
     , data-default-class
+    , crypto-api
+    , cryptonite
     , http-api-data
+    , servant-client
     , servant-auth
     , servant-auth-server
     , servant-server
@@ -127,11 +130,12 @@ test-suite spec
     , unordered-containers
     , aeson
     , lens
-    , entropy
     , scrypt
-    , crypto-api
     , data-default-class
+    , crypto-api
+    , cryptonite
     , http-api-data
+    , servant-client
     , servant-auth-server
     , hspec > 2 && < 3
     , QuickCheck >= 2.8 && < 2.9

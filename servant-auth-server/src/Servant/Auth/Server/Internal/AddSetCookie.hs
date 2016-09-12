@@ -7,7 +7,7 @@ import qualified Data.ByteString          as BS
 import qualified Data.ByteString.Base64   as BS64
 import           Data.Monoid
 import           Servant
-import           System.Entropy           (getEntropy)
+import           Crypto.Random.Entropy           (getEntropy)
 import           Web.Cookie
 
 -- What are we doing here? Well, the idea is to add headers to the response,

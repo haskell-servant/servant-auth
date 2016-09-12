@@ -231,6 +231,9 @@ $.ajaxPrefilter(function(opts, origOpts, xhr) {
 I *believe* nothing at all needs to be done if you're using Angular's `$http`
 directive, but I haven't tested this.
 
+Note that CSRF protection only kicks in for the `Cookie` authentication
+mechanism. This means it will not interfere with your REST API or Basic Auth.
+
 # Note on this README
 
 This README is a literate haskell file. Here is 'main', allowing you to pick

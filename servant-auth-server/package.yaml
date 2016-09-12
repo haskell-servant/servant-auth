@@ -32,11 +32,12 @@ dependencies:
   - unordered-containers
   - aeson
   - lens
-  - entropy
   - scrypt
-  - crypto-api
   - data-default-class
+  - crypto-api
+  - cryptonite
   - http-api-data
+  - servant-client
 
 
 default-extensions:
