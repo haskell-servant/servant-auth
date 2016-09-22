@@ -237,8 +237,11 @@ basicAuthSpec = describe "The BasicAuth combinator"
 ------------------------------------------------------------------------------
 -- * Cookie {{{
 cookieStateSpec :: Spec
-cookieStateSpec = describe "The CookieState combinator"
-  $ around (testWithApplication . return $ app jwtAndCookieApi) $ do
+cookieStateSpec =
+  let ctx = cookieCfg :. jwtCfg :. theKey :. EmptyContext
+      cookieStateApp = serveWithContext cookieStateApi ctx serverCookieState
+  in describe "The CookieState combinator"
+  $ around (testWithApplication $ return cookieStateApp) $ do
 
   it "allows changing the cookie" $ \port -> property $ \user -> do
     jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256))
@@ -247,7 +250,7 @@ cookieStateSpec = describe "The CookieState combinator"
     let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
                          (xsrfCookieName cookieCfg <> "=blah")
     resp <- getWith opts (url port)
-    resp ^. responseBody . _JSON `shouldBe` Just (length $ name user)
+    resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
     let (cookieJar:_) = resp ^.. responseCookieJar
         Just xxsrf = find (\x -> cookie_name x == xsrfCookieName cookieCfg)
                    $ destroyCookieJar cookieJar
@@ -293,6 +296,9 @@ basicAuthApi = Proxy
 jwtAndCookieApi :: Proxy (API '[JWT, Cookie])
 jwtAndCookieApi = Proxy
 
+cookieStateApi :: Proxy (SetCookie User :> API '[BasicAuth, Cookie])
+cookieStateApi = Proxy
+
 theKey :: JWK
 theKey = unsafePerformIO . genJWK $ OctGenParam 256
 {-# NOINLINE theKey #-}
@@ -336,13 +342,13 @@ server = getInt
     getInt Indefinite = throwError err401
     getInt _ = throwError err403
 
-serverCookieState :: Server (SetCookie User :> API auths)
+serverCookieState :: Server (SetCookie User :> API '[BasicAuth, Cookie])
 serverCookieState = getInt
   where
-    getInt :: StateT User Handler Int
+    getInt :: StateT (AuthResult User) Handler Int
     getInt = do
       x <- get
-      modify' (\u -> u { name = 'a':name })
+      modify' $ fmap (\u -> u { name = 'a':name u })
       case x of
         Authenticated usr -> do
           return . length $ name usr

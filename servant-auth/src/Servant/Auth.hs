@@ -33,4 +33,4 @@ data Cookie
 data BasicAuth
 
 -- | A (sub) API that sets the cookie.
-data SetCookie val
+data AuthSettingCookie (auths :: [*]) val

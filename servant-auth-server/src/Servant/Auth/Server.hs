@@ -19,6 +19,7 @@ module Servant.Auth.Server
   -- * Auth
   -- | Basic types
     Auth
+  , AuthSettingCookie
   , AuthResult(..)
 
   ----------------------------------------------------------------------------
@@ -85,12 +86,6 @@ module Servant.Auth.Server
   -- ** Related types
   , BasicAuthData(..)
   , IsPasswordCorrect(..)
-
-  ----------------------------------------------------------------------------
-  -- * SetCookie
-  -- ** Combinator
-  -- | Re-exported from 'servant-auth'
-  , SetCookie
 
   ----------------------------------------------------------------------------
   -- * Utilies

@@ -2,14 +2,15 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Servant.Auth.Server.Internal where
 
-import           Control.Monad.Trans  (liftIO)
-import qualified Crypto.JOSE          as Jose
-import qualified Crypto.JWT           as Jose
-import qualified Data.ByteString.Lazy as BSL
-import           Servant              ((:>), Handler, HasServer (..),
-                                       Proxy (..), HasContextEntry(getContextEntry))
+import           Control.Monad.State.Strict
+import qualified Crypto.JOSE                as Jose
+import qualified Crypto.JWT                 as Jose
+import qualified Data.ByteString.Lazy       as BSL
+import           Servant                    ((:>), Handler,
+                                             HasContextEntry (getContextEntry),
+                                             HasServer (..), Proxy (..))
 import           Servant.Auth
-import qualified Web.Cookie           as Cookie
+import qualified Web.Cookie                 as Cookie
 
 import Servant.Auth.Server.Internal.AddSetCookie
 import Servant.Auth.Server.Internal.Class
@@ -19,16 +20,18 @@ import Servant.Auth.Server.Internal.Types
 
 import Servant.Server.Internal.RoutingApplication
 
-{-instance HasServer api ctx => HasServer (CookieState usr :> api) ctx where-}
-  {-type ServerT (CookieState usr :> api) m = ServerT api (StateT usr m)-}
+instance ( HasServer api ctxs, AreAuths auths ctxs v
+         ) => HasServer (Auth auths v :> api) ctxs where
+  type ServerT (Auth auths v :> api) m = AuthResult v -> ServerT api m
 
-  {-route _ context subserver =-}
-    {-route (Proxy :: Proxy (AddSetCookieApi api))-}
-          {-context-}
-          {-(fmap go subserver)-}
-    {-where-}
-      {-go-}
+  route _ context subserver =
+    route (Proxy :: Proxy api)
+          context
+          (subserver `addAuthCheck` authCheck)
 
+    where
+      authCheck :: DelayedIO (AuthResult v)
+      authCheck = withRequest $ \req -> liftIO $ runAuthCheck (runAuths (Proxy :: Proxy auths) context) req
 
 
 instance ( HasServer (AddSetCookieApi api) ctxs, AreAuths auths ctxs v
@@ -36,8 +39,8 @@ instance ( HasServer (AddSetCookieApi api) ctxs, AreAuths auths ctxs v
          , ToJWT v
          , HasContextEntry ctxs CookieSettings
          , HasContextEntry ctxs JWTSettings
-         ) => HasServer (Auth auths v :> api) ctxs where
-  type ServerT (Auth auths v :> api) m = AuthResult v -> ServerT api m
+         ) => HasServer (AuthSettingCookie auths v :> api) ctxs where
+  type ServerT (AuthSettingCookie auths v :> api) m = AuthResult v -> ServerT api m
 
   route _ context subserver =
     route (Proxy :: Proxy (AddSetCookieApi api))

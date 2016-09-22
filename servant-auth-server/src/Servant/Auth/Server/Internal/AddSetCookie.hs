@@ -54,5 +54,8 @@ instance {-# OVERLAPPABLE #-}
       go new old = old <> "\r\nSet-Cookie: " <> new
 
 
+type family DropArg f where
+  DropArg (a -> b) = b
+
 csrfCookie :: IO BS.ByteString
 csrfCookie = BS64.encode <$> getEntropy 32
