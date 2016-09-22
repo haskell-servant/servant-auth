@@ -26,9 +26,10 @@ import           Network.Wai              (Application)
 import           Network.Wai.Handler.Warp (testWithApplication)
 import           Network.Wreq             (Options, auth, basicAuth,
                                            cookieExpiryTime, cookies, defaults,
-                                           get, getWith, header, oauth2Bearer,
+                                           getWith, header, oauth2Bearer,
                                            responseBody, responseCookieJar,
                                            responseStatus)
+import qualified Network.Wreq as          W
 import           Servant                  hiding (BasicAuth, IsSecure (..))
 import           Servant.Auth.Server
 import           System.IO.Unsafe         (unsafePerformIO)
@@ -42,6 +43,7 @@ spec = do
   jwtAuthSpec
   throwAllSpec
   basicAuthSpec
+  cookieStateSpec
 
 ------------------------------------------------------------------------------
 -- * Auth {{{
@@ -52,7 +54,7 @@ authSpec
   $ around (testWithApplication . return $ app jwtAndCookieApi) $ do
 
   it "returns a 401 if all authentications are Indefinite" $ \port -> do
-    get (url port) `shouldHTTPErrorWith` status401
+    W.get (url port) `shouldHTTPErrorWith` status401
 
   it "succeeds if one authentication suceeds" $ \port -> property $
                                                 \(user :: User) -> do
@@ -229,7 +231,31 @@ basicAuthSpec = describe "The BasicAuth combinator"
       `shouldHTTPErrorWith` status401
 
   it "fails with no auth header" $ \port -> do
-    get (url port) `shouldHTTPErrorWith` status401
+    W.get (url port) `shouldHTTPErrorWith` status401
+
+-- }}}
+------------------------------------------------------------------------------
+-- * Cookie {{{
+cookieStateSpec :: Spec
+cookieStateSpec = describe "The CookieState combinator"
+  $ around (testWithApplication . return $ app jwtAndCookieApi) $ do
+
+  it "allows changing the cookie" $ \port -> property $ \user -> do
+    jwt <- createJWSJWT theKey (newJWSHeader (Protected, HS256))
+      (claims $ toJSON user)
+    opts' <- addJwtToCookie jwt
+    let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
+                         (xsrfCookieName cookieCfg <> "=blah")
+    resp <- getWith opts (url port)
+    resp ^. responseBody . _JSON `shouldBe` Just (length $ name user)
+    let (cookieJar:_) = resp ^.. responseCookieJar
+        Just xxsrf = find (\x -> cookie_name x == xsrfCookieName cookieCfg)
+                   $ destroyCookieJar cookieJar
+        opts2 = defaults
+          & cookies .~ Just cookieJar
+          & header (mk (xsrfHeaderName cookieCfg)) .~ [cookie_value xxsrf]
+    resp2 <- getWith opts2 (url port)
+    resp2 ^? responseBody . _JSON `shouldBe` Just (succ . length $ name user)
 
 -- }}}
 ------------------------------------------------------------------------------
@@ -309,6 +335,20 @@ server = getInt
     getInt (Authenticated usr) = return . length $ name usr
     getInt Indefinite = throwError err401
     getInt _ = throwError err403
+
+serverCookieState :: Server (SetCookie User :> API auths)
+serverCookieState = getInt
+  where
+    getInt :: StateT User Handler Int
+    getInt = do
+      x <- get
+      modify' (\u -> u { name = 'a':name })
+      case x of
+        Authenticated usr -> do
+          return . length $ name usr
+        Indefinite -> throwError err401
+        _ -> throwError err403
+
 
 -- }}}
 ------------------------------------------------------------------------------

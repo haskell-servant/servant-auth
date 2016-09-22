@@ -19,6 +19,18 @@ import Servant.Auth.Server.Internal.Types
 
 import Servant.Server.Internal.RoutingApplication
 
+{-instance HasServer api ctx => HasServer (CookieState usr :> api) ctx where-}
+  {-type ServerT (CookieState usr :> api) m = ServerT api (StateT usr m)-}
+
+  {-route _ context subserver =-}
+    {-route (Proxy :: Proxy (AddSetCookieApi api))-}
+          {-context-}
+          {-(fmap go subserver)-}
+    {-where-}
+      {-go-}
+
+
+
 instance ( HasServer (AddSetCookieApi api) ctxs, AreAuths auths ctxs v
          , AddSetCookie (ServerT api Handler) (ServerT (AddSetCookieApi api) Handler)
          , ToJWT v

@@ -32,5 +32,5 @@ data Cookie
 -- | Basic Auth.
 data BasicAuth
 
--- | Login via a form.
-data FormLogin form
+-- | A (sub) API that sets the cookie.
+data SetCookie val

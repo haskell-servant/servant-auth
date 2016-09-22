@@ -87,6 +87,12 @@ module Servant.Auth.Server
   , IsPasswordCorrect(..)
 
   ----------------------------------------------------------------------------
+  -- * SetCookie
+  -- ** Combinator
+  -- | Re-exported from 'servant-auth'
+  , SetCookie
+
+  ----------------------------------------------------------------------------
   -- * Utilies
   , ThrowAll(throwAll)
   , generateKey
@@ -94,8 +100,13 @@ module Servant.Auth.Server
 
   -- ** Re-exports
   , Default(def)
+  , StateT
+  , MonadState(..)
+  , modify'
+  , gets
   ) where
 
+import Control.Monad.State.Strict
 import Data.Default.Class                       (Default (def))
 import Servant.Auth
 import Servant.Auth.Server.Internal             ()
