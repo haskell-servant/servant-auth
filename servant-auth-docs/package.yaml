@@ -1,12 +1,13 @@
 name:                servant-auth-docs
-version:             0.1.0.0
-synopsis:
+version:             0.1.0.1
+synopsis:            servant-docs/servant-auth compatibility
 description:         Please see README.md
 homepage:            http://github.com/jkarni/servant-auth-docs#readme
 license:             BSD3
 license-file:        LICENSE
 author:              Julian K. Arni
 maintainer:          jkarni@gmail.com
+category:            Web, Servant, Authentication
 copyright:           (c) Julian K. Arni
 github:              jkarni/servant-auth-docs
 tested-with:         GHC == 7.10.2, GHC == 8.0.1

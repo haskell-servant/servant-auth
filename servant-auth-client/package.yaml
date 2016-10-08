@@ -1,12 +1,13 @@
 name:                servant-auth-client
-version:             0.1.0.0
-synopsis:
+version:             0.1.0.1
+synopsis:            servant-client/servant-auth compatibility
 description:         Please see README.md
 homepage:            http://github.com/jkarni/servant-auth-client#readme
 license:             BSD3
 license-file:        LICENSE
 author:              Julian K. Arni
 maintainer:          jkarni@gmail.com
+category:            Web, Servant, Authentication
 copyright:           (c) Julian K. Arni
 github:              jkarni/servant-auth-client
 tested-with:         GHC == 7.10.2, GHC == 8.0.1

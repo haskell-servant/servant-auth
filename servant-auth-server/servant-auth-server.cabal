@@ -3,8 +3,10 @@
 -- see: https://github.com/sol/hpack
 
 name:           servant-auth-server
-version:        0.1.0.0
+version:        0.1.0.1
+synopsis:       servant-server/servant-auth compatibility
 description:    Please see README.md
+category:       Web, Servant, Authentication
 homepage:       http://github.com/jkarni/servant-auth-server#readme
 bug-reports:    https://github.com/jkarni/servant-auth-server/issues
 author:         Julian K. Arni
