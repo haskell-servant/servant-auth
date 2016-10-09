@@ -3,8 +3,6 @@
 module Servant.Auth.Server.Internal where
 
 import           Control.Monad.Trans  (liftIO)
-import qualified Crypto.JOSE          as Jose
-import qualified Crypto.JWT           as Jose
 import qualified Data.ByteString.Lazy as BSL
 import           Servant              ((:>), Handler, HasServer (..),
                                        Proxy (..), HasContextEntry(getContextEntry))
@@ -57,10 +55,8 @@ instance ( HasServer (AddSetCookieApi api) ctxs, AreAuths auths ctxs v
 
       makeCookies :: AuthResult v -> IO [Cookie.SetCookie]
       makeCookies (Authenticated v) = do
-        ejwt <- Jose.createJWSJWT (key jwtSettings)
-                                  (Jose.newJWSHeader (Jose.Protected, Jose.HS256))
-                                  (encodeJWT v)
-        case ejwt >>= Jose.encodeCompact of
+        ejwt <- makeJWT v jwtSettings Nothing
+        case ejwt of
             Left _ -> return []
             Right jwt -> return [Cookie.def
                 { Cookie.setCookieName = "JWT-Cookie"

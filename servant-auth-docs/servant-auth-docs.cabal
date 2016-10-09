@@ -7,8 +7,8 @@ version:        0.1.0.1
 synopsis:       servant-docs/servant-auth compatibility
 description:    Please see README.md
 category:       Web, Servant, Authentication
-homepage:       http://github.com/jkarni/servant-auth-docs#readme
-bug-reports:    https://github.com/jkarni/servant-auth-docs/issues
+homepage:       http://github.com/plow-technologies/servant-auth#readme
+bug-reports:    https://github.com/plow-techologies/servant-auth/issues
 author:         Julian K. Arni
 maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
@@ -20,7 +20,7 @@ cabal-version:  >= 1.10
 
 source-repository head
   type: git
-  location: https://github.com/jkarni/servant-auth-docs
+  location: https://github.com/plow-techologies/servant-auth
 
 library
   hs-source-dirs:

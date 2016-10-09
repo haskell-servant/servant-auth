@@ -1,26 +1,29 @@
 name:                servant-auth-client
 version:             0.1.0.1
 synopsis:            servant-client/servant-auth compatibility
-description:         Please see README.md
-homepage:            http://github.com/jkarni/servant-auth-client#readme
+description:         |
+    This package provides instances that allow generating clients from 'servant'
+    APIs that use 'servant-auth's @Auth@ combinator.
+
+homepage:            http://github.com/plow-technologies/servant-auth#readme
 license:             BSD3
 license-file:        LICENSE
 author:              Julian K. Arni
 maintainer:          jkarni@gmail.com
 category:            Web, Servant, Authentication
 copyright:           (c) Julian K. Arni
-github:              jkarni/servant-auth-client
+github:              plow-techologies/servant-auth
 tested-with:         GHC == 7.10.2, GHC == 8.0.1
 
 ghc-options: -Wall
 
 dependencies:
-  - base >= 4.7 && < 4.10
+  - base                >= 4.7  && < 4.10
   - text
   - bytestring
-  - servant-client
-  - servant-auth
-  - servant
+  - servant-client      >= 0.7  && < 0.10
+  - servant-auth        == 0.1.*
+  - servant             >= 0.7  && < 0.10
 
 default-extensions:
   - AutoDeriveTypeable
@@ -73,4 +76,3 @@ tests:
       - doctest >= 0.9 && < 0.12
       - Glob >= 0.7 && < 0.8
       - yaml == 0.8.*
-

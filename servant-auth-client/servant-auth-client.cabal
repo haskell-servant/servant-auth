@@ -5,10 +5,11 @@
 name:           servant-auth-client
 version:        0.1.0.1
 synopsis:       servant-client/servant-auth compatibility
-description:    Please see README.md
+description:    This package provides instances that allow generating clients from 'servant'
+                APIs that use 'servant-auth's @Auth@ combinator.
 category:       Web, Servant, Authentication
-homepage:       http://github.com/jkarni/servant-auth-client#readme
-bug-reports:    https://github.com/jkarni/servant-auth-client/issues
+homepage:       http://github.com/plow-technologies/servant-auth#readme
+bug-reports:    https://github.com/plow-techologies/servant-auth/issues
 author:         Julian K. Arni
 maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
@@ -20,7 +21,7 @@ cabal-version:  >= 1.10
 
 source-repository head
   type: git
-  location: https://github.com/jkarni/servant-auth-client
+  location: https://github.com/plow-techologies/servant-auth
 
 library
   hs-source-dirs:
@@ -28,12 +29,12 @@ library
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.10
+      base                >= 4.7  && < 4.10
     , text
     , bytestring
-    , servant-client
-    , servant-auth
-    , servant
+    , servant-client      >= 0.7  && < 0.10
+    , servant-auth        == 0.1.*
+    , servant             >= 0.7  && < 0.10
   exposed-modules:
       Servant.Auth.Client
       Servant.Auth.Client.Internal
@@ -47,12 +48,12 @@ test-suite doctest
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.10
+      base                >= 4.7  && < 4.10
     , text
     , bytestring
-    , servant-client
-    , servant-auth
-    , servant
+    , servant-client      >= 0.7  && < 0.10
+    , servant-auth        == 0.1.*
+    , servant             >= 0.7  && < 0.10
     , doctest >= 0.9 && < 0.12
     , Glob >= 0.7 && < 0.8
     , yaml == 0.8.*
@@ -69,12 +70,12 @@ test-suite spec
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.10
+      base                >= 4.7  && < 4.10
     , text
     , bytestring
-    , servant-client
-    , servant-auth
-    , servant
+    , servant-client      >= 0.7  && < 0.10
+    , servant-auth        == 0.1.*
+    , servant             >= 0.7  && < 0.10
     , servant-auth-client
     , hspec > 2 && < 3
     , QuickCheck >= 2.8 && < 2.9

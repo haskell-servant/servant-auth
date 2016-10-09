@@ -4,10 +4,7 @@ packages:
 - 'servant-auth-server'
 - 'servant-auth-client'
 - 'servant-auth-docs'
-- location:
-    git: https://github.com/jkarni/hs-jose
-    commit: a265aaaab85cf16de516805e2c2f51e4d58317df
-  extra-dep: true
 extra-deps:
+- jose-0.5.0.0
 apply-ghc-options: targets
 resolver: lts-6.7

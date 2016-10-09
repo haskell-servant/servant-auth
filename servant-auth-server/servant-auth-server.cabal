@@ -5,10 +5,15 @@
 name:           servant-auth-server
 version:        0.1.0.1
 synopsis:       servant-server/servant-auth compatibility
-description:    Please see README.md
+description:    This package provides the required instances for using the @Auth@ combinator
+                in your 'servant' server.
+                .
+                Both cookie- and token- (REST API) based authentication is provided.
+                .
+                For a quick overview of the usage, see the <http://github.com/plow-technologies/servant-auth#readme README>.
 category:       Web, Servant, Authentication
-homepage:       http://github.com/jkarni/servant-auth-server#readme
-bug-reports:    https://github.com/jkarni/servant-auth-server/issues
+homepage:       http://github.com/plow-technologies/servant-auth#readme
+bug-reports:    https://github.com/plow-techologies/servant-auth/issues
 author:         Julian K. Arni
 maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
@@ -20,7 +25,7 @@ cabal-version:  >= 1.10
 
 source-repository head
   type: git
-  location: https://github.com/jkarni/servant-auth-server
+  location: https://github.com/plow-techologies/servant-auth
 
 library
   hs-source-dirs:
@@ -28,29 +33,27 @@ library
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.10
-    , text
-    , servant-auth
-    , cookie >= 0.4 && < 0.5
-    , wai
-    , mtl
-    , bytestring
-    , case-insensitive
-    , jose
-    , monad-time
-    , time
-    , servant-server
-    , base64-bytestring
-    , blaze-builder
-    , reflection
-    , unordered-containers
-    , aeson
-    , lens
-    , entropy
-    , scrypt
-    , crypto-api
-    , data-default-class
-    , http-api-data
+      base                    >= 4.7  && < 4.10
+    , text                    >= 1    && < 2
+    , servant-auth            == 0.1.*
+    , cookie                  >= 0.4  && < 0.5
+    , wai                     >= 3.2  && < 3.3
+    , mtl                     >= 2.2  && < 2.3
+    , bytestring              >= 0.10 && < 0.11
+    , case-insensitive        >= 1.2  && < 1.3
+    , jose                    >= 0.5  && < 0.6
+    , monad-time              >= 0.2  && < 0.3
+    , time                    >= 1.5  && < 1.6
+    , servant-server          >= 0.7  && < 0.10
+    , base64-bytestring       >= 1    && < 2
+    , blaze-builder           >= 0.4  && < 0.5
+    , unordered-containers    >= 0.2  && < 0.3
+    , aeson                   >= 0.11 && < 2
+    , lens                    >= 4    && < 5
+    , entropy                 >= 0.3  && < 0.4
+    , crypto-api              >= 0.13 && < 0.14
+    , data-default-class      >= 0.0  && < 0.1
+    , http-api-data           >= 0.2  && < 0.4
   exposed-modules:
       Servant.Auth.Server
       Servant.Auth.Server.Internal
@@ -72,29 +75,27 @@ executable readme
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall -pgmL markdown-unlit
   build-depends:
-      base >= 4.7 && < 4.10
-    , text
-    , servant-auth
-    , cookie >= 0.4 && < 0.5
-    , wai
-    , mtl
-    , bytestring
-    , case-insensitive
-    , jose
-    , monad-time
-    , time
-    , servant-server
-    , base64-bytestring
-    , blaze-builder
-    , reflection
-    , unordered-containers
-    , aeson
-    , lens
-    , entropy
-    , scrypt
-    , crypto-api
-    , data-default-class
-    , http-api-data
+      base                    >= 4.7  && < 4.10
+    , text                    >= 1    && < 2
+    , servant-auth            == 0.1.*
+    , cookie                  >= 0.4  && < 0.5
+    , wai                     >= 3.2  && < 3.3
+    , mtl                     >= 2.2  && < 2.3
+    , bytestring              >= 0.10 && < 0.11
+    , case-insensitive        >= 1.2  && < 1.3
+    , jose                    >= 0.5  && < 0.6
+    , monad-time              >= 0.2  && < 0.3
+    , time                    >= 1.5  && < 1.6
+    , servant-server          >= 0.7  && < 0.10
+    , base64-bytestring       >= 1    && < 2
+    , blaze-builder           >= 0.4  && < 0.5
+    , unordered-containers    >= 0.2  && < 0.3
+    , aeson                   >= 0.11 && < 2
+    , lens                    >= 4    && < 5
+    , entropy                 >= 0.3  && < 0.4
+    , crypto-api              >= 0.13 && < 0.14
+    , data-default-class      >= 0.0  && < 0.1
+    , http-api-data           >= 0.2  && < 0.4
     , servant-auth
     , servant-auth-server
     , servant-server
@@ -111,35 +112,31 @@ test-suite spec
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.10
-    , text
-    , servant-auth
-    , cookie >= 0.4 && < 0.5
-    , wai
-    , mtl
-    , bytestring
-    , case-insensitive
-    , jose
-    , monad-time
-    , time
-    , servant-server
-    , base64-bytestring
-    , blaze-builder
-    , reflection
-    , unordered-containers
-    , aeson
-    , lens
-    , entropy
-    , scrypt
-    , crypto-api
-    , data-default-class
-    , http-api-data
+      base                    >= 4.7  && < 4.10
+    , text                    >= 1    && < 2
+    , servant-auth            == 0.1.*
+    , cookie                  >= 0.4  && < 0.5
+    , wai                     >= 3.2  && < 3.3
+    , mtl                     >= 2.2  && < 2.3
+    , bytestring              >= 0.10 && < 0.11
+    , case-insensitive        >= 1.2  && < 1.3
+    , jose                    >= 0.5  && < 0.6
+    , monad-time              >= 0.2  && < 0.3
+    , time                    >= 1.5  && < 1.6
+    , servant-server          >= 0.7  && < 0.10
+    , base64-bytestring       >= 1    && < 2
+    , blaze-builder           >= 0.4  && < 0.5
+    , unordered-containers    >= 0.2  && < 0.3
+    , aeson                   >= 0.11 && < 2
+    , lens                    >= 4    && < 5
+    , entropy                 >= 0.3  && < 0.4
+    , crypto-api              >= 0.13 && < 0.14
+    , data-default-class      >= 0.0  && < 0.1
+    , http-api-data           >= 0.2  && < 0.4
     , servant-auth-server
     , hspec > 2 && < 3
     , QuickCheck >= 2.8 && < 2.9
     , aeson
-    , wai
-    , lens
     , lens-aeson
     , warp
     , wreq

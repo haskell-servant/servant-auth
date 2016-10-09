@@ -5,10 +5,17 @@
 name:           servant-auth
 version:        0.1.0.1
 synopsis:       Authentication combinators for servant
-description:    Please see README.md
+description:    This package provides an @Auth@ combinator for 'servant'. This combinator
+                allows using different authentication schemes in a straightforward way,
+                and possibly in conjunction with one another.
+                .
+                'servant-auth' additionally provides concrete authentication schemes, such
+                as Basic Access Authentication, JSON Web Tokens, and Cookies.
+                .
+                For more details on how to use this, see the <http://github.com/plow-technologies/servant-auth#readme README>.
 category:       Web, Servant, Authentication
-homepage:       http://github.com/jkarni/servant-auth#readme
-bug-reports:    https://github.com/jkarni/servant-auth/issues
+homepage:       http://github.com/plow-technologies/servant-auth#readme
+bug-reports:    https://github.com/plow-techologies/servant-auth/issues
 author:         Julian K. Arni
 maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
@@ -20,7 +27,7 @@ cabal-version:  >= 1.10
 
 source-repository head
   type: git
-  location: https://github.com/jkarni/servant-auth
+  location: https://github.com/plow-techologies/servant-auth
 
 library
   hs-source-dirs:
