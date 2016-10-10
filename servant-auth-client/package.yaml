@@ -1,10 +1,13 @@
 name:                servant-auth-client
-version:             0.1.0.1
+version:             0.2.0.0
 synopsis:            servant-client/servant-auth compatibility
 description:         |
-    This package provides instances that allow generating clients from 'servant'
-    APIs that use 'servant-auth's @Auth@ combinator.
+    This package provides instances that allow generating clients from
+    <https://hackage.haskell.org/package/servant servant>
+    APIs that use
+    <https://hackage.haskell.org/package/servant-auth servant-auth's> @Auth@ combinator.
 
+    For a quick overview of the usage, see the <http://github.com/plow-technologies/servant-auth#readme README>.
 homepage:            http://github.com/plow-technologies/servant-auth#readme
 license:             BSD3
 license-file:        LICENSE
@@ -22,7 +25,7 @@ dependencies:
   - text
   - bytestring
   - servant-client      >= 0.7  && < 0.10
-  - servant-auth        == 0.1.*
+  - servant-auth        == 0.2.*
   - servant             >= 0.7  && < 0.10
 
 default-extensions:

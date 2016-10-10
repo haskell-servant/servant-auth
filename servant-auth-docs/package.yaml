@@ -1,5 +1,5 @@
 name:                servant-auth-docs
-version:             0.1.0.1
+version:             0.2.0.0
 synopsis:            servant-docs/servant-auth compatibility
 description:         Please see README.md
 homepage:            http://github.com/plow-technologies/servant-auth#readme
@@ -19,7 +19,7 @@ dependencies:
   - text
   - servant-docs
   - servant
-  - servant-auth
+  - servant-auth == 0.2.*
   - lens
 
 

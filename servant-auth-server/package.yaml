@@ -1,5 +1,5 @@
 name:                servant-auth-server
-version:             0.1.0.1
+version:             0.2.0.0
 synopsis:            servant-server/servant-auth compatibility
 description:         |
     This package provides the required instances for using the @Auth@ combinator
@@ -23,7 +23,7 @@ ghc-options: -Wall
 dependencies:
   - base                    >= 4.7  && < 4.10
   - text                    >= 1    && < 2
-  - servant-auth            == 0.1.*
+  - servant-auth            == 0.2.*
   - cookie                  >= 0.4  && < 0.5
   - wai                     >= 3.2  && < 3.3
   - mtl                     >= 2.2  && < 2.3
