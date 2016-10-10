@@ -61,14 +61,14 @@ type Protected = "name" :> Get '[JSON] String
 
 
 -- | 'Protected' will be protected by 'auths', which we still have to specify.
-protected :: AuthResult User -> Server Protected
+protected :: CookieSettings -> JWTSettings -> AuthResult User -> Server Protected
 -- If we get an "Authenticated v", we can trust the information in v, since
 -- it was signed by a key we trust.
-protected (Authenticated user) =
+protected _ _ (Authenticated user) =
   return (name user) :<|> return (email user) :<|> const (return NoContent)
 -- Otherwise, if the user is logging in, we check the credentials. If not,
 -- we reject the requests as unauthenticated.
-protected _ = throwError err401 :<|> throwError err401 :<|> checkCreds
+protected cs jwts _ = throwError err401 :<|> throwError err401 :<|> checkCreds cs jwts
 
 type Unprotected = Get '[JSON] ()
 
@@ -77,8 +77,8 @@ unprotected = return ()
 
 type API auths = (Auth auths User :> Protected) :<|> Unprotected
 
-server :: Server (API auths)
-server = protected :<|> unprotected
+server :: CookieSettings -> JWTSettings -> Server (API auths)
+server cs jwts = protected cs jwt :<|> unprotected
 
 ~~~
 
@@ -105,7 +105,7 @@ mainWithJWT = do
       cfg = defaultCookieSettings :. jwtCfg :. EmptyContext
       --- Here we actually make concrete
       api = Proxy :: Proxy (API '[JWT])
-  _ <- forkIO $ run 7249 $ serveWithContext api cfg server
+  _ <- forkIO $ run 7249 $ serveWithContext api cfg (server defaultCookieSettings jwtCfg)
 
   putStrLn "Started server on localhost:7249"
   putStrLn "Enter name and email separated by a space for a new token"
@@ -194,12 +194,21 @@ mainWithCookies = do
       cfg = defaultCookieSettings :. jwtCfg :. EmptyContext
       --- Here is the actual change
       api = Proxy :: Proxy (API '[JWT])
-  run 7249 $ serveWithContext api cfg server
+  run 7249 $ serveWithContext api cfg (server defaultCookieSettings jwtCfg)
 
 
 -- Here is the login handler
-checkCreds :: Login -> Handler NoContent
-checkCreds (Login "Ali Baba" "Open Sesame") = return NoContent
+checkCreds :: CookieSettings -> JWTSettings -> Login
+  -> Handler '[Header "Set-Cookie" SetCookie] NoContent
+checkCreds (Login "Ali Baba" "Open Sesame") = do
+   -- Usually you would ask a database for the user info. This is just a
+   -- regular servant handler, so you can follow your normal database access
+   -- patterns (including using 'enter').
+   let usr = User "Ali Baba" "ali@email.com"
+   mcookie <- makeCookie cookieSettings jwtCfg v
+   case mcookie of
+     Nothing     -> throwError err401
+     Just cookie -> return $ addHeader cookie NoContent
 checkCreds _ = throwError err401
 ~~~
 

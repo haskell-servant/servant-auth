@@ -2,16 +2,17 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Servant.Auth.Server.Internal where
 
-import           Control.Monad.Trans  (liftIO)
-import qualified Data.ByteString.Lazy as BSL
-import           Servant              ((:>), Handler, HasServer (..),
-                                       Proxy (..), HasContextEntry(getContextEntry))
+import           Control.Monad.Trans (liftIO)
+import           Servant             ((:>), Handler,
+                                      HasContextEntry (getContextEntry),
+                                      HasServer (..), Proxy (..))
 import           Servant.Auth
-import qualified Web.Cookie           as Cookie
+import qualified Web.Cookie          as Cookie
 
 import Servant.Auth.Server.Internal.AddSetCookie
 import Servant.Auth.Server.Internal.Class
 import Servant.Auth.Server.Internal.ConfigTypes
+import Servant.Auth.Server.Internal.Cookie
 import Servant.Auth.Server.Internal.JWT
 import Servant.Auth.Server.Internal.Types
 
@@ -55,19 +56,10 @@ instance ( HasServer (AddSetCookieApi api) ctxs, AreAuths auths ctxs v
 
       makeCookies :: AuthResult v -> IO [Cookie.SetCookie]
       makeCookies (Authenticated v) = do
-        ejwt <- makeJWT v jwtSettings Nothing
+        ejwt <- makeCookie cookieSettings jwtSettings v
         case ejwt of
-            Left _ -> return []
-            Right jwt -> return [Cookie.def
-                { Cookie.setCookieName = "JWT-Cookie"
-                , Cookie.setCookieValue = BSL.toStrict jwt
-                , Cookie.setCookieHttpOnly = True
-                , Cookie.setCookieMaxAge = cookieMaxAge cookieSettings
-                , Cookie.setCookieExpires = cookieExpires cookieSettings
-                , Cookie.setCookieSecure = case cookieIsSecure cookieSettings of
-                    Secure -> True
-                    NotSecure -> False
-                }]
+            Nothing  -> return []
+            Just jwt -> return [jwt]
       makeCookies _ = return []
 
 

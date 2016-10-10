@@ -10,9 +10,10 @@ import           Data.CaseInsensitive (mk)
 import           Network.Wai          (requestHeaders)
 import           Web.Cookie
 
-import Servant.Auth.Server.Internal.JWT   (FromJWT (decodeJWT))
-import Servant.Auth.Server.Internal.Types
 import Servant.Auth.Server.Internal.ConfigTypes
+import Servant.Auth.Server.Internal.JWT         (FromJWT (decodeJWT), ToJWT,
+                                                 makeJWT)
+import Servant.Auth.Server.Internal.Types
 
 
 cookieAuthCheck :: FromJWT usr => CookieSettings -> JWTSettings -> AuthCheck usr
@@ -37,3 +38,19 @@ cookieAuthCheck ccfg jwtCfg = do
     Right v -> case decodeJWT v of
       Left _ -> mzero
       Right v' -> return v'
+
+makeCookie :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe SetCookie)
+makeCookie cookieSettings jwtSettings v = do
+  ejwt <- makeJWT v jwtSettings Nothing
+  case ejwt of
+    Left _ -> return Nothing
+    Right jwt -> return $ Just def
+        { setCookieName = "JWT-Cookie"
+        , setCookieValue = BSL.toStrict jwt
+        , setCookieHttpOnly = True
+        , setCookieMaxAge = cookieMaxAge cookieSettings
+        , setCookieExpires = cookieExpires cookieSettings
+        , setCookieSecure = case cookieIsSecure cookieSettings of
+            Secure -> True
+            NotSecure -> False
+        }
