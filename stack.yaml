@@ -6,5 +6,8 @@ packages:
 - 'servant-auth-docs'
 extra-deps:
 - jose-0.5.0.0
-apply-ghc-options: targets
+- servant-0.8
+- servant-server-0.8
+- servant-client-0.8
+- servant-docs-0.8
 resolver: lts-6.7

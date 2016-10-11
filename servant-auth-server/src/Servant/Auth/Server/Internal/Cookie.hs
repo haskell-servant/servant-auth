@@ -1,13 +1,15 @@
 module Servant.Auth.Server.Internal.Cookie where
 
+import           Blaze.ByteString.Builder (toByteString)
 import           Control.Monad.Except
 import           Control.Monad.Reader
-import qualified Crypto.JOSE          as Jose
-import qualified Crypto.JWT           as Jose
-import           Crypto.Util          (constTimeEq)
-import qualified Data.ByteString.Lazy as BSL
-import           Data.CaseInsensitive (mk)
-import           Network.Wai          (requestHeaders)
+import qualified Crypto.JOSE              as Jose
+import qualified Crypto.JWT               as Jose
+import           Crypto.Util              (constTimeEq)
+import qualified Data.ByteString          as BS
+import qualified Data.ByteString.Lazy     as BSL
+import           Data.CaseInsensitive     (mk)
+import           Network.Wai              (requestHeaders)
 import           Web.Cookie
 
 import Servant.Auth.Server.Internal.ConfigTypes
@@ -44,7 +46,7 @@ makeCookie cookieSettings jwtSettings v = do
   ejwt <- makeJWT v jwtSettings Nothing
   case ejwt of
     Left _ -> return Nothing
-    Right jwt -> return $ Just def
+    Right jwt -> return $ Just $ def
         { setCookieName = "JWT-Cookie"
         , setCookieValue = BSL.toStrict jwt
         , setCookieHttpOnly = True
@@ -54,3 +56,6 @@ makeCookie cookieSettings jwtSettings v = do
             Secure -> True
             NotSecure -> False
         }
+
+makeCookieBS :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe BS.ByteString)
+makeCookieBS a b c = fmap (toByteString . renderSetCookie)  <$> makeCookie a b c

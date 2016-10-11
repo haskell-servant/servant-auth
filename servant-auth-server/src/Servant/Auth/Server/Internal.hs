@@ -2,17 +2,16 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 module Servant.Auth.Server.Internal where
 
-import           Control.Monad.Trans (liftIO)
-import           Servant             ((:>), Handler,
-                                      HasContextEntry (getContextEntry),
-                                      HasServer (..), Proxy (..))
+import           Control.Monad.Trans  (liftIO)
+import           Servant              ((:>), Handler, HasServer (..),
+                                       Proxy (..), HasContextEntry(getContextEntry))
 import           Servant.Auth
-import qualified Web.Cookie          as Cookie
+import qualified Web.Cookie           as Cookie
 
 import Servant.Auth.Server.Internal.AddSetCookie
 import Servant.Auth.Server.Internal.Class
-import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth.Server.Internal.Cookie
+import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth.Server.Internal.JWT
 import Servant.Auth.Server.Internal.Types
 

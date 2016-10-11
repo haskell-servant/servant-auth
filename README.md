@@ -34,7 +34,9 @@ what to do with it.
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 import Control.Concurrent (forkIO)
 import Control.Monad (forever)
+import Control.Monad.Trans (liftIO)
 import Data.Aeson (FromJSON, ToJSON)
+import qualified Data.ByteString as BS
 import GHC.Generics (Generic)
 import Network.Wai.Handler.Warp (run)
 import System.Environment (getArgs)
@@ -55,30 +57,32 @@ data Login = Login { username :: String, password :: String }
 instance ToJSON Login
 instance FromJSON Login
 
-type Protected = "name" :> Get '[JSON] String
-            :<|> "email" :> Get '[JSON] String
-            :<|> "login" :> ReqBody '[JSON] Login :> PostNoContent '[JSON] NoContent
+type Protected
+   = "name" :> Get '[JSON] String
+ :<|> "email" :> Get '[JSON] String
 
 
 -- | 'Protected' will be protected by 'auths', which we still have to specify.
-protected :: CookieSettings -> JWTSettings -> AuthResult User -> Server Protected
+protected :: AuthResult User -> Server Protected
 -- If we get an "Authenticated v", we can trust the information in v, since
 -- it was signed by a key we trust.
-protected _ _ (Authenticated user) =
-  return (name user) :<|> return (email user) :<|> const (return NoContent)
--- Otherwise, if the user is logging in, we check the credentials. If not,
--- we reject the requests as unauthenticated.
-protected cs jwts _ = throwError err401 :<|> throwError err401 :<|> checkCreds cs jwts
+protected (Authenticated user) = return (name user) :<|> return (email user)
+-- Otherwise, we return a 401.
+protected _ = throwAll err401
 
-type Unprotected = Get '[JSON] ()
+type Unprotected =
+     Raw
+ :<|>   "login"
+     :> ReqBody '[JSON] Login
+     :> PostNoContent '[JSON] (Headers '[Header "Set-Cookie" BS.ByteString] NoContent)
 
-unprotected :: Server Unprotected
-unprotected = return ()
+unprotected :: CookieSettings -> JWTSettings -> Server Unprotected
+unprotected cs jwts = serveDirectory "example/static" :<|> checkCreds cs jwts
 
 type API auths = (Auth auths User :> Protected) :<|> Unprotected
 
 server :: CookieSettings -> JWTSettings -> Server (API auths)
-server cs jwts = protected cs jwt :<|> unprotected
+server cs jwts = protected :<|> unprotected cs jwts
 
 ~~~
 
@@ -199,17 +203,17 @@ mainWithCookies = do
 
 -- Here is the login handler
 checkCreds :: CookieSettings -> JWTSettings -> Login
-  -> Handler '[Header "Set-Cookie" SetCookie] NoContent
-checkCreds (Login "Ali Baba" "Open Sesame") = do
+  -> Handler (Headers '[Header "Set-Cookie" BS.ByteString] NoContent)
+checkCreds cookieSettings jwtSettings (Login "Ali Baba" "Open Sesame") = do
    -- Usually you would ask a database for the user info. This is just a
    -- regular servant handler, so you can follow your normal database access
    -- patterns (including using 'enter').
    let usr = User "Ali Baba" "ali@email.com"
-   mcookie <- makeCookie cookieSettings jwtCfg v
+   mcookie <- liftIO $ makeCookieBS cookieSettings jwtSettings usr
    case mcookie of
      Nothing     -> throwError err401
      Just cookie -> return $ addHeader cookie NoContent
-checkCreds _ = throwError err401
+checkCreds _ _ _ = throwError err401
 ~~~
 
 ### CSRF and the frontend
