@@ -24,7 +24,6 @@ import           Network.HTTP.Client      (HttpException (StatusCodeException),
                                            cookie_http_only, cookie_name,
                                            cookie_value, destroyCookieJar)
 import           Network.HTTP.Types       (Status, status200, status401)
-import           Network.Wai              (Application)
 import           Network.Wai.Handler.Warp (testWithApplication)
 import           Network.Wreq             (Options, auth, basicAuth,
                                            cookieExpiryTime, cookies, defaults,

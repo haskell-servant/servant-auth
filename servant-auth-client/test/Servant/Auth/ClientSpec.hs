@@ -13,7 +13,6 @@ import           GHC.Generics               (Generic)
 import           Network.HTTP.Client        (Manager, defaultManagerSettings,
                                              newManager)
 import           Network.HTTP.Types         (status401)
-import           Network.Wai                (Application)
 import           Network.Wai.Handler.Warp   (testWithApplication)
 import           Servant
 import           Servant.Client             (BaseUrl (..), ClientM,
