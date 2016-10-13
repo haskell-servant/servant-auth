@@ -1,27 +1,32 @@
+{-# LANGUAGE CPP            #-}
 {-# LANGUAGE DeriveAnyClass #-}
 module Servant.Auth.ClientSpec (spec) where
 
-import           Control.Monad.Trans.Except (runExceptT)
-import           Crypto.JOSE                (JWK,
-                                             KeyMaterialGenParam (OctGenParam),
-                                             genJWK)
-import           Data.Aeson                 (FromJSON (..), ToJSON (..))
-import qualified Data.ByteString.Lazy       as BSL
-import           Data.Time                  (UTCTime, defaultTimeLocale,
-                                             parseTimeOrError)
-import           GHC.Generics               (Generic)
-import           Network.HTTP.Client        (Manager, defaultManagerSettings,
-                                             newManager)
-import           Network.HTTP.Types         (status401)
-import           Network.Wai.Handler.Warp   (testWithApplication)
+import           Crypto.JOSE              (JWK,
+                                           KeyMaterialGenParam (OctGenParam),
+                                           genJWK)
+import           Data.Aeson               (FromJSON (..), ToJSON (..))
+import qualified Data.ByteString.Lazy     as BSL
+import           Data.Time                (UTCTime, defaultTimeLocale,
+                                           parseTimeOrError)
+import           GHC.Generics             (Generic)
+import           Network.HTTP.Client      (Manager, defaultManagerSettings,
+                                           newManager)
+import           Network.HTTP.Types       (status401)
+import           Network.Wai.Handler.Warp (testWithApplication)
 import           Servant
-import           Servant.Client             (BaseUrl (..), ClientM,
-                                             Scheme (Http),
-                                             ServantError (FailureResponse),
-                                             client)
-import           System.IO.Unsafe           (unsafePerformIO)
+import           Servant.Client           (BaseUrl (..), Scheme (Http),
+                                           ServantError (FailureResponse),
+                                           client)
+import           System.IO.Unsafe         (unsafePerformIO)
 import           Test.Hspec
 import           Test.QuickCheck
+
+#if MIN_VERSION_servant(0,9,0)
+import Servant.Client (ClientEnv (..), runClientM)
+#else
+import Control.Monad.Trans.Except (runExceptT)
+#endif
 
 import Servant.Auth.Client
 import Servant.Auth.Server
@@ -44,23 +49,26 @@ hasClientSpec = describe "HasClient" $ around (testWithApplication $ return app)
 
   it "succeeds when the token does not have expiry" $ \port -> property $ \user -> do
     tok <- mkTok user Nothing
-    v <- runExceptT $ getIntClient tok mgr (BaseUrl Http "localhost" port "")
+    v <- getIntClient tok mgr (BaseUrl Http "localhost" port "")
     v `shouldBe` Right (length $ name user)
 
   it "succeeds when the token is not expired" $ \port -> property $ \user -> do
     tok <- mkTok user (Just future)
-    v <- runExceptT $ getIntClient tok mgr (BaseUrl Http "localhost" port "")
+    v <- getIntClient tok mgr (BaseUrl Http "localhost" port "")
     v `shouldBe` Right (length $ name user)
 
   it "fails when token is expired" $ \port -> property $ \user -> do
     tok <- mkTok user (Just past)
-    Left (FailureResponse stat _ _)  <- runExceptT
-      $ getIntClient tok mgr (BaseUrl Http "localhost" port "")
+    Left (FailureResponse stat _ _)  <- getIntClient tok mgr (BaseUrl Http "localhost" port "")
     stat `shouldBe` status401
 
 
-getIntClient :: Token -> Manager -> BaseUrl -> ClientM Int
-getIntClient = client api
+getIntClient :: Token -> Manager -> BaseUrl -> IO (Either ServantError Int)
+#if MIN_VERSION_servant(0,9,0)
+getIntClient tok m burl = runClientM (client api tok) (ClientEnv m burl)
+#else
+getIntClient tok m burl = runExceptT $ client api tok m burl
+#endif
 -- }}}
 ------------------------------------------------------------------------------
 -- * API and Server {{{
@@ -107,6 +115,7 @@ past = parseTimeOrError True defaultTimeLocale "%Y-%m-%d" "1970-01-01"
 
 future :: UTCTime
 future = parseTimeOrError True defaultTimeLocale "%Y-%m-%d" "2070-01-01"
+
 
 -- }}}
 ------------------------------------------------------------------------------

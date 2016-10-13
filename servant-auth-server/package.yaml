@@ -24,7 +24,8 @@ dependencies:
   - base                    >= 4.7  && < 4.10
   - text                    >= 1    && < 2
   - servant-auth            == 0.2.*
-  - cookie                  >= 0.4  && < 0.5
+  # We have an orphan instance for SetCookie, so we need to be careful about upper bounds.
+  - cookie                  >= 0.4  && < 0.4.2.2
   - wai                     >= 3.2  && < 3.3
   - mtl                     >= 2.2  && < 2.3
   - bytestring              >= 0.10 && < 0.11

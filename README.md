@@ -36,7 +36,6 @@ import Control.Concurrent (forkIO)
 import Control.Monad (forever)
 import Control.Monad.Trans (liftIO)
 import Data.Aeson (FromJSON, ToJSON)
-import qualified Data.ByteString as BS
 import GHC.Generics (Generic)
 import Network.Wai.Handler.Warp (run)
 import System.Environment (getArgs)
@@ -74,7 +73,7 @@ type Unprotected =
      Raw
  :<|>   "login"
      :> ReqBody '[JSON] Login
-     :> PostNoContent '[JSON] (Headers '[Header "Set-Cookie" BS.ByteString] NoContent)
+     :> PostNoContent '[JSON] (Headers '[Header "Set-Cookie" SetCookie] NoContent)
 
 unprotected :: CookieSettings -> JWTSettings -> Server Unprotected
 unprotected cs jwts = serveDirectory "example/static" :<|> checkCreds cs jwts
@@ -203,13 +202,13 @@ mainWithCookies = do
 
 -- Here is the login handler
 checkCreds :: CookieSettings -> JWTSettings -> Login
-  -> Handler (Headers '[Header "Set-Cookie" BS.ByteString] NoContent)
+  -> Handler (Headers '[Header "Set-Cookie" SetCookie] NoContent)
 checkCreds cookieSettings jwtSettings (Login "Ali Baba" "Open Sesame") = do
    -- Usually you would ask a database for the user info. This is just a
    -- regular servant handler, so you can follow your normal database access
    -- patterns (including using 'enter').
    let usr = User "Ali Baba" "ali@email.com"
-   mcookie <- liftIO $ makeCookieBS cookieSettings jwtSettings usr
+   mcookie <- liftIO $ makeCookie cookieSettings jwtSettings usr
    case mcookie of
      Nothing     -> throwError err401
      Just cookie -> return $ addHeader cookie NoContent
