@@ -34,6 +34,7 @@ what to do with it.
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 import Control.Concurrent (forkIO)
 import Control.Monad (forever)
+import Control.Monad.Trans (liftIO)
 import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics (Generic)
 import Network.Wai.Handler.Warp (run)
@@ -55,30 +56,32 @@ data Login = Login { username :: String, password :: String }
 instance ToJSON Login
 instance FromJSON Login
 
-type Protected = "name" :> Get '[JSON] String
-            :<|> "email" :> Get '[JSON] String
-            :<|> "login" :> ReqBody '[JSON] Login :> PostNoContent '[JSON] NoContent
+type Protected
+   = "name" :> Get '[JSON] String
+ :<|> "email" :> Get '[JSON] String
 
 
 -- | 'Protected' will be protected by 'auths', which we still have to specify.
 protected :: AuthResult User -> Server Protected
 -- If we get an "Authenticated v", we can trust the information in v, since
 -- it was signed by a key we trust.
-protected (Authenticated user) =
-  return (name user) :<|> return (email user) :<|> const (return NoContent)
--- Otherwise, if the user is logging in, we check the credentials. If not,
--- we reject the requests as unauthenticated.
-protected _ = throwError err401 :<|> throwError err401 :<|> checkCreds
+protected (Authenticated user) = return (name user) :<|> return (email user)
+-- Otherwise, we return a 401.
+protected _ = throwAll err401
 
-type Unprotected = Get '[JSON] ()
+type Unprotected =
+     Raw
+ :<|>   "login"
+     :> ReqBody '[JSON] Login
+     :> PostNoContent '[JSON] (Headers '[Header "Set-Cookie" SetCookie] NoContent)
 
-unprotected :: Server Unprotected
-unprotected = return ()
+unprotected :: CookieSettings -> JWTSettings -> Server Unprotected
+unprotected cs jwts = serveDirectory "example/static" :<|> checkCreds cs jwts
 
 type API auths = (Auth auths User :> Protected) :<|> Unprotected
 
-server :: Server (API auths)
-server = protected :<|> unprotected
+server :: CookieSettings -> JWTSettings -> Server (API auths)
+server cs jwts = protected :<|> unprotected cs jwts
 
 ~~~
 
@@ -105,7 +108,7 @@ mainWithJWT = do
       cfg = defaultCookieSettings :. jwtCfg :. EmptyContext
       --- Here we actually make concrete
       api = Proxy :: Proxy (API '[JWT])
-  _ <- forkIO $ run 7249 $ serveWithContext api cfg server
+  _ <- forkIO $ run 7249 $ serveWithContext api cfg (server defaultCookieSettings jwtCfg)
 
   putStrLn "Started server on localhost:7249"
   putStrLn "Enter name and email separated by a space for a new token"
@@ -194,13 +197,22 @@ mainWithCookies = do
       cfg = defaultCookieSettings :. jwtCfg :. EmptyContext
       --- Here is the actual change
       api = Proxy :: Proxy (API '[JWT])
-  run 7249 $ serveWithContext api cfg server
+  run 7249 $ serveWithContext api cfg (server defaultCookieSettings jwtCfg)
 
 
 -- Here is the login handler
-checkCreds :: Login -> Handler NoContent
-checkCreds (Login "Ali Baba" "Open Sesame") = return NoContent
-checkCreds _ = throwError err401
+checkCreds :: CookieSettings -> JWTSettings -> Login
+  -> Handler (Headers '[Header "Set-Cookie" SetCookie] NoContent)
+checkCreds cookieSettings jwtSettings (Login "Ali Baba" "Open Sesame") = do
+   -- Usually you would ask a database for the user info. This is just a
+   -- regular servant handler, so you can follow your normal database access
+   -- patterns (including using 'enter').
+   let usr = User "Ali Baba" "ali@email.com"
+   mcookie <- liftIO $ makeCookie cookieSettings jwtSettings usr
+   case mcookie of
+     Nothing     -> throwError err401
+     Just cookie -> return $ addHeader cookie NoContent
+checkCreds _ _ _ = throwError err401
 ~~~
 
 ### CSRF and the frontend

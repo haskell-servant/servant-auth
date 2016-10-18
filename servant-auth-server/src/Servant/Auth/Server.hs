@@ -64,6 +64,9 @@ module Servant.Auth.Server
   -- ** Settings
   , CookieSettings(..)
   , defaultCookieSettings
+  , makeCookie
+  , makeCookieBS
+
 
   -- ** Related types
   , IsSecure(..)
@@ -94,6 +97,7 @@ module Servant.Auth.Server
 
   -- ** Re-exports
   , Default(def)
+  , SetCookie
   ) where
 
 import Data.Default.Class                       (Default (def))
@@ -102,12 +106,15 @@ import Servant.Auth.Server.Internal             ()
 import Servant.Auth.Server.Internal.BasicAuth
 import Servant.Auth.Server.Internal.Class
 import Servant.Auth.Server.Internal.ConfigTypes
+import Servant.Auth.Server.Internal.Cookie
 import Servant.Auth.Server.Internal.JWT
 import Servant.Auth.Server.Internal.ThrowAll
 import Servant.Auth.Server.Internal.Types
+import Servant.Auth.Server.Internal.Orphans.SetCookie ()
 
-import Servant (BasicAuthData(..))
-import Crypto.JOSE   as Jose
+import Crypto.JOSE as Jose
+import Servant     (BasicAuthData (..))
+import Web.Cookie  (SetCookie)
 
 -- | Generate a key suitable for use with 'defaultConfig'.
 generateKey :: IO Jose.JWK
