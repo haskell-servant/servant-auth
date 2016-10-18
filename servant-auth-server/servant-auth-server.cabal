@@ -13,7 +13,7 @@ description:    This package provides the required instances for using the @Auth
                 For a quick overview of the usage, see the <http://github.com/plow-technologies/servant-auth#readme README>.
 category:       Web, Servant, Authentication
 homepage:       http://github.com/plow-technologies/servant-auth#readme
-bug-reports:    https://github.com/plow-techologies/servant-auth/issues
+bug-reports:    https://github.com/plow-technologies/servant-auth/issues
 author:         Julian K. Arni
 maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
@@ -25,7 +25,7 @@ cabal-version:  >= 1.10
 
 source-repository head
   type: git
-  location: https://github.com/plow-techologies/servant-auth
+  location: https://github.com/plow-technologies/servant-auth
 
 library
   hs-source-dirs:
