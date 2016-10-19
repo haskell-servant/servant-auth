@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-module Servant.Auth.Server.Internal.Orphans.SetCookie () where
--- See https://github.com/snoyberg/cookie/pull/15
+module Servant.Auth.Server.SetCookieOrphan () where
 
 import Blaze.ByteString.Builder (toByteString)
 import Data.Text.Encoding       (decodeUtf8, encodeUtf8)

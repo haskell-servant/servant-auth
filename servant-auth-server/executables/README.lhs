@@ -41,6 +41,7 @@ import Network.Wai.Handler.Warp (run)
 import System.Environment (getArgs)
 import Servant
 import Servant.Auth.Server
+import Servant.Auth.Server.SetCookieOrphan ()
 
 data User = User { name :: String, email :: String }
    deriving (Eq, Show, Read, Generic)
