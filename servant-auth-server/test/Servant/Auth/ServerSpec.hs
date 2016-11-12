@@ -28,8 +28,8 @@ import           Network.Wai.Handler.Warp (testWithApplication)
 import           Network.Wreq             (Options, auth, basicAuth,
                                            cookieExpiryTime, cookies, defaults,
                                            get, getWith, header, oauth2Bearer,
-                                           responseBody, responseCookieJar,
-                                           responseStatus)
+                                           postWith, responseBody,
+                                           responseCookieJar, responseStatus)
 import           Servant                  hiding (BasicAuth, IsSecure (..))
 import           Servant.Auth.Server
 import           System.IO.Unsafe         (unsafePerformIO)
@@ -124,23 +124,32 @@ cookieAuthSpec
     opts' <- addJwtToCookie jwt
     let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
                          (xsrfCookieName cookieCfg <> "=blerg")
-    getWith opts (url port) `shouldHTTPErrorWith` status401
+        emptyBody = "" :: BS.ByteString
+    postWith opts (url port) emptyBody `shouldHTTPErrorWith` status401
 
   it "fails if there is no CSRF header and cookie" $ \port -> property
                                                    $ \(user :: User) -> do
     jwt <- createJWT theKey (newJWSHeader (Protected, HS256)) (claims $ toJSON user)
     opts <- addJwtToCookie jwt
-    getWith opts (url port) `shouldHTTPErrorWith` status401
+    let emptyBody = "" :: BS.ByteString
+    postWith opts (url port) emptyBody `shouldHTTPErrorWith` status401
 
   it "succeeds if CSRF header and cookie match, and JWT is valid" $ \port -> property
-                                                                 $ \(user :: User) -> do
+                                                                  $ \(user :: User) -> do
     jwt <- createJWT theKey (newJWSHeader (Protected, HS256)) (claims $ toJSON user)
     opts' <- addJwtToCookie jwt
     let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
                          (xsrfCookieName cookieCfg <> "=blah")
+        emptyBody = "" :: BS.ByteString
+    resp <- postWith opts (url port) emptyBody
+    resp ^? responseStatus `shouldBe` Just status200
+
+  it "succeeds if there is a cookie but no CSRF header for a stateless method" $ \port -> property
+                                                                               $ \(user :: User) -> do
+    jwt <- createJWT theKey (newJWSHeader (Protected, HS256)) (claims $ toJSON user)
+    opts <- addJwtToCookie jwt
     resp <- getWith opts (url port)
     resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
-
 
 -- }}}
 ------------------------------------------------------------------------------
@@ -253,7 +262,9 @@ throwAllSpec = describe "throwAll" $ do
 ------------------------------------------------------------------------------
 -- * API and Server {{{
 
-type API auths = Auth auths User :> Get '[JSON] Int
+type Protected = Get '[JSON] Int :<|> Post '[JSON] ()
+
+type API auths = Auth auths User :> Protected
 
 jwtOnlyApi :: Proxy (API '[Servant.Auth.Server.JWT])
 jwtOnlyApi = Proxy
@@ -301,14 +312,14 @@ app api = serveWithContext api ctx server
   where
     ctx = cookieCfg :. jwtCfg :. theKey :. EmptyContext
 
-
 server :: Server (API auths)
-server = getInt
+server = protected
   where
-    getInt :: AuthResult User -> Handler Int
-    getInt (Authenticated usr) = return . length $ name usr
-    getInt Indefinite = throwError err401
-    getInt _ = throwError err403
+    protected :: AuthResult User -> Server Protected
+    protected (Authenticated usr) = return (length $ name usr)
+                               :<|> return ()
+    protected Indefinite = throwAll err401
+    protected _ = throwAll err403
 
 -- }}}
 ------------------------------------------------------------------------------
