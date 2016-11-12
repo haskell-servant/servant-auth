@@ -49,17 +49,19 @@ data CookieSettings = CookieSettings
   {
   -- | 'Secure' means browsers will only send cookies over HTTPS. Default:
   -- @Secure@.
-    cookieIsSecure :: IsSecure
+    cookieIsSecure    :: IsSecure
   -- | How long from now until the cookie expires. Default: @Nothing@
-  , cookieMaxAge   :: Maybe DiffTime
+  , cookieMaxAge      :: Maybe DiffTime
   -- | At what time the cookie expires. Default: @Nothing@
-  , cookieExpires  :: Maybe UTCTime
+  , cookieExpires     :: Maybe UTCTime
   -- | 'SameSite' settings. Default: @SameSiteLax@.
-  , cookieSameSite :: SameSite
+  , cookieSameSite    :: SameSite
+  -- | What name to use for the cookie used for the session.
+  , sessionCookieName :: BS.ByteString
   -- | What name to use for the cookie used for CSRF protection.
-  , xsrfCookieName :: BS.ByteString
+  , xsrfCookieName    :: BS.ByteString
   -- | What name to use for the header used for CSRF protection.
-  , xsrfHeaderName :: BS.ByteString
+  , xsrfHeaderName    :: BS.ByteString
   } deriving (Eq, Show, Generic)
 
 instance Default CookieSettings where
@@ -67,12 +69,13 @@ instance Default CookieSettings where
 
 defaultCookieSettings :: CookieSettings
 defaultCookieSettings = CookieSettings
-    { cookieIsSecure = Secure
-    , cookieMaxAge   = Nothing
-    , cookieExpires  = Nothing
-    , cookieSameSite = SameSiteLax
-    , xsrfCookieName = "XSRF-TOKEN"
-    , xsrfHeaderName = "X-XSRF-TOKEN"
+    { cookieIsSecure    = Secure
+    , cookieMaxAge      = Nothing
+    , cookieExpires     = Nothing
+    , cookieSameSite    = SameSiteLax
+    , sessionCookieName = "JWT-Cookie"
+    , xsrfCookieName    = "XSRF-TOKEN"
+    , xsrfHeaderName    = "X-XSRF-TOKEN"
     }
 
 
