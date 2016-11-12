@@ -197,7 +197,7 @@ mainWithCookies = do
   let jwtCfg = defaultJWTSettings myKey
       cfg = defaultCookieSettings :. jwtCfg :. EmptyContext
       --- Here is the actual change
-      api = Proxy :: Proxy (API '[JWT])
+      api = Proxy :: Proxy (API '[Cookie])
   run 7249 $ serveWithContext api cfg (server defaultCookieSettings jwtCfg)
 
 
