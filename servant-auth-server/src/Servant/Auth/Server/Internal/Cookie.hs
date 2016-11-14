@@ -27,8 +27,8 @@ cookieAuthCheck ccfg jwtCfg = do
     xsrfCookie <- lookup (xsrfCookieName ccfg) cookies
     xsrfHeader <- lookup (mk $ xsrfHeaderName ccfg) $ requestHeaders req
     guard $ xsrfCookie `constTimeEq` xsrfHeader
-    -- JWT-Cookie *must* be HttpOnly and Secure
-    lookup "JWT-Cookie" cookies
+    -- session cookie *must* be HttpOnly and Secure
+    lookup (sessionCookieName ccfg) cookies
   verifiedJWT <- liftIO $ runExceptT $ do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict jwtCookie
     Jose.validateJWSJWT (jwtSettingsToJwtValidationSettings jwtCfg)
@@ -47,7 +47,7 @@ makeCookie cookieSettings jwtSettings v = do
   case ejwt of
     Left _ -> return Nothing
     Right jwt -> return $ Just $ def
-        { setCookieName = "JWT-Cookie"
+        { setCookieName = sessionCookieName cookieSettings
         , setCookieValue = BSL.toStrict jwt
         , setCookieHttpOnly = True
         , setCookieMaxAge = cookieMaxAge cookieSettings
