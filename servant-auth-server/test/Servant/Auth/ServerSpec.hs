@@ -23,18 +23,20 @@ import           GHC.Generics             (Generic)
 import           Network.HTTP.Client      (HttpException (StatusCodeException),
                                            cookie_http_only, cookie_name,
                                            cookie_value, destroyCookieJar)
-import           Network.HTTP.Types       (Status, status200, status401)
+import           Network.HTTP.Types       (Status, status200, status401, status403)
 import           Network.Wai.Handler.Warp (testWithApplication)
 import           Network.Wreq             (Options, auth, basicAuth,
                                            cookieExpiryTime, cookies, defaults,
                                            get, getWith, header, oauth2Bearer,
                                            responseBody, responseCookieJar,
-                                           responseStatus)
+                                           responseStatus, post, postWith)
 import           Servant                  hiding (BasicAuth, IsSecure (..))
 import           Servant.Auth.Server
 import           System.IO.Unsafe         (unsafePerformIO)
 import           Test.Hspec
 import           Test.QuickCheck
+
+import qualified Servant.Auth.Server.Internal.Types as AuthTypes
 
 spec :: Spec
 spec = do
@@ -43,6 +45,7 @@ spec = do
   jwtAuthSpec
   throwAllSpec
   basicAuthSpec
+  formLoginAuthSpec
 
 ------------------------------------------------------------------------------
 -- * Auth {{{
@@ -233,6 +236,30 @@ basicAuthSpec = describe "The BasicAuth combinator"
 
 -- }}}
 ------------------------------------------------------------------------------
+-- * FormLogin {{{
+
+formLoginAuthSpec :: Spec
+formLoginAuthSpec = describe "The FormLogin combinator"
+  $ around (testWithApplication . return $ app formLoginApi) $ do
+
+  it "succeeds with the correct password and username" $ \port -> do
+    resp <- postWith defaults (url port) (toJSON $ SimpleForm "ali" "Open sesame")
+    resp ^. responseStatus `shouldBe` status200
+
+  it "fails with non-existent user" $ \port -> do
+    postWith defaults (url port) (toJSON $ SimpleForm "jafar" "Open sesame")
+      `shouldHTTPErrorWith` status403
+
+  it "fails with incorrect password" $ \port -> do
+    postWith defaults (url port) (toJSON $ SimpleForm "ali" "???")
+      `shouldHTTPErrorWith` status403
+
+  it "fails with no auth header" $ \port -> do
+    post (url port) (toJSON ())
+      `shouldHTTPErrorWith` status401
+-- }}}
+
+------------------------------------------------------------------------------
 -- * ThrowAll {{{
 
 throwAllSpec :: Spec
@@ -254,6 +281,7 @@ throwAllSpec = describe "throwAll" $ do
 -- * API and Server {{{
 
 type API auths = Auth auths User :> Get '[JSON] Int
+            :<|> Auth auths User :> Post '[JSON] Int
 
 jwtOnlyApi :: Proxy (API '[Servant.Auth.Server.JWT])
 jwtOnlyApi = Proxy
@@ -263,6 +291,9 @@ cookieOnlyApi = Proxy
 
 basicAuthApi :: Proxy (API '[BasicAuth])
 basicAuthApi = Proxy
+
+formLoginApi :: Proxy (API '[FormLogin SimpleForm])
+formLoginApi = Proxy
 
 jwtAndCookieApi :: Proxy (API '[Servant.Auth.Server.JWT, Cookie])
 jwtAndCookieApi = Proxy
@@ -303,7 +334,7 @@ app api = serveWithContext api ctx server
 
 
 server :: Server (API auths)
-server = getInt
+server = getInt :<|> getInt
   where
     getInt :: AuthResult User -> Handler Int
     getInt (Authenticated usr) = return . length $ name usr
@@ -367,5 +398,22 @@ instance ToJSON User
 
 instance Arbitrary User where
   arbitrary = User <$> arbitrary <*> arbitrary
+
+data SimpleForm = SimpleForm
+  { username :: String
+  , password  :: String
+  } deriving (Eq, Show, Read, Generic)
+
+instance ToJSON SimpleForm
+instance FromJSON SimpleForm
+
+type instance FormLoginData = SimpleForm
+
+instance FromFormLoginData User where
+  fromLoginData (SimpleForm usr pwd) = if usr == "ali" && pwd == "Open sesame"
+                                       then return $ AuthTypes.Authenticated $ User "ali" "1"
+                                       else if usr == "ali"
+                                            then return AuthTypes.BadPassword
+                                            else return AuthTypes.NoSuchUser
 
 -- }}}
