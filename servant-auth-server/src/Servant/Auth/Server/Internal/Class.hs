@@ -1,6 +1,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 module Servant.Auth.Server.Internal.Class where
 
+import Data.Aeson (FromJSON)
 import Servant.Auth
 import Data.Monoid
 import Servant hiding (BasicAuth)
@@ -9,6 +10,7 @@ import Servant.Auth.Server.Internal.Types
 import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth.Server.Internal.BasicAuth
 import Servant.Auth.Server.Internal.Cookie
+import Servant.Auth.Server.Internal.FormLogin
 import Servant.Auth.Server.Internal.JWT
 
 -- | @IsAuth a ctx v@ indicates that @a@ is an auth type that expects all
@@ -29,6 +31,13 @@ instance FromJWT usr => IsAuth JWT usr where
 instance FromBasicAuthData usr => IsAuth BasicAuth usr where
   type AuthArgs BasicAuth = '[BasicAuthCfg]
   runAuth _ _ = basicAuthCheck
+
+instance (FromFormLoginData usr,
+          form ~ FormLoginData,
+          FromJSON form
+         ) => IsAuth (FormLogin form) usr where
+  type AuthArgs (FormLogin form) = '[]
+  runAuth _ _ = formLoginCheck
 
 -- * Helper
 

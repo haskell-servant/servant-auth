@@ -90,6 +90,18 @@ module Servant.Auth.Server
   , IsPasswordCorrect(..)
 
   ----------------------------------------------------------------------------
+  -- * FormLogin
+  -- ** Combinator
+  -- | Re-exported from 'servant-auth'
+  , FormLogin
+
+  -- ** Classes
+  , FromFormLoginData(..)
+
+  -- ** Related types
+  , FormLoginData
+
+  ----------------------------------------------------------------------------
   -- * Utilies
   , ThrowAll(throwAll)
   , generateKey
@@ -107,6 +119,7 @@ import Servant.Auth.Server.Internal.BasicAuth
 import Servant.Auth.Server.Internal.Class
 import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth.Server.Internal.Cookie
+import Servant.Auth.Server.Internal.FormLogin
 import Servant.Auth.Server.Internal.JWT
 import Servant.Auth.Server.Internal.ThrowAll
 import Servant.Auth.Server.Internal.Types
