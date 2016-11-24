@@ -33,7 +33,8 @@ instance FromBasicAuthData usr => IsAuth BasicAuth usr where
   runAuth _ _ = basicAuthCheck
 
 instance (FromFormLoginData usr,
-          FromJSON (FormLoginData usr)
+          FromJSON (FormLoginData usr),
+          FormLoginData usr ~ form
          ) => IsAuth (FormLogin form) usr where
   type AuthArgs (FormLogin form) = '[]
   runAuth _ _ = formLoginCheck
