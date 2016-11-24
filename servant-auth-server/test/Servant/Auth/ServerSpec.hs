@@ -409,9 +409,9 @@ instance FromJSON SimpleForm
 
 instance FromFormLoginData User where
   type FormLoginData User = SimpleForm
-  fromLoginData (SimpleForm usr pwd) = if usr == "ali" && pwd == "Open sesame"
+  fromLoginData form = if username form == "ali" && password form == "Open sesame"
                                        then return $ AuthTypes.Authenticated $ User "ali" "1"
-                                       else if usr == "ali"
+                                       else if username form == "ali"
                                             then return AuthTypes.BadPassword
                                             else return AuthTypes.NoSuchUser
 
