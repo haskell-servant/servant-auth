@@ -254,7 +254,7 @@ formLoginAuthSpec = describe "The FormLogin combinator"
     postWith defaults (url port) (toJSON $ SimpleForm "ali" "???")
       `shouldHTTPErrorWith` status403
 
-  it "fails with no auth header" $ \port -> do
+  it "fails with no form in body" $ \port -> do
     post (url port) (toJSON ())
       `shouldHTTPErrorWith` status401
 -- }}}
@@ -407,9 +407,8 @@ data SimpleForm = SimpleForm
 instance ToJSON SimpleForm
 instance FromJSON SimpleForm
 
-type instance FormLoginData = SimpleForm
-
 instance FromFormLoginData User where
+  type FormLoginData User = SimpleForm
   fromLoginData (SimpleForm usr pwd) = if usr == "ali" && pwd == "Open sesame"
                                        then return $ AuthTypes.Authenticated $ User "ali" "1"
                                        else if usr == "ali"

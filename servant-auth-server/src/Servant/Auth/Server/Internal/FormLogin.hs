@@ -6,17 +6,16 @@ import           Network.Wai                (requestBody)
 
 import           Servant.Auth.Server.Internal.Types
 
-type family FormLoginData
 
 class FromFormLoginData a where
   -- | Represents an object that can be constructed from FormLoginData
   -- inside the IO monad with possible failure.
-  fromLoginData :: FormLoginData -> IO (AuthResult a)
+  type FormLoginData a :: *
+  fromLoginData :: FormLoginData a -> IO (AuthResult a)
 
 -- | An AuthCheck for requests containing LoginFormData in the body.
-formLoginCheck :: (FormLoginData ~ form,
-                   FromJSON form,
-                   FromFormLoginData a
+formLoginCheck :: (FromFormLoginData a,
+                   FromJSON (FormLoginData a)
                   ) => AuthCheck a
 formLoginCheck = AuthCheck $ \req -> do
   bdy <- requestBody req

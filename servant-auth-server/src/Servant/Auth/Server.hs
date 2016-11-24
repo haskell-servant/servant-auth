@@ -98,9 +98,6 @@ module Servant.Auth.Server
   -- ** Classes
   , FromFormLoginData(..)
 
-  -- ** Related types
-  , FormLoginData
-
   ----------------------------------------------------------------------------
   -- * Utilies
   , ThrowAll(throwAll)
