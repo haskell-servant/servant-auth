@@ -65,8 +65,6 @@ instance ( n ~ 'S ('S 'Z)
             Just jwt -> return $ Just $ jwt `SCCons` SCNil
       makeCookies _ = return Nothing
 
-
-      -- See note in AddSetCookie.hs about what this is doing.
       go :: ( old ~ ServerT api Handler
             , new ~ ServerT (AddSetCookiesApi n api) Handler
             , AddSetCookies n old new)
