@@ -23,48 +23,58 @@ import           Web.Cookie
 --
 -- TODO: If the endpoints already have headers, this will not work as is.
 
+data Nat = Z | S Nat
+
+type family AddSetCookiesApi (n :: Nat) a where
+  AddSetCookiesApi (S n) a = AddSetCookiesApi n (AddSetCookieApi a)
+  AddSetCookiesApi (S Z) a = AddSetCookieApi a
+  AddSetCookiesApi Z a = a
 
 type family AddSetCookieApi a where
   AddSetCookieApi (a :> b) = a :> AddSetCookieApi b
   AddSetCookieApi (a :<|> b) = AddSetCookieApi a :<|> AddSetCookieApi b
   AddSetCookieApi (Verb method stat ctyps (Headers ls a))
-     = Verb method stat ctyps (Headers ((Header "Set-Cookie" BSS) ': ls) a)
+     = Verb method stat ctyps (Headers ((Header "Set-Cookie" SetCookie) ': ls) a)
   AddSetCookieApi (Verb method stat ctyps a)
-     = Verb method stat ctyps (Headers '[Header "Set-Cookie" BSS] a)
+     = Verb method stat ctyps (Headers '[Header "Set-Cookie" SetCookie] a)
 
+data SetCookieList (n :: Nat) :: * where
+  SCNil :: SetCookieList Z
+  SCCons :: SetCookie -> SetCookieList n -> SetCookieList (S n)
 
-class AddSetCookie orig new where
-  addSetCookie :: [SetCookie] -> orig -> new
+class AddSetCookies (n :: Nat) orig new where
+  addSetCookies :: SetCookieList n -> orig -> new
 
-instance {-# OVERLAPS #-} AddSetCookie oldb newb
-  => AddSetCookie (a -> oldb) (a -> newb) where
-  addSetCookie cookie oldfn = \val -> addSetCookie cookie $ oldfn val
+instance AddSetCookies Z orig orig where
+  addSetCookies _ = id
+
+instance {-# OVERLAPS #-} AddSetCookies n oldb newb
+  => AddSetCookies n (a -> oldb) (a -> newb) where
+  addSetCookies cookies oldfn = \val -> addSetCookies cookies $ oldfn val
 
 instance {-# OVERLAPPABLE #-}
   ( Functor m
-  , AddHeader "Set-Cookie" BSS old new
-  ) => AddSetCookie (m old) (m new)  where
-  addSetCookie cookie val
-    -- What is happening here is sheer awfulness. Look the other way.
-    = addHeader (BSS $ foldr1 go $ toByteString . renderSetCookie <$> cookie) <$> val
-    where
-      go new old = old <> "\r\nSet-Cookie: " <> new
+  , AddHeader "Set-Cookie" SetCookie old new
+  ) => AddSetCookies (S Z) (m old) (m new)  where
+  addSetCookies (cookie `SCCons` SCNil) oldVal = addHeader cookie <$> oldVal
+
+instance {-# OVERLAPPABLE #-}
+  ( Functor m
+  , AddSetCookies (S n) (m old) (m cookied)
+  , AddHeader "Set-Cookie" SetCookie cookied new
+  ) => AddSetCookies (S (S n)) (m old) (m new)  where
+  addSetCookies (cookie `SCCons` rest) oldVal =
+    addHeader cookie <$> addSetCookies rest oldVal
 
 instance {-# OVERLAPS #-}
-  (AddSetCookie a a', AddSetCookie b b')
-  => AddSetCookie (a :<|> b) (a' :<|> b') where
-  addSetCookie cookie (a :<|> b) = addSetCookie cookie a :<|> addSetCookie cookie b
+  (AddSetCookies n a a', AddSetCookies n b b')
+  => AddSetCookies n (a :<|> b) (a' :<|> b') where
+  addSetCookies cookies (a :<|> b) = addSetCookies cookies a :<|> addSetCookies cookies b
 
 
-newtype BSS = BSS { getBSS :: BS.ByteString }
-  deriving (Eq, Show, Read, Generic, IsString, Monoid)
-
-instance ToHttpApiData BSS where
-  toHeader = getBSS
-  toUrlPiece = T.decodeUtf8 . getBSS
-
-instance ToByteString BSS where
-  builder (BSS x) = builder x
+instance ToHttpApiData SetCookie where
+  toHeader = toByteString . renderSetCookie
+  toUrlPiece = T.decodeUtf8 . toHeader
 
 csrfCookie :: IO BS.ByteString
 csrfCookie = BS64.encode <$> getEntropy 32
