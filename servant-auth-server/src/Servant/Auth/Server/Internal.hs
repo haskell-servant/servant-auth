@@ -34,9 +34,9 @@ instance ( n ~ 'S ('S 'Z)
 
     where
       authCheck :: DelayedIO (AuthResult v, SetCookieList ('S ('S 'Z)))
-      authCheck = withRequest $ \req -> do
-        authResult <- liftIO $ runAuthCheck (runAuths (Proxy :: Proxy auths) context) req
-        csrf' <- liftIO $ csrfCookie
+      authCheck = withRequest $ \req -> liftIO $ do
+        authResult <- runAuthCheck (runAuths (Proxy :: Proxy auths) context) req
+        csrf' <- csrfCookie
         let csrf = Cookie.def
              { Cookie.setCookieName = xsrfCookieName cookieSettings
              , Cookie.setCookieValue = csrf'
@@ -46,7 +46,7 @@ instance ( n ~ 'S ('S 'Z)
                   Secure -> True
                   NotSecure -> False
              }
-        cookies <- liftIO $ makeCookies authResult
+        cookies <- makeCookies authResult
         return (authResult, Just csrf `SetCookieCons` cookies)
 
       jwtSettings :: JWTSettings
