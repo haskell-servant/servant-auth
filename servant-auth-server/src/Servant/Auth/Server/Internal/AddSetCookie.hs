@@ -6,6 +6,7 @@ module Servant.Auth.Server.Internal.AddSetCookie where
 import qualified Data.ByteString            as BS
 import qualified Data.ByteString.Base64     as BS64
 import           Servant
+
 import           System.Entropy             (getEntropy)
 import           Web.Cookie
 
@@ -32,8 +33,8 @@ type family AddSetCookieApi a where
      = Verb method stat ctyps (Headers '[Header "Set-Cookie" SetCookie] a)
 
 data SetCookieList (n :: Nat) :: * where
-  SCNil :: SetCookieList 'Z
-  SCCons :: SetCookie -> SetCookieList n -> SetCookieList ('S n)
+  SetCookieNil :: SetCookieList 'Z
+  SetCookieCons :: Maybe SetCookie -> SetCookieList n -> SetCookieList ('S n)
 
 class AddSetCookies (n :: Nat) orig new where
   addSetCookies :: SetCookieList n -> orig -> new
@@ -50,8 +51,10 @@ instance {-# OVERLAPPABLE #-}
   , AddSetCookies n (m old) (m cookied)
   , AddHeader "Set-Cookie" SetCookie cookied new
   ) => AddSetCookies ('S n) (m old) (m new)  where
-  addSetCookies (cookie `SCCons` rest) oldVal =
-    addHeader cookie <$> addSetCookies rest oldVal
+  addSetCookies (mCookie `SetCookieCons` rest) oldVal =
+    case mCookie of
+      Nothing -> noHeader <$> addSetCookies rest oldVal
+      Just cookie -> addHeader cookie <$> addSetCookies rest oldVal
 
 instance {-# OVERLAPS #-}
   (AddSetCookies n a a', AddSetCookies n b b')
