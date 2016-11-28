@@ -1,5 +1,5 @@
 name:                servant-auth
-version:             0.2.0.0
+version:             0.2.1.0
 synopsis:            Authentication combinators for servant
 description:         |
     This package provides an @Auth@ combinator for 'servant'. This combinator
