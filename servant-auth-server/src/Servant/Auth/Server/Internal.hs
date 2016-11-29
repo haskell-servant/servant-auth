@@ -4,7 +4,7 @@
 module Servant.Auth.Server.Internal where
 
 import           Control.Monad.Trans  (liftIO)
-import           Servant              ((:>), Handler, HasServer (..),
+import           Servant              ((:>), Handler, HasServer (..), err500,
                                        Proxy (..), HasContextEntry(getContextEntry))
 import           Servant.Auth
 import qualified Web.Cookie           as Cookie
