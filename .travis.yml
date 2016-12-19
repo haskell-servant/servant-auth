@@ -3,7 +3,6 @@ sudo: false
 env:
   - STACK_YAML=stack.yaml
   - STACK_YAML=stack-ghc-8.0.1.yaml
-  - STACK_YAML=stack-servant-0.9.yaml
 
 addons:
   apt:

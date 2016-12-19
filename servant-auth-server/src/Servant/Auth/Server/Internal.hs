@@ -65,7 +65,7 @@ instance ( n ~ 'S ('S 'Z)
 
       go :: ( old ~ ServerT api Handler
             , new ~ ServerT (AddSetCookiesApi n api) Handler
-            , AddSetCookies n old new)
+            )
          => (AuthResult v -> ServerT api Handler)
          -> (AuthResult v, SetCookieList n) -> new
       go fn (authResult, cookies) = addSetCookies cookies $ fn authResult
