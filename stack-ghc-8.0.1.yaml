@@ -5,10 +5,11 @@ packages:
 - 'servant-auth-client'
 - 'servant-auth-docs'
 extra-deps:
+- http-api-data-0.3.3
 - jose-0.5.0.0
-- servant-0.8
-- servant-server-0.8
-- servant-client-0.8
-- servant-docs-0.8
+- servant-0.9.1.1
+- servant-server-0.9.1.1
+- servant-client-0.9.1.1
+- servant-docs-0.9.1.1
 apply-ghc-options: targets
 resolver: nightly-2016-09-07

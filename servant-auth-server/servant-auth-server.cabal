@@ -45,7 +45,7 @@ library
     , jose                    >= 0.5  && < 0.6
     , monad-time              >= 0.2  && < 0.3
     , time                    >= 1.5  && < 1.7
-    , servant-server          >= 0.7  && < 0.10
+    , servant-server          >= 0.9.1  && < 0.10
     , base64-bytestring       >= 1    && < 2
     , blaze-builder           >= 0.4  && < 0.5
     , unordered-containers    >= 0.2  && < 0.3
@@ -54,7 +54,7 @@ library
     , entropy                 >= 0.3  && < 0.4
     , crypto-api              >= 0.13 && < 0.14
     , data-default-class      >= 0.0  && < 0.2
-    , http-api-data           >= 0.2  && < 0.4
+    , http-api-data           >= 0.3  && < 0.4
   exposed-modules:
       Servant.Auth.Server
       Servant.Auth.Server.Internal
@@ -89,7 +89,7 @@ executable readme
     , jose                    >= 0.5  && < 0.6
     , monad-time              >= 0.2  && < 0.3
     , time                    >= 1.5  && < 1.7
-    , servant-server          >= 0.7  && < 0.10
+    , servant-server          >= 0.9.1  && < 0.10
     , base64-bytestring       >= 1    && < 2
     , blaze-builder           >= 0.4  && < 0.5
     , unordered-containers    >= 0.2  && < 0.3
@@ -98,10 +98,10 @@ executable readme
     , entropy                 >= 0.3  && < 0.4
     , crypto-api              >= 0.13 && < 0.14
     , data-default-class      >= 0.0  && < 0.2
-    , http-api-data           >= 0.2  && < 0.4
+    , http-api-data           >= 0.3  && < 0.4
     , servant-auth
     , servant-auth-server
-    , servant-server  >= 0.8 && < 0.10
+    , servant-server  >= 0.9.1 && < 0.10
     , warp
     , markdown-unlit
     , transformers
@@ -127,7 +127,7 @@ test-suite spec
     , jose                    >= 0.5  && < 0.6
     , monad-time              >= 0.2  && < 0.3
     , time                    >= 1.5  && < 1.7
-    , servant-server          >= 0.7  && < 0.10
+    , servant-server          >= 0.9.1  && < 0.10
     , base64-bytestring       >= 1    && < 2
     , blaze-builder           >= 0.4  && < 0.5
     , unordered-containers    >= 0.2  && < 0.3
@@ -136,7 +136,7 @@ test-suite spec
     , entropy                 >= 0.3  && < 0.4
     , crypto-api              >= 0.13 && < 0.14
     , data-default-class      >= 0.0  && < 0.2
-    , http-api-data           >= 0.2  && < 0.4
+    , http-api-data           >= 0.3  && < 0.4
     , servant-auth-server
     , hspec > 2 && < 3
     , QuickCheck >= 2.8 && < 2.9
