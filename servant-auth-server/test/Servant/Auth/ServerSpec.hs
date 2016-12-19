@@ -32,6 +32,7 @@ import           Network.Wreq             (Options, auth, basicAuth,
                                            responseStatus)
 import           Servant                  hiding (BasicAuth, IsSecure (..))
 import           Servant.Auth.Server
+import           Servant.Auth.Server.SetCookieOrphan ()
 import           System.IO.Unsafe         (unsafePerformIO)
 import           Test.Hspec
 import           Test.QuickCheck

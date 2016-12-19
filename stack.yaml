@@ -1,13 +1,26 @@
 flags: {}
 packages:
-- 'servant-auth'
-- 'servant-auth-server'
-- 'servant-auth-client'
-- 'servant-auth-docs'
+- servant-auth
+- servant-auth-server
+- servant-auth-client
+- servant-auth-docs
 extra-deps:
+- aeson-0.11.2.1
+- bytestring-builder-0.10.8.1.0
+- call-stack-0.1.0
+- fast-logger-2.4.7
+- hspec-2.3.2
+- hspec-core-2.3.2
+- hspec-discover-2.3.2
+- hspec-expectations-0.8.2
+- http-api-data-0.3.3
 - jose-0.5.0.0
-- servant-0.8
-- servant-server-0.8
-- servant-client-0.8
-- servant-docs-0.8
+- mmorph-1.0.9
+- servant-0.9.1.1
+- servant-client-0.9.1.1
+- servant-docs-0.9.1.1
+- servant-server-0.9.1
+- unix-time-0.3.7
+- wai-extra-3.0.19
+- warp-3.2.9
 resolver: lts-6.7

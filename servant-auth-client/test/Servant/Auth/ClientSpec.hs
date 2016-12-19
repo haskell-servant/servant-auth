@@ -30,6 +30,7 @@ import Control.Monad.Trans.Except (runExceptT)
 
 import Servant.Auth.Client
 import Servant.Auth.Server
+import Servant.Auth.Server.SetCookieOrphan ()
 
 spec :: Spec
 spec = describe "The JWT combinator" $ do
