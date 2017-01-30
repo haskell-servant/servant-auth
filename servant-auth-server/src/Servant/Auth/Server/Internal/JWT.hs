@@ -42,6 +42,8 @@ class ToJWT a where
   default encodeJWT :: ToJSON a => a -> Jose.ClaimsSet
   encodeJWT a = Jose.addClaim "dat" (toJSON a) Jose.emptyClaimsSet
 
+-- | A JWT @AuthCheck@. You likely won't need to use this directly unless you
+-- are protecting a @Raw@ endpoint.
 jwtAuthCheck :: FromJWT usr => JWTSettings -> AuthCheck usr
 jwtAuthCheck config = do
   req <- ask

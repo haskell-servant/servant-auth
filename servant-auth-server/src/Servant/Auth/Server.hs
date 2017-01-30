@@ -20,6 +20,7 @@ module Servant.Auth.Server
   -- | Basic types
     Auth
   , AuthResult(..)
+  , AuthCheck(..)
 
   ----------------------------------------------------------------------------
   -- * JWT
@@ -50,6 +51,9 @@ module Servant.Auth.Server
   -- ** Settings
   , JWTSettings(..)
   , defaultJWTSettings
+
+  -- ** Create check
+  , jwtAuthCheck
 
 
   ----------------------------------------------------------------------------
