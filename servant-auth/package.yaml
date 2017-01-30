@@ -20,6 +20,9 @@ copyright:           (c) Julian K. Arni
 github:              plow-technologies/servant-auth
 tested-with:         GHC == 7.10.2, GHC == 8.0.1
 
+extra-source-files:
+  - package.yaml
+
 ghc-options: -Wall
 
 dependencies:

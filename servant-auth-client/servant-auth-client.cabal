@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.14.0.
+-- This file has been generated from package.yaml by hpack version 0.15.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -22,6 +22,9 @@ license-file:   LICENSE
 tested-with:    GHC == 7.10.2, GHC == 8.0.1
 build-type:     Simple
 cabal-version:  >= 1.10
+
+extra-source-files:
+    package.yaml
 
 source-repository head
   type: git

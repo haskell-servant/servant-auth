@@ -18,6 +18,9 @@ copyright:           (c) Julian K. Arni
 github:              plow-technologies/servant-auth
 tested-with:         GHC == 7.10.2, GHC == 8.0.1
 
+extra-source-files:
+  - package.yaml
+
 ghc-options: -Wall
 
 dependencies:
@@ -44,8 +47,8 @@ dependencies:
   - crypto-api              >= 0.13 && < 0.14
   - data-default-class      >= 0.0  && < 0.2
   - http-api-data           >= 0.3  && < 0.4
-        
-        
+
+
 default-extensions:
   - AutoDeriveTypeable
   - ConstraintKinds
@@ -66,13 +69,13 @@ default-extensions:
   - ScopedTypeVariables
   - TypeFamilies
   - TypeOperators
-        
+
 library:
   source-dirs:      src
   other-modules:    []
-        
-tests:  
-  spec: 
+
+tests:
+  spec:
     main:            Spec.hs
     source-dirs:     test
     dependencies:
@@ -85,7 +88,7 @@ tests:
       - wreq
       - http-types
       - http-client
-        
+
 executables:
   readme:
     main:            README.lhs

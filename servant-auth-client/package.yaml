@@ -20,6 +20,9 @@ tested-with:         GHC == 7.10.2, GHC == 8.0.1
 
 ghc-options: -Wall
 
+extra-source-files:
+  - package.yaml
+
 dependencies:
   - base                >= 4.7  && < 4.10
   - text
