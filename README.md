@@ -71,13 +71,13 @@ protected (Authenticated user) = return (name user) :<|> return (email user)
 protected _ = throwAll err401
 
 type Unprotected =
-     Raw
- :<|>   "login"
+ "login"
      :> ReqBody '[JSON] Login
      :> PostNoContent '[JSON] (Headers '[Header "Set-Cookie" SetCookie] NoContent)
+  :<|> Raw
 
 unprotected :: CookieSettings -> JWTSettings -> Server Unprotected
-unprotected cs jwts = serveDirectory "example/static" :<|> checkCreds cs jwts
+unprotected cs jwts = checkCreds cs jwts :<|> serveDirectory "example/static" 
 
 type API auths = (Auth auths User :> Protected) :<|> Unprotected
 
