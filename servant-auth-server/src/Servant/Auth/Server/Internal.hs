@@ -3,11 +3,11 @@
 
 module Servant.Auth.Server.Internal where
 
-import           Control.Monad.Trans  (liftIO)
-import           Servant              ((:>), Handler, HasServer (..),
-                                       Proxy (..), HasContextEntry(getContextEntry))
+import           Control.Monad.Trans (liftIO)
+import           Servant             ((:>), Handler, HasServer (..),
+                                      Proxy (..),
+                                      HasContextEntry(getContextEntry))
 import           Servant.Auth
-import qualified Web.Cookie           as Cookie
 
 import Servant.Auth.Server.Internal.AddSetCookie
 import Servant.Auth.Server.Internal.Class
@@ -36,16 +36,7 @@ instance ( n ~ 'S ('S 'Z)
       authCheck :: DelayedIO (AuthResult v, SetCookieList ('S ('S 'Z)))
       authCheck = withRequest $ \req -> liftIO $ do
         authResult <- runAuthCheck (runAuths (Proxy :: Proxy auths) context) req
-        csrf' <- csrfCookie
-        let csrf = Cookie.def
-             { Cookie.setCookieName = xsrfCookieName cookieSettings
-             , Cookie.setCookieValue = csrf'
-             , Cookie.setCookieMaxAge = cookieMaxAge cookieSettings
-             , Cookie.setCookieExpires = cookieExpires cookieSettings
-             , Cookie.setCookieSecure = case cookieIsSecure cookieSettings of
-                  Secure -> True
-                  NotSecure -> False
-             }
+        csrf <- makeCsrfCookie cookieSettings
         cookies <- makeCookies authResult
         return (authResult, Just csrf `SetCookieCons` cookies)
 
