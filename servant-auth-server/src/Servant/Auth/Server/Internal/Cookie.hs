@@ -11,6 +11,7 @@ import qualified Data.ByteString.Base64   as BS64
 import qualified Data.ByteString.Lazy     as BSL
 import           Data.CaseInsensitive     (mk)
 import           Network.Wai              (requestHeaders)
+import           Servant                  (AddHeader, addHeader)
 import           System.Entropy           (getEntropy)
 import           Web.Cookie
 
@@ -71,6 +72,24 @@ makeSessionCookie cookieSettings jwtSettings v = do
           Secure -> True
           NotSecure -> False
       }
+
+-- | For a JWT-serializable session, returns a function that decorates a
+-- provided response object with CSRF and session cookies. This should be used
+-- when a user successfully authenticates with credentials.
+acceptLogin :: ( ToJWT session
+               , AddHeader "Set-Cookie" SetCookie response withOneCookie
+               , AddHeader "Set-Cookie" SetCookie withOneCookie withTwoCookies )
+            => CookieSettings
+            -> JWTSettings
+            -> session
+            -> IO (Maybe (response -> withTwoCookies))
+acceptLogin cookieSettings jwtSettings session = do
+  mSessionCookie <- makeSessionCookie cookieSettings jwtSettings session
+  case mSessionCookie of
+    Nothing            -> pure Nothing
+    Just sessionCookie -> do
+      csrfCookie <- makeCsrfCookie cookieSettings
+      return $ Just $ addHeader sessionCookie . addHeader csrfCookie
 
 -- Publicly-exposed function
 makeCookie :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe SetCookie)
