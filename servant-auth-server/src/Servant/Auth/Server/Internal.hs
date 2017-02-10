@@ -36,9 +36,8 @@ instance ( n ~ 'S ('S 'Z)
       authCheck :: DelayedIO (AuthResult v, SetCookieList ('S ('S 'Z)))
       authCheck = withRequest $ \req -> liftIO $ do
         authResult <- runAuthCheck (runAuths (Proxy :: Proxy auths) context) req
-        csrf <- makeCsrfCookie cookieSettings
         cookies <- makeCookies authResult
-        return (authResult, Just csrf `SetCookieCons` cookies)
+        return (authResult, cookies)
 
       jwtSettings :: JWTSettings
       jwtSettings = getContextEntry context
@@ -46,13 +45,17 @@ instance ( n ~ 'S ('S 'Z)
       cookieSettings :: CookieSettings
       cookieSettings = getContextEntry context
 
-      makeCookies :: AuthResult v -> IO (SetCookieList ('S 'Z))
-      makeCookies (Authenticated v) = do
-        ejwt <- makeCookie cookieSettings jwtSettings v
-        case ejwt of
-            Nothing  -> return $ Nothing `SetCookieCons` SetCookieNil
-            Just jwt -> return $ Just jwt `SetCookieCons` SetCookieNil
-      makeCookies _ = return $ Nothing `SetCookieCons` SetCookieNil
+      makeCookies :: AuthResult v -> IO (SetCookieList ('S ('S 'Z)))
+      makeCookies authResult = do
+        csrf <- makeCsrfCookie cookieSettings
+        fmap (Just csrf `SetCookieCons`) $
+          case authResult of
+            (Authenticated v) -> do
+              ejwt <- makeSessionCookie cookieSettings jwtSettings v
+              case ejwt of
+                Nothing  -> return $ Nothing `SetCookieCons` SetCookieNil
+                Just jwt -> return $ Just jwt `SetCookieCons` SetCookieNil
+            _ -> return $ Nothing `SetCookieCons` SetCookieNil
 
       go :: ( old ~ ServerT api Handler
             , new ~ ServerT (AddSetCookiesApi n api) Handler
