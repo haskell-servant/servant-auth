@@ -1,13 +1,11 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PolyKinds                  #-}
 {-# LANGUAGE UndecidableInstances       #-}
+
 module Servant.Auth.Server.Internal.AddSetCookie where
 
-import qualified Data.ByteString            as BS
-import qualified Data.ByteString.Base64     as BS64
 import           Servant
 
-import           System.Entropy             (getEntropy)
 import           Web.Cookie
 
 -- What are we doing here? Well, the idea is to add headers to the response,
@@ -60,6 +58,3 @@ instance {-# OVERLAPS #-}
   (AddSetCookies n a a', AddSetCookies n b b')
   => AddSetCookies n (a :<|> b) (a' :<|> b') where
   addSetCookies cookies (a :<|> b) = addSetCookies cookies a :<|> addSetCookies cookies b
-
-csrfCookie :: IO BS.ByteString
-csrfCookie = BS64.encode <$> getEntropy 32

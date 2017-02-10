@@ -7,9 +7,11 @@ import qualified Crypto.JOSE              as Jose
 import qualified Crypto.JWT               as Jose
 import           Crypto.Util              (constTimeEq)
 import qualified Data.ByteString          as BS
+import qualified Data.ByteString.Base64   as BS64
 import qualified Data.ByteString.Lazy     as BSL
 import           Data.CaseInsensitive     (mk)
 import           Network.Wai              (requestHeaders)
+import           System.Entropy           (getEntropy)
 import           Web.Cookie
 
 import Servant.Auth.Server.Internal.ConfigTypes
@@ -41,21 +43,38 @@ cookieAuthCheck ccfg jwtCfg = do
       Left _ -> mzero
       Right v' -> return v'
 
-makeCookie :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe SetCookie)
-makeCookie cookieSettings jwtSettings v = do
+makeCsrfCookie :: CookieSettings -> IO SetCookie
+makeCsrfCookie cookieSettings = do
+  csrfValue <- BS64.encode <$> getEntropy 32
+  return $ def
+    { setCookieName = xsrfCookieName cookieSettings
+    , setCookieValue = csrfValue
+    , setCookieMaxAge = cookieMaxAge cookieSettings
+    , setCookieExpires = cookieExpires cookieSettings
+    , setCookieSecure = case cookieIsSecure cookieSettings of
+        Secure -> True
+        NotSecure -> False
+    }
+
+makeSessionCookie :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe SetCookie)
+makeSessionCookie cookieSettings jwtSettings v = do
   ejwt <- makeJWT v jwtSettings Nothing
   case ejwt of
     Left _ -> return Nothing
     Right jwt -> return $ Just $ def
-        { setCookieName = sessionCookieName cookieSettings
-        , setCookieValue = BSL.toStrict jwt
-        , setCookieHttpOnly = True
-        , setCookieMaxAge = cookieMaxAge cookieSettings
-        , setCookieExpires = cookieExpires cookieSettings
-        , setCookieSecure = case cookieIsSecure cookieSettings of
-            Secure -> True
-            NotSecure -> False
-        }
+      { setCookieName = sessionCookieName cookieSettings
+      , setCookieValue = BSL.toStrict jwt
+      , setCookieHttpOnly = True
+      , setCookieMaxAge = cookieMaxAge cookieSettings
+      , setCookieExpires = cookieExpires cookieSettings
+      , setCookieSecure = case cookieIsSecure cookieSettings of
+          Secure -> True
+          NotSecure -> False
+      }
+
+-- Publicly-exposed function
+makeCookie :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe SetCookie)
+makeCookie = makeSessionCookie
 
 makeCookieBS :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe BS.ByteString)
 makeCookieBS a b c = fmap (toByteString . renderSetCookie)  <$> makeCookie a b c
