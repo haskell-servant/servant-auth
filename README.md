@@ -75,7 +75,7 @@ type Unprotected =
      :> ReqBody '[JSON] Login
      :> PostNoContent '[JSON] (Headers '[ Header "Set-Cookie" SetCookie
                                         , Header "Set-Cookie" SetCookie]
-                                        NoContent)
+                                       NoContent)
   :<|> Raw
 
 unprotected :: CookieSettings -> JWTSettings -> Server Unprotected
