@@ -308,7 +308,7 @@ app api = serveWithContext api ctx server
 
 server :: Server (API auths)
 server authResult = case authResult of
-  Authenticated usr -> getInt usr :<|> postInt
+  Authenticated usr -> getInt usr :<|> postInt usr
   Indefinite ->  throwAll err401
   _ -> throwAll err403
   where

@@ -39,8 +39,8 @@ data SetCookieList (n :: Nat) :: * where
 class AddSetCookies (n :: Nat) orig new where
   addSetCookies :: SetCookieList n -> orig -> new
 
-instance {-# OVERLAPS #-} AddSetCookies n oldb newb
-  => AddSetCookies n (a -> oldb) (a -> newb) where
+instance {-# OVERLAPS #-} AddSetCookies ('S n) oldb newb
+  => AddSetCookies ('S n) (a -> oldb) (a -> newb) where
   addSetCookies cookies oldfn = \val -> addSetCookies cookies $ oldfn val
 
 instance AddSetCookies 'Z orig orig where
