@@ -2,7 +2,11 @@
 module Servant.Auth.Server.Internal.ThrowAll where
 
 import Control.Monad.Error.Class
-import Servant                   ((:<|>) (..), ServantErr)
+import Servant                   ((:<|>) (..), ServantErr(..))
+import Network.HTTP.Types
+import Network.Wai
+
+import qualified Data.ByteString.Char8 as BS
 
 class ThrowAll a where
   -- | 'throwAll' is a convenience function to throw errors across an entire
@@ -23,3 +27,10 @@ instance {-# OVERLAPS #-} ThrowAll b => ThrowAll (a -> b) where
 
 instance {-# OVERLAPPABLE #-} (MonadError ServantErr m) => ThrowAll (m a) where
   throwAll = throwError
+
+instance {-# OVERLAPS #-} ThrowAll Application where
+  throwAll e _req respond
+      = respond $ responseLBS (mkStatus (errHTTPCode e) (BS.pack $ errReasonPhrase e))
+                              (errHeaders e)
+                              (errBody e)
+
