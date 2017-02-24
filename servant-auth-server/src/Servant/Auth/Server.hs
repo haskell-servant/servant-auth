@@ -70,6 +70,7 @@ module Servant.Auth.Server
   , defaultCookieSettings
   , makeCookie
   , makeCookieBS
+  , acceptLogin
 
 
   -- ** Related types

@@ -73,7 +73,9 @@ protected _ = throwAll err401
 type Unprotected =
  "login"
      :> ReqBody '[JSON] Login
-     :> PostNoContent '[JSON] (Headers '[Header "Set-Cookie" SetCookie] NoContent)
+     :> PostNoContent '[JSON] (Headers '[ Header "Set-Cookie" SetCookie
+                                        , Header "Set-Cookie" SetCookie]
+                                       NoContent)
   :<|> Raw
 
 unprotected :: CookieSettings -> JWTSettings -> Server Unprotected
@@ -202,17 +204,21 @@ mainWithCookies = do
 
 
 -- Here is the login handler
-checkCreds :: CookieSettings -> JWTSettings -> Login
-  -> Handler (Headers '[Header "Set-Cookie" SetCookie] NoContent)
+checkCreds :: CookieSettings
+           -> JWTSettings
+           -> Login
+           -> Handler (Headers '[ Header "Set-Cookie" SetCookie
+                                , Header "Set-Cookie" SetCookie]
+                               NoContent)
 checkCreds cookieSettings jwtSettings (Login "Ali Baba" "Open Sesame") = do
    -- Usually you would ask a database for the user info. This is just a
    -- regular servant handler, so you can follow your normal database access
    -- patterns (including using 'enter').
    let usr = User "Ali Baba" "ali@email.com"
-   mcookie <- liftIO $ makeCookie cookieSettings jwtSettings usr
-   case mcookie of
-     Nothing     -> throwError err401
-     Just cookie -> return $ addHeader cookie NoContent
+   mApplyCookies <- liftIO $ acceptLogin cookieSettings jwtSettings usr
+   case mApplyCookies of
+     Nothing           -> throwError err401
+     Just applyCookies -> return $ applyCookies NoContent
 checkCreds _ _ _ = throwError err401
 ~~~
 
