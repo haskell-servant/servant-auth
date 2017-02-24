@@ -39,8 +39,8 @@ data SetCookieList (n :: Nat) :: * where
 class AddSetCookies (n :: Nat) orig new where
   addSetCookies :: SetCookieList n -> orig -> new
 
-instance {-# OVERLAPS #-} AddSetCookies n oldb newb
-  => AddSetCookies n (a -> oldb) (a -> newb) where
+instance {-# OVERLAPS #-} AddSetCookies ('S n) oldb newb
+  => AddSetCookies ('S n) (a -> oldb) (a -> newb) where
   addSetCookies cookies oldfn = \val -> addSetCookies cookies $ oldfn val
 
 instance AddSetCookies 'Z orig orig where
@@ -57,8 +57,8 @@ instance {-# OVERLAPPABLE #-}
       Just cookie -> addHeader cookie <$> addSetCookies rest oldVal
 
 instance {-# OVERLAPS #-}
-  (AddSetCookies n a a', AddSetCookies n b b')
-  => AddSetCookies n (a :<|> b) (a' :<|> b') where
+  (AddSetCookies ('S n) a a', AddSetCookies ('S n) b b')
+  => AddSetCookies ('S n) (a :<|> b) (a' :<|> b') where
   addSetCookies cookies (a :<|> b) = addSetCookies cookies a :<|> addSetCookies cookies b
 
 csrfCookie :: IO BS.ByteString
