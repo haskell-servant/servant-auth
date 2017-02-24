@@ -35,6 +35,7 @@ type family AddSetCookieApi a where
      = Verb method stat ctyps (Headers ((Header "Set-Cookie" SetCookie) ': ls) a)
   AddSetCookieApi (Verb method stat ctyps a)
      = Verb method stat ctyps (Headers '[Header "Set-Cookie" SetCookie] a)
+  AddSetCookieApi Raw = Raw
 
 data SetCookieList (n :: Nat) :: * where
   SetCookieNil :: SetCookieList 'Z
@@ -65,8 +66,8 @@ instance {-# OVERLAPS #-}
   => AddSetCookies ('S n) (a :<|> b) (a' :<|> b') where
   addSetCookies cookies (a :<|> b) = addSetCookies cookies a :<|> addSetCookies cookies b
 
-instance {-# OVERLAPS #-}
-  AddSetCookies n Application Application where
+instance
+  AddSetCookies ('S n) Application Application where
   addSetCookies cookies r request respond
     = r request (\response -> respond
                $ mapResponseHeaders (++ mkHeaders cookies) response)
