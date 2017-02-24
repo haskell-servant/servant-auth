@@ -29,7 +29,7 @@ import           Network.Wreq             (Options, auth, basicAuth,
                                            cookieExpiryTime, cookies, defaults,
                                            get, getWith, header, oauth2Bearer,
                                            responseBody, responseCookieJar,
-                                           responseStatus)
+                                           responseStatus, responseHeader)
 import           Servant                  hiding (BasicAuth, IsSecure (..))
 import           Servant.Auth.Server
 import           Servant.Auth.Server.SetCookieOrphan ()
@@ -65,6 +65,14 @@ authSpec
 
   it "fails (403) if one authentication fails" $ const $
     pendingWith "Authentications don't yet fail, only are Indefinite"
+
+  it "doesn't clobber pre-existing response headers" $ \port -> property $
+                                                \(user :: User) -> do
+    jwt <- makeJWT user jwtCfg Nothing
+    opts <- addJwtToHeader jwt
+    resp <- getWith opts (url port ++ "/header")
+    resp ^. responseHeader "Blah" `shouldBe` "1797"
+    resp ^. responseHeader "Set-Cookie" `shouldSatisfy` (/= "")
 
   context "Setting cookies" $ do
 
@@ -255,9 +263,11 @@ throwAllSpec = describe "throwAll" $ do
 -- * API and Server {{{
 
 type API auths
-    = Auth auths User :> ( Get '[JSON] Int
-                      :<|> ReqBody '[JSON] Int :> Post '[JSON] Int
-                         )
+    = Auth auths User :>
+        ( Get '[JSON] Int
+       :<|> ReqBody '[JSON] Int :> Post '[JSON] Int
+       :<|> "header" :> Get '[JSON] (Headers '[Header "Blah" Int] Int)
+        )
 
 jwtOnlyApi :: Proxy (API '[Servant.Auth.Server.JWT])
 jwtOnlyApi = Proxy
@@ -308,14 +318,18 @@ app api = serveWithContext api ctx server
 
 server :: Server (API auths)
 server authResult = case authResult of
-  Authenticated usr -> getInt usr :<|> postInt usr
+  Authenticated usr -> getInt usr :<|> postInt usr :<|> getHeaderInt
   Indefinite ->  throwAll err401
   _ -> throwAll err403
   where
     getInt :: User -> Handler Int
     getInt usr = return . length $ name usr
+
     postInt :: User -> Int -> Handler Int
     postInt _ = return
+
+    getHeaderInt :: Handler (Headers '[Header "Blah" Int] Int)
+    getHeaderInt = return $ addHeader 1797 17
 
 -- }}}
 ------------------------------------------------------------------------------
