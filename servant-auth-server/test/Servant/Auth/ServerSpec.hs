@@ -24,6 +24,7 @@ import           Network.HTTP.Client      (HttpException (StatusCodeException),
                                            cookie_http_only, cookie_name,
                                            cookie_value, destroyCookieJar)
 import           Network.HTTP.Types       (Status, status200, status401)
+import           Network.Wai              (responseLBS)
 import           Network.Wai.Handler.Warp (testWithApplication)
 import           Network.Wreq             (Options, auth, basicAuth,
                                            cookieExpiryTime, cookies, defaults,
@@ -73,6 +74,23 @@ authSpec
     resp <- getWith opts (url port ++ "/header")
     resp ^. responseHeader "Blah" `shouldBe` "1797"
     resp ^. responseHeader "Set-Cookie" `shouldSatisfy` (/= "")
+
+  context "Raw" $ do
+
+    it "gets the response body" $ \port -> property $ \(user :: User) -> do
+      jwt <- makeJWT user jwtCfg Nothing
+      opts <- addJwtToHeader jwt
+      resp <- getWith opts (url port ++ "/raw")
+      resp ^. responseBody `shouldBe` "how are you?"
+
+    it "doesn't clobber pre-existing reponse headers" $ \port -> property $
+                                                \(user :: User) -> do
+      jwt <- makeJWT user jwtCfg Nothing
+      opts <- addJwtToHeader jwt
+      resp <- getWith opts (url port ++ "/raw")
+      resp ^. responseHeader "hi" `shouldBe` "there"
+      resp ^. responseHeader "Set-Cookie" `shouldSatisfy` (/= "")
+
 
   context "Setting cookies" $ do
 
@@ -267,6 +285,7 @@ type API auths
         ( Get '[JSON] Int
        :<|> ReqBody '[JSON] Int :> Post '[JSON] Int
        :<|> "header" :> Get '[JSON] (Headers '[Header "Blah" Int] Int)
+       :<|> "raw" :> Raw
         )
 
 jwtOnlyApi :: Proxy (API '[Servant.Auth.Server.JWT])
@@ -318,8 +337,11 @@ app api = serveWithContext api ctx server
 
 server :: Server (API auths)
 server authResult = case authResult of
-  Authenticated usr -> getInt usr :<|> postInt usr :<|> getHeaderInt
-  Indefinite ->  throwAll err401
+  Authenticated usr -> getInt usr
+                  :<|> postInt usr
+                  :<|> getHeaderInt
+                  :<|> raw
+  Indefinite -> throwAll err401
   _ -> throwAll err403
   where
     getInt :: User -> Handler Int
@@ -330,6 +352,10 @@ server authResult = case authResult of
 
     getHeaderInt :: Handler (Headers '[Header "Blah" Int] Int)
     getHeaderInt = return $ addHeader 1797 17
+
+    raw :: Application
+    raw _req respond
+      = respond $ responseLBS status200 [("hi", "there")] "how are you?"
 
 -- }}}
 ------------------------------------------------------------------------------
