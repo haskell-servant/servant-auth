@@ -57,8 +57,8 @@ instance {-# OVERLAPPABLE #-}
       Just cookie -> addHeader cookie <$> addSetCookies rest oldVal
 
 instance {-# OVERLAPS #-}
-  (AddSetCookies n a a', AddSetCookies n b b')
-  => AddSetCookies n (a :<|> b) (a' :<|> b') where
+  (AddSetCookies ('S n) a a', AddSetCookies ('S n) b b')
+  => AddSetCookies ('S n) (a :<|> b) (a' :<|> b') where
   addSetCookies cookies (a :<|> b) = addSetCookies cookies a :<|> addSetCookies cookies b
 
 csrfCookie :: IO BS.ByteString
