@@ -254,7 +254,10 @@ throwAllSpec = describe "throwAll" $ do
 ------------------------------------------------------------------------------
 -- * API and Server {{{
 
-type API auths = Auth auths User :> Get '[JSON] Int
+type API auths
+    = Auth auths User :> ( Get '[JSON] Int
+                      :<|> ReqBody '[JSON] Int :> Post '[JSON] Int
+                         )
 
 jwtOnlyApi :: Proxy (API '[Servant.Auth.Server.JWT])
 jwtOnlyApi = Proxy
@@ -304,12 +307,15 @@ app api = serveWithContext api ctx server
 
 
 server :: Server (API auths)
-server = getInt
+server authResult = case authResult of
+  Authenticated usr -> getInt usr :<|> postInt
+  Indefinite ->  throwAll err401
+  _ -> throwAll err403
   where
-    getInt :: AuthResult User -> Handler Int
-    getInt (Authenticated usr) = return . length $ name usr
-    getInt Indefinite = throwError err401
-    getInt _ = throwError err403
+    getInt :: User -> Handler Int
+    getInt usr = return . length $ name usr
+    postInt :: User -> Int -> Handler Int
+    postInt _ = return
 
 -- }}}
 ------------------------------------------------------------------------------
