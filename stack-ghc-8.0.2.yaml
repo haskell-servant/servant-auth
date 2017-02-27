@@ -1,0 +1,17 @@
+flags: {}
+apply-ghc-options: targets
+packages:
+- servant-auth
+- servant-auth-server
+- servant-auth-client
+- servant-auth-docs
+extra-deps:
+- QuickCheck-2.8.2
+- http-api-data-0.3.3
+- jose-0.5.0.0
+- servant-0.10
+- servant-client-0.10
+- servant-docs-0.10
+- servant-server-0.10
+- wreq-0.5.0.0
+resolver: lts-8.3
