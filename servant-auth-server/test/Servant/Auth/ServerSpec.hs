@@ -1,42 +1,61 @@
+{-# LANGUAGE CPP #-}
 module Servant.Auth.ServerSpec (spec) where
 
 import           Control.Lens
-import           Control.Monad.Except     (runExceptT)
-import           Crypto.JOSE              (Alg (HS256, None), Error, JWK,
-                                           JWSHeader,
-                                           KeyMaterialGenParam (OctGenParam),
-                                           Protection (Protected), ToCompact,
-                                           encodeCompact, genJWK, newJWSHeader)
-import           Crypto.JWT               (Audience (..), ClaimsSet, JWT,
-                                           NumericDate (NumericDate), claimAud,
-                                           claimNbf, createJWSJWT,
-                                           emptyClaimsSet, unregisteredClaims)
-import           Data.Aeson               (FromJSON, ToJSON, Value, toJSON)
-import           Data.Aeson.Lens          (_JSON)
-import qualified Data.ByteString          as BS
-import qualified Data.ByteString.Lazy     as BSL
-import           Data.CaseInsensitive     (mk)
-import           Data.Foldable            (find)
+import           Control.Monad.Except                (runExceptT)
+import           Crypto.JOSE                         (Alg (HS256, None), Error,
+                                                      JWK, JWSHeader,
+                                                      KeyMaterialGenParam (OctGenParam),
+                                                      Protection (Protected),
+                                                      ToCompact, encodeCompact,
+                                                      genJWK, newJWSHeader)
+import           Crypto.JWT                          (Audience (..), ClaimsSet,
+                                                      JWT,
+                                                      NumericDate (NumericDate),
+                                                      claimAud, claimNbf,
+                                                      createJWSJWT,
+                                                      emptyClaimsSet,
+                                                      unregisteredClaims)
+import           Data.Aeson                          (FromJSON, ToJSON, Value,
+                                                      toJSON)
+import           Data.Aeson.Lens                     (_JSON)
+import qualified Data.ByteString                     as BS
+import qualified Data.ByteString.Lazy                as BSL
+import           Data.CaseInsensitive                (mk)
+import           Data.Foldable                       (find)
 import           Data.Monoid
 import           Data.Time
-import           GHC.Generics             (Generic)
-import           Network.HTTP.Client      (HttpException (StatusCodeException),
-                                           cookie_http_only, cookie_name,
-                                           cookie_value, destroyCookieJar)
-import           Network.HTTP.Types       (Status, status200, status401)
-import           Network.Wai              (responseLBS)
-import           Network.Wai.Handler.Warp (testWithApplication)
-import           Network.Wreq             (Options, auth, basicAuth,
-                                           cookieExpiryTime, cookies, defaults,
-                                           get, getWith, header, oauth2Bearer,
-                                           responseBody, responseCookieJar,
-                                           responseStatus, responseHeader)
-import           Servant                  hiding (BasicAuth, IsSecure (..))
+import           GHC.Generics                        (Generic)
+import           Network.HTTP.Client                 (cookie_http_only,
+                                                      cookie_name, cookie_value,
+                                                      destroyCookieJar)
+import           Network.HTTP.Types                  (Status, status200,
+                                                      status401)
+import           Network.Wai                         (responseLBS)
+import           Network.Wai.Handler.Warp            (testWithApplication)
+import           Network.Wreq                        (Options, auth, basicAuth,
+                                                      cookieExpiryTime, cookies,
+                                                      defaults, get, getWith,
+                                                      header, oauth2Bearer,
+                                                      responseBody,
+                                                      responseCookieJar,
+                                                      responseHeader,
+                                                      responseStatus)
+import           Servant                             hiding (BasicAuth,
+                                                      IsSecure (..))
 import           Servant.Auth.Server
 import           Servant.Auth.Server.SetCookieOrphan ()
-import           System.IO.Unsafe         (unsafePerformIO)
+import           System.IO.Unsafe                    (unsafePerformIO)
 import           Test.Hspec
 import           Test.QuickCheck
+
+#if MIN_VERSION_http_client(0,5,0)
+import qualified Network.HTTP.Client as HCli
+#else
+import Network.HTTP.Client (HttpException (StatusCodeException))
+#endif
+
+
 
 spec :: Spec
 spec = do
@@ -388,9 +407,15 @@ addCookie opts cookie' = opts & header "Cookie" %~ \c -> case c of
                         []  -> [cookie']
                         _   -> error "expecting single cookie header"
 
+
 shouldHTTPErrorWith :: IO a -> Status -> Expectation
 shouldHTTPErrorWith act stat = act `shouldThrow` \e -> case e of
+#if MIN_VERSION_http_client(0,5,0)
+  HCli.HttpExceptionRequest _ (HCli.StatusCodeException resp _)
+    -> HCli.responseStatus resp == stat
+#else
   StatusCodeException x _ _ -> x == stat
+#endif
   _ -> False
 
 url :: Int -> String
