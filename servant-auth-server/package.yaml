@@ -1,5 +1,5 @@
 name:                servant-auth-server
-version:             0.2.4.0
+version:             0.2.5.0
 synopsis:            servant-server/servant-auth compatibility
 description:         |
     This package provides the required instances for using the @Auth@ combinator
@@ -37,7 +37,7 @@ dependencies:
   - jose                    >= 0.5  && < 0.6
   - monad-time              >= 0.2  && < 0.3
   - time                    >= 1.5  && < 1.7
-  - servant-server          >= 0.9.1  && < 0.10
+  - servant-server          >= 0.9.1  && < 0.11
   - base64-bytestring       >= 1    && < 2
   - blaze-builder           >= 0.4  && < 0.5
   - unordered-containers    >= 0.2  && < 0.3
@@ -82,13 +82,13 @@ tests:
     dependencies:
       - servant-auth-server
       - hspec > 2 && < 3
-      - QuickCheck >= 2.8 && < 2.9
+      - QuickCheck >= 2.8 && < 2.10
       - aeson
       - lens-aeson
       - warp
       - wreq
       - http-types
-      - http-client
+      - http-client >= 0.4 && < 0.6
 
 executables:
   readme:
@@ -98,7 +98,7 @@ executables:
     dependencies:
       - servant-auth
       - servant-auth-server
-      - servant-server  >= 0.9.1 && < 0.10
+      - servant-server
       - warp
       - markdown-unlit
       - transformers

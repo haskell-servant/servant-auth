@@ -32,6 +32,7 @@ what to do with it.
 
 ~~~ {.haskell}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
+{-# OPTIONS_GHC -fno-warn-deprecations #-}
 import Control.Concurrent (forkIO)
 import Control.Monad (forever)
 import Control.Monad.Trans (liftIO)
@@ -77,7 +78,7 @@ type Unprotected =
   :<|> Raw
 
 unprotected :: CookieSettings -> JWTSettings -> Server Unprotected
-unprotected cs jwts = checkCreds cs jwts :<|> serveDirectory "example/static" 
+unprotected cs jwts = checkCreds cs jwts :<|> serveDirectory "example/static"
 
 type API auths = (Auth auths User :> Protected) :<|> Unprotected
 
