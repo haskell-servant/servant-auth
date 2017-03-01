@@ -4,6 +4,7 @@ packages:
 - servant-auth-server
 - servant-auth-client
 - servant-auth-docs
+- servant-auth-foreign
 extra-deps:
 - aeson-0.11.2.1
 - bytestring-builder-0.10.8.1.0
@@ -20,6 +21,9 @@ extra-deps:
 - servant-client-0.9.1.1
 - servant-docs-0.9.1.1
 - servant-server-0.9.1
+- servant-foreign-0.9.1
+- typed-process-0.1.0.0
+- lackey-0.4.2
 - unix-time-0.3.7
 - wai-extra-3.0.19
 - warp-3.2.9

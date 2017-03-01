@@ -5,6 +5,7 @@ packages:
 - servant-auth-server
 - servant-auth-client
 - servant-auth-docs
+- servant-auth-foreign
 extra-deps:
 - QuickCheck-2.8.2
 - http-api-data-0.3.3
@@ -13,5 +14,6 @@ extra-deps:
 - servant-client-0.10
 - servant-docs-0.10
 - servant-server-0.10
+- servant-foreign-0.10
 - wreq-0.5.0.0
 resolver: lts-8.3
