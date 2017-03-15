@@ -1,0 +1,90 @@
+-- This file has been generated from package.yaml by hpack version 0.15.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           servant-auth-swagger
+version:        0.2.6.0
+synopsis:       servant-swagger/servant-auth compatibility
+description:    Please see README.md
+category:       Web, Servant, Authentication
+homepage:       http://github.com/plow-technologies/servant-auth#readme
+bug-reports:    https://github.com/plow-technologies/servant-auth/issues
+author:         Julian K. Arni
+maintainer:     jkarni@gmail.com
+copyright:      (c) Julian K. Arni
+license:        BSD3
+license-file:   LICENSE
+tested-with:    GHC == 7.10.2, GHC == 8.0.1
+build-type:     Simple
+cabal-version:  >= 1.10
+
+extra-source-files:
+    package.yaml
+
+source-repository head
+  type: git
+  location: https://github.com/plow-technologies/servant-auth
+
+library
+  hs-source-dirs:
+      src
+  default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
+  ghc-options: -Wall
+  build-depends:
+      base >= 4.7 && < 4.10
+    , text
+    , servant-swagger
+    , swagger2 >= 2 && < 3
+    , servant
+    , servant-auth == 0.2.*
+    , lens
+  exposed-modules:
+      Servant.Auth.Swagger
+  default-language: Haskell2010
+
+test-suite doctest
+  type: exitcode-stdio-1.0
+  main-is: Doctest.hs
+  hs-source-dirs:
+      test
+  default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
+  ghc-options: -Wall
+  build-depends:
+      base >= 4.7 && < 4.10
+    , text
+    , servant-swagger
+    , swagger2 >= 2 && < 3
+    , servant
+    , servant-auth == 0.2.*
+    , lens
+    , doctest >= 0.9 && < 0.12
+    , Glob >= 0.7 && < 0.8
+    , yaml == 0.8.*
+  other-modules:
+      Servant.Auth.SwaggerSpec
+      Spec
+  default-language: Haskell2010
+
+test-suite spec
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs:
+      test
+  default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
+  ghc-options: -Wall
+  build-depends:
+      base >= 4.7 && < 4.10
+    , text
+    , servant-swagger
+    , swagger2 >= 2 && < 3
+    , servant
+    , servant-auth == 0.2.*
+    , lens
+    , servant-auth-swagger
+    , yaml
+    , hspec > 2 && < 3
+    , QuickCheck >= 2.8 && < 2.9
+  other-modules:
+      Doctest
+      Servant.Auth.SwaggerSpec
+  default-language: Haskell2010

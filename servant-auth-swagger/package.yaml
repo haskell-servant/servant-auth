@@ -1,0 +1,70 @@
+name:                servant-auth-swagger
+version:             0.2.6.0
+synopsis:            servant-swagger/servant-auth compatibility
+description:         Please see README.md
+homepage:            http://github.com/plow-technologies/servant-auth#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Julian K. Arni
+maintainer:          jkarni@gmail.com
+category:            Web, Servant, Authentication
+copyright:           (c) Julian K. Arni
+github:              plow-technologies/servant-auth
+tested-with:         GHC == 7.10.2, GHC == 8.0.1
+
+ghc-options: -Wall
+
+extra-source-files:
+  - package.yaml
+
+dependencies:
+  - base >= 4.7 && < 4.10
+  - text
+  - servant-swagger
+  - swagger2 >= 2 && < 3
+  - servant
+  - servant-auth == 0.2.*
+  - lens
+
+
+default-extensions:
+  - AutoDeriveTypeable
+  - ConstraintKinds
+  - DataKinds
+  - DefaultSignatures
+  - DeriveFoldable
+  - DeriveFunctor
+  - DeriveGeneric
+  - DeriveTraversable
+  - FlexibleContexts
+  - FlexibleInstances
+  - FunctionalDependencies
+  - GADTs
+  - KindSignatures
+  - MultiParamTypeClasses
+  - OverloadedStrings
+  - RankNTypes
+  - ScopedTypeVariables
+  - TypeFamilies
+  - TypeOperators
+
+library:
+  source-dirs:      src
+  other-modules:    []
+
+tests:
+  spec:
+    main:            Spec.hs
+    source-dirs:     test
+    dependencies:
+      - servant-auth-swagger
+      - yaml
+      - hspec > 2 && < 3
+      - QuickCheck >= 2.8 && < 2.9
+  doctest:
+    main:            Doctest.hs
+    source-dirs:     test
+    dependencies:
+      - doctest >= 0.9 && < 0.12
+      - Glob >= 0.7 && < 0.8
+      - yaml == 0.8.*
