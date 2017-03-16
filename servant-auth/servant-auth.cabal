@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:           servant-auth
-version:        0.2.6.0
+version:        0.2.6.1
 synopsis:       Authentication combinators for servant
 description:    This package provides an @Auth@ combinator for 'servant'. This combinator
                 allows using different authentication schemes in a straightforward way,
@@ -70,7 +70,7 @@ test-suite spec
       base >= 4.7 && < 4.10
     , servant-auth
     , hspec > 2 && < 3
-    , QuickCheck >= 2.8 && < 2.9
+    , QuickCheck >= 2.8 && < 2.10
   other-modules:
       Doctest
   default-language: Haskell2010

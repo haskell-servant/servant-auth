@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:           servant-auth-swagger
-version:        0.2.6.0
+version:        0.2.6.1
 synopsis:       servant-swagger/servant-auth compatibility
 description:    Please see README.md
 category:       Web, Servant, Authentication
@@ -83,7 +83,7 @@ test-suite spec
     , servant-auth-swagger
     , yaml
     , hspec > 2 && < 3
-    , QuickCheck >= 2.8 && < 2.9
+    , QuickCheck >= 2.8 && < 2.10
   other-modules:
       Doctest
       Servant.Auth.SwaggerSpec

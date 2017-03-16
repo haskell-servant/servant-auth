@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:           servant-auth-client
-version:        0.2.6.0
+version:        0.2.6.1
 synopsis:       servant-client/servant-auth compatibility
 description:    This package provides instances that allow generating clients from
                 <https://hackage.haskell.org/package/servant servant>
@@ -85,7 +85,7 @@ test-suite spec
     , servant             >= 0.7  && < 0.11
     , servant-auth-client
     , hspec > 2 && < 3
-    , QuickCheck >= 2.8 && < 2.9
+    , QuickCheck >= 2.8 && < 2.10
     , aeson
     , bytestring
     , http-client

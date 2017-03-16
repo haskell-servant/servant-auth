@@ -1,5 +1,5 @@
 name:                servant-auth
-version:             0.2.6.0
+version:             0.2.6.1
 synopsis:            Authentication combinators for servant
 description:         |
     This package provides an @Auth@ combinator for 'servant'. This combinator
@@ -60,7 +60,7 @@ tests:
     dependencies:
       - servant-auth
       - hspec > 2 && < 3
-      - QuickCheck >= 2.8 && < 2.9
+      - QuickCheck >= 2.8 && < 2.10
   doctest:
     main:            Doctest.hs
     source-dirs:     test

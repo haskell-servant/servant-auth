@@ -1,5 +1,5 @@
 name:                servant-auth-docs
-version:             0.2.6.0
+version:             0.2.6.1
 synopsis:            servant-docs/servant-auth compatibility
 description:         Please see README.md
 homepage:            http://github.com/plow-technologies/servant-auth#readme
@@ -58,7 +58,7 @@ tests:
     dependencies:
       - servant-auth-docs
       - hspec > 2 && < 3
-      - QuickCheck >= 2.8 && < 2.9
+      - QuickCheck >= 2.8 && < 2.10
   doctest:
     main:            Doctest.hs
     source-dirs:     test

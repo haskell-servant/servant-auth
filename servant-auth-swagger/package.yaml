@@ -1,5 +1,5 @@
 name:                servant-auth-swagger
-version:             0.2.6.0
+version:             0.2.6.1
 synopsis:            servant-swagger/servant-auth compatibility
 description:         Please see README.md
 homepage:            http://github.com/plow-technologies/servant-auth#readme
