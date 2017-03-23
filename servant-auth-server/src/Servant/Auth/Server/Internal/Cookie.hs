@@ -55,6 +55,7 @@ makeCookie cookieSettings jwtSettings v = do
         , setCookieSecure = case cookieIsSecure cookieSettings of
             Secure -> True
             NotSecure -> False
+        , setCookiePath = cookiePath cookieSettings
         }
 
 makeCookieBS :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe BS.ByteString)

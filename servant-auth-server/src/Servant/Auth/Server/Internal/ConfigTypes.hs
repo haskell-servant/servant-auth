@@ -56,10 +56,12 @@ data CookieSettings = CookieSettings
   , cookieExpires     :: Maybe UTCTime
   -- | 'SameSite' settings. Default: @SameSiteLax@.
   , cookieSameSite    :: SameSite
+  , cookiePath        :: Maybe BS.ByteString
   -- | What name to use for the cookie used for the session.
   , sessionCookieName :: BS.ByteString
   -- | What name to use for the cookie used for CSRF protection.
   , xsrfCookieName    :: BS.ByteString
+  , xsrfCookiePath    :: Maybe BS.ByteString
   -- | What name to use for the header used for CSRF protection.
   , xsrfHeaderName    :: BS.ByteString
   } deriving (Eq, Show, Generic)
@@ -73,8 +75,10 @@ defaultCookieSettings = CookieSettings
     , cookieMaxAge      = Nothing
     , cookieExpires     = Nothing
     , cookieSameSite    = SameSiteLax
+    , cookiePath        = Nothing
     , sessionCookieName = "JWT-Cookie"
     , xsrfCookieName    = "XSRF-TOKEN"
+    , xsrfCookiePath    = Nothing
     , xsrfHeaderName    = "X-XSRF-TOKEN"
     }
 

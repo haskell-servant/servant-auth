@@ -45,6 +45,7 @@ instance ( n ~ 'S ('S 'Z)
              , Cookie.setCookieSecure = case cookieIsSecure cookieSettings of
                   Secure -> True
                   NotSecure -> False
+             , Cookie.setCookiePath = xsrfCookiePath cookieSettings
              }
         cookies <- makeCookies authResult
         return (authResult, Just csrf `SetCookieCons` cookies)
