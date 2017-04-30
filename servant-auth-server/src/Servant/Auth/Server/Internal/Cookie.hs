@@ -44,6 +44,7 @@ cookieAuthCheck ccfg jwtCfg = do
       Left _ -> mzero
       Right v' -> return v'
 
+-- | Makes a cookie to be used for CSRF.
 makeCsrfCookie :: CookieSettings -> IO SetCookie
 makeCsrfCookie cookieSettings = do
   csrfValue <- BS64.encode <$> getEntropy 32
@@ -57,6 +58,7 @@ makeCsrfCookie cookieSettings = do
         NotSecure -> False
     }
 
+-- | Makes a cookie with session information.
 makeSessionCookie :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe SetCookie)
 makeSessionCookie cookieSettings jwtSettings v = do
   ejwt <- makeJWT v jwtSettings Nothing
@@ -91,9 +93,15 @@ acceptLogin cookieSettings jwtSettings session = do
       csrfCookie <- makeCsrfCookie cookieSettings
       return $ Just $ addHeader sessionCookie . addHeader csrfCookie
 
--- Publicly-exposed function
+makeSessionCookieBS :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe BS.ByteString)
+makeSessionCookieBS a b c = fmap (toByteString . renderSetCookie)  <$> makeSessionCookie a b c
+
+-- | Alias for 'makeSessionCookie'.
 makeCookie :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe SetCookie)
 makeCookie = makeSessionCookie
+{-# DEPRECATED makeCookie "Use makeSessionCookie instead" #-}
 
+-- | Alias for 'makeSessionCookieBS'.
 makeCookieBS :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe BS.ByteString)
-makeCookieBS a b c = fmap (toByteString . renderSetCookie)  <$> makeCookie a b c
+makeCookieBS = makeSessionCookieBS
+{-# DEPRECATED makeCookieBS "Use makeSessionCookieBS instead" #-}

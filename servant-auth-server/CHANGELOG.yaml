@@ -1,7 +1,12 @@
 upcoming:
 
-  - description: 'acceptLogin' function
-    notes: 'acceptLogin' sets both the token and CSRF cookies.
+  - description: 'acceptLogin' and 'makeCsrfCookie' functions
+    notes: >
+        'makeCsrfCookie' for CSRF cookies.
+        Renamed 'makeCookie' to 'makeSessionCookie' to avoid confusion
+        ('makeCookie' is now an alias for 'makeSessionCookie' and is marked as
+        deprecated).
+        'acceptLogin' sets both the token and CSRF cookies.
     authors: bts
     pr: 27 & 41
     date: 2017-02-11
