@@ -2,17 +2,15 @@
 {-# LANGUAGE PolyKinds                  #-}
 {-# LANGUAGE TupleSections              #-}
 {-# LANGUAGE UndecidableInstances       #-}
+
 module Servant.Auth.Server.Internal.AddSetCookie where
 
 import           Blaze.ByteString.Builder (toByteString)
 import qualified Data.ByteString          as BS
-import qualified Data.ByteString.Base64   as BS64
 import qualified Network.HTTP.Types       as HTTP
 import           Network.Wai              (mapResponseHeaders)
 import           Servant
-
-import System.Entropy (getEntropy)
-import Web.Cookie
+import           Web.Cookie
 
 -- What are we doing here? Well, the idea is to add headers to the response,
 -- but the headers come from the authentication check. In order to do that, we
@@ -80,6 +78,3 @@ mkHeaders x = ("Set-Cookie",) <$> mkCookies x
    mkCookies (SetCookieCons Nothing rest) = mkCookies rest
    mkCookies (SetCookieCons (Just y) rest)
      = toByteString (renderSetCookie y) : mkCookies rest
-
-csrfCookie :: IO BS.ByteString
-csrfCookie = BS64.encode <$> getEntropy 32
