@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:           servant-auth-swagger
-version:        0.2.6.1
+version:        0.2.7.0
 synopsis:       servant-swagger/servant-auth compatibility
 description:    Please see README.md
 category:       Web, Servant, Authentication

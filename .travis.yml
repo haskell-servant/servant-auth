@@ -18,7 +18,7 @@ install:
 script:
   - stack setup --no-terminal
   - stack build --ghc-options=-Werror --no-terminal
-  - stack test --ghc-options=-Werror --no-terminal --coverage
+  - stack test --ghc-options=-Werror --no-terminal
   - stack haddock --no-terminal
   # check that the readme is equal to the one we try to compile
   - cmp README.md servant-auth-server/executables/README.lhs

@@ -1,5 +1,5 @@
 name:                servant-auth-client
-version:             0.2.6.1
+version:             0.2.7.0
 synopsis:            servant-client/servant-auth compatibility
 description:         |
     This package provides instances that allow generating clients from
