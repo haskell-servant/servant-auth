@@ -1,0 +1,10 @@
+upcoming:
+
+  - description: 'acceptLogin' function
+    notes: 'acceptLogin' sets both the token and CSRF cookies.
+    authors: bts
+    pr: 27 & 41
+    date: 2017-02-11
+
+releases:
+
