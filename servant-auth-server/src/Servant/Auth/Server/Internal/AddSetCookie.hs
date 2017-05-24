@@ -7,6 +7,7 @@ module Servant.Auth.Server.Internal.AddSetCookie where
 
 import           Blaze.ByteString.Builder (toByteString)
 import qualified Data.ByteString          as BS
+import           Data.Tagged              (Tagged (..))
 import qualified Network.HTTP.Types       as HTTP
 import           Network.Wai              (mapResponseHeaders)
 import           Servant
@@ -64,10 +65,18 @@ instance {-# OVERLAPS #-}
   => AddSetCookies ('S n) (a :<|> b) (a' :<|> b') where
   addSetCookies cookies (a :<|> b) = addSetCookies cookies a :<|> addSetCookies cookies b
 
+-- | for @servant <0.11@
 instance
   AddSetCookies ('S n) Application Application where
   addSetCookies cookies r request respond
     = r request (\response -> respond
+               $ mapResponseHeaders (++ mkHeaders cookies) response)
+
+-- | for @servant >=0.11@
+instance
+  AddSetCookies ('S n) (Tagged m Application) (Tagged m Application) where
+  addSetCookies cookies r = Tagged $ \request respond ->
+    unTagged r request (\response -> respond
                $ mapResponseHeaders (++ mkHeaders cookies) response)
 
 mkHeaders :: SetCookieList x -> [HTTP.Header]
