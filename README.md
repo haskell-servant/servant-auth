@@ -11,26 +11,26 @@ without much extra work.
 
 This library introduces a combinator `Auth`:
 
-~~~ {.haskell ignore}
+``` haskell
 Auth (auths :: [*]) val
-~~~
+```
 
 What `Auth [Auth1, Auth2] Something :> API` means is that `API` is protected by
 *either* `Auth1` *or* `Auth2`, and the result of authentication will be of type
 `AuthResult Something`, where :
 
-~~~ {.haskell ignore}
+``` haskell
 data AuthResult val
   = BadPassword
   | NoSuchUser
   | Authenticated val
   | Indefinite
-~~~
+```
 
 Your handlers will get a value of type `AuthResult Something`, and can decide
 what to do with it.
 
-~~~ {.haskell}
+``` haskell
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 import Control.Concurrent (forkIO)
@@ -87,7 +87,7 @@ type API auths = (Auth auths User :> Protected) :<|> Unprotected
 server :: CookieSettings -> JWTSettings -> Server (API auths)
 server cs jwts = protected :<|> unprotected cs jwts
 
-~~~
+```
 
 The code is common to all authentications. In order to pick one or more specific
 authentication methods, all we need to do is provide the expect configuration
@@ -98,7 +98,7 @@ parameters.
 The following example illustrates how to protect an API with tokens.
 
 
-~~~ {.haskell}
+``` haskell
 -- In main, we fork the server, and allow new tokens to be created in the
 -- command line for the specified user name and email.
 mainWithJWT :: IO ()
@@ -127,11 +127,11 @@ mainWithJWT = do
            Right v -> putStrLn $ "New token:\t" ++ show v
        _ -> putStrLn "Expecting a name and email separated by spaces"
 
-~~~
+```
 
 And indeed:
 
-~~~ {.bash}
+``` bash
 
 ./readme JWT
 
@@ -183,14 +183,14 @@ curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJkYXQiOnsiZW1haWwiOiJhbGlj
     "alice"%
 
 
-~~~
+```
 
 ## Cookies
 
 What if, in addition to API tokens, we want to expose our API to browsers? All
 we need to do is say so!
 
-~~~ {.haskell}
+``` haskell
 mainWithCookies :: IO ()
 mainWithCookies = do
   -- We *also* need a key to sign the cookies
@@ -221,7 +221,7 @@ checkCreds cookieSettings jwtSettings (Login "Ali Baba" "Open Sesame") = do
      Nothing           -> throwError err401
      Just applyCookies -> return $ applyCookies NoContent
 checkCreds _ _ _ = throwError err401
-~~~
+```
 
 ### CSRF and the frontend
 
@@ -233,7 +233,7 @@ cookie and header name are can be configured (see `xsrfCookieName` and
 cookies, Javascript on the client must set the header of each request by
 reading the cookie. For jQuery, and with the default values, that might be:
 
-~~~ { .javascript }
+``` javascript
 
 var token = (function() {
   r = document.cookie.match(new RegExp('XSRF-TOKEN=([^;]+)'))
@@ -245,7 +245,7 @@ $.ajaxPrefilter(function(opts, origOpts, xhr) {
   xhr.setRequestHeader('X-XSRF-TOKEN', token);
   }
 
-~~~
+```
 
 
 I *believe* nothing at all needs to be done if you're using Angular's `$http`
@@ -256,7 +256,7 @@ directive, but I haven't tested this.
 This README is a literate haskell file. Here is 'main', allowing you to pick
 between the examples above.
 
-~~~ { .haskell }
+``` haskell
 
 main :: IO ()
 main = do
@@ -267,4 +267,4 @@ main = do
     ["Cookie"] -> mainWithCookies
     e -> error $ "Arguments: \"" ++ unwords e ++ "\" not understood\n" ++ usage
 
-~~~
+```
