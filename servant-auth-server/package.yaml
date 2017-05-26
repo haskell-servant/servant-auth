@@ -1,5 +1,5 @@
 name:                servant-auth-server
-version:             0.2.7.0
+version:             0.2.8.0
 synopsis:            servant-server/servant-auth compatibility
 description:         |
     This package provides the required instances for using the @Auth@ combinator

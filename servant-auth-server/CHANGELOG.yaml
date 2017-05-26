@@ -1,6 +1,11 @@
 upcoming:
 
 releases:
+  - version: 0.2.8.0
+    changes:
+      - description: servant-0.11 support
+        authors: phadej
+        pr: 45
 
   - version: 0.2.7.0
     changes:
