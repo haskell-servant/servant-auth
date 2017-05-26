@@ -372,9 +372,13 @@ server authResult = case authResult of
     getHeaderInt :: Handler (Headers '[Header "Blah" Int] Int)
     getHeaderInt = return $ addHeader 1797 17
 
-    raw :: Application
-    raw _req respond
-      = respond $ responseLBS status200 [("hi", "there")] "how are you?"
+    raw :: Server Raw
+    raw =
+#if MIN_VERSION_servant_server(0,11,0)
+      Tagged $
+#endif
+      \_req respond ->
+        respond $ responseLBS status200 [("hi", "there")] "how are you?"
 
 -- }}}
 ------------------------------------------------------------------------------

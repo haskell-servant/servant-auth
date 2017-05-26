@@ -60,7 +60,12 @@ hasClientSpec = describe "HasClient" $ around (testWithApplication $ return app)
 
   it "fails when token is expired" $ \port -> property $ \user -> do
     tok <- mkTok user (Just past)
-    Left (FailureResponse stat _ _)  <- getIntClient tok mgr (BaseUrl Http "localhost" port "")
+#if MIN_VERSION_servant_client(0,11,0)
+    Left (FailureResponse _ stat _ _)
+#else
+    Left (FailureResponse stat _ _)
+#endif
+      <- getIntClient tok mgr (BaseUrl Http "localhost" port "")
     stat `shouldBe` status401
 
 
