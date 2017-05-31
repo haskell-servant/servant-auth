@@ -1,6 +1,11 @@
 upcoming:
 
 releases:
+  - version: 0.3.0.0
+    changes: 
+      - description: 'cookiePath' added to 'CookieSettings' and 'setCookiePath' to 'defaultCookieSettings'
+        authors: mchaver
+        pr: 47
   - version: 0.2.8.0
     changes:
       - description: servant-0.11 support
