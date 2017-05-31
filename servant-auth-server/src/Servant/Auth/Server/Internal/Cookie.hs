@@ -53,6 +53,7 @@ makeCsrfCookie cookieSettings = do
     , setCookieValue = csrfValue
     , setCookieMaxAge = cookieMaxAge cookieSettings
     , setCookieExpires = cookieExpires cookieSettings
+    , setCookiePath = cookiePath cookieSettings
     , setCookieSecure = case cookieIsSecure cookieSettings of
         Secure -> True
         NotSecure -> False
