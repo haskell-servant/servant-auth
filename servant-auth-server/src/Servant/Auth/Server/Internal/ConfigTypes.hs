@@ -62,6 +62,8 @@ data CookieSettings = CookieSettings
   , sessionCookieName :: BS.ByteString
   -- | What name to use for the cookie used for CSRF protection.
   , xsrfCookieName    :: BS.ByteString
+  -- | What path to use for the cookie used for CSRF protection. Default @Just "/"@.
+  , xsrfCookiePath    :: Maybe BS.ByteString
   -- | What name to use for the header used for CSRF protection.
   , xsrfHeaderName    :: BS.ByteString
   } deriving (Eq, Show, Generic)
@@ -78,6 +80,7 @@ defaultCookieSettings = CookieSettings
     , cookieSameSite    = SameSiteLax
     , sessionCookieName = "JWT-Cookie"
     , xsrfCookieName    = "XSRF-TOKEN"
+    , xsrfCookiePath    = Just "/"
     , xsrfHeaderName    = "X-XSRF-TOKEN"
     }
 
