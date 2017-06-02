@@ -53,6 +53,7 @@ makeCsrfCookie cookieSettings = do
     , setCookieValue = csrfValue
     , setCookieMaxAge = cookieMaxAge cookieSettings
     , setCookieExpires = cookieExpires cookieSettings
+    , setCookiePath = xsrfCookiePath cookieSettings
     , setCookieSecure = case cookieIsSecure cookieSettings of
         Secure -> True
         NotSecure -> False
@@ -70,6 +71,7 @@ makeSessionCookie cookieSettings jwtSettings v = do
       , setCookieHttpOnly = True
       , setCookieMaxAge = cookieMaxAge cookieSettings
       , setCookieExpires = cookieExpires cookieSettings
+      , setCookiePath = cookiePath cookieSettings
       , setCookieSecure = case cookieIsSecure cookieSettings of
           Secure -> True
           NotSecure -> False
