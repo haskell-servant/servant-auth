@@ -7,11 +7,14 @@ import qualified Crypto.JOSE              as Jose
 import qualified Crypto.JWT               as Jose
 import           Crypto.Util              (constTimeEq)
 import qualified Data.ByteString          as BS
+import qualified Data.ByteString.Char8    as BSC
 import qualified Data.ByteString.Base64   as BS64
 import qualified Data.ByteString.Lazy     as BSL
 import           Data.CaseInsensitive     (mk)
+import           Data.Maybe               (fromMaybe, isJust)
 import           Network.HTTP.Types       (methodGet)
-import           Network.Wai              (requestHeaders, requestMethod)
+import           Network.HTTP.Types.Header(hCookie)
+import           Network.Wai              (Request, requestHeaders, requestMethod)
 import           Servant                  (AddHeader, addHeader)
 import           System.Entropy           (getEntropy)
 import           Web.Cookie
@@ -26,12 +29,12 @@ cookieAuthCheck :: FromJWT usr => CookieSettings -> JWTSettings -> AuthCheck usr
 cookieAuthCheck ccfg jwtCfg = do
   req <- ask
   jwtCookie <- maybe mempty return $ do
-    cookies' <- lookup "Cookie" $ requestHeaders req
+    cookies' <- lookup hCookie $ requestHeaders req
     let cookies = parseCookies cookies'
-    xsrfCookie <- lookup (xsrfCookieName ccfg) cookies
-    when (((requestMethod req) /= methodGet) || not (xsrfExcludeGet ccfg)) $ do
-      xsrfHeader <- lookup (mk $ xsrfHeaderName ccfg) $ requestHeaders req
-      guard $ xsrfCookie `constTimeEq` xsrfHeader
+    -- Apply the XSRF check if enabled.
+    guard $ case cookieXsrfSetting ccfg of
+      Just xsrfCookieSettings -> xsrfCookieAuthCheck xsrfCookieSettings req cookies
+      Nothing                 -> True
     -- session cookie *must* be HttpOnly and Secure
     lookup (sessionCookieName ccfg) cookies
   verifiedJWT <- liftIO $ runExceptT $ do
@@ -45,20 +48,36 @@ cookieAuthCheck ccfg jwtCfg = do
       Left _ -> mzero
       Right v' -> return v'
 
--- | Makes a cookie to be used for CSRF.
+xsrfCookieAuthCheck :: XsrfCookieSettings -> Request -> [(BS.ByteString, BS.ByteString)] -> Bool
+xsrfCookieAuthCheck xsrfCookieCfg req cookies = fromMaybe False $ do
+  xsrfCookie <- lookup (xsrfCookieName xsrfCookieCfg) cookies
+  xsrfHeader <- lookup (mk $ xsrfHeaderName xsrfCookieCfg) $ requestHeaders req
+  guard checkEnabled
+  return $ xsrfCookie `constTimeEq` xsrfHeader
+  where
+    checkDisabled = xsrfExcludeGet xsrfCookieCfg && requestMethod req == methodGet
+    checkEnabled = not checkDisabled
+
+
+-- | Makes a cookie to be used for XSRF.
+makeXsrfCookie :: CookieSettings -> IO SetCookie
+makeXsrfCookie cookieSettings = case cookieXsrfSetting cookieSettings of
+  Just xsrfCookieSettings -> makeRealCookie xsrfCookieSettings
+  Nothing                 -> return $ noXsrfTokenCookie cookieSettings
+  where
+    makeRealCookie xsrfCookieSettings = do
+      xsrfValue <- BS64.encode <$> getEntropy 32
+      return
+        $ applyXsrfCookieSettings xsrfCookieSettings
+        $ applyCookieSettings cookieSettings
+        $ def{ setCookieValue = xsrfValue }
+
+
+-- | Alias for 'makeXsrfCookie'.
 makeCsrfCookie :: CookieSettings -> IO SetCookie
-makeCsrfCookie cookieSettings = do
-  csrfValue <- BS64.encode <$> getEntropy 32
-  return $ def
-    { setCookieName = xsrfCookieName cookieSettings
-    , setCookieValue = csrfValue
-    , setCookieMaxAge = cookieMaxAge cookieSettings
-    , setCookieExpires = cookieExpires cookieSettings
-    , setCookiePath = xsrfCookiePath cookieSettings
-    , setCookieSecure = case cookieIsSecure cookieSettings of
-        Secure -> True
-        NotSecure -> False
-    }
+makeCsrfCookie = makeXsrfCookie
+{-# DEPRECATED makeCsrfCookie "Use makeXsrfCookie instead" #-}
+
 
 -- | Makes a cookie with session information.
 makeSessionCookie :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe SetCookie)
@@ -66,17 +85,38 @@ makeSessionCookie cookieSettings jwtSettings v = do
   ejwt <- makeJWT v jwtSettings Nothing
   case ejwt of
     Left _ -> return Nothing
-    Right jwt -> return $ Just $ def
-      { setCookieName = sessionCookieName cookieSettings
-      , setCookieValue = BSL.toStrict jwt
-      , setCookieHttpOnly = True
-      , setCookieMaxAge = cookieMaxAge cookieSettings
-      , setCookieExpires = cookieExpires cookieSettings
-      , setCookiePath = cookiePath cookieSettings
-      , setCookieSecure = case cookieIsSecure cookieSettings of
-          Secure -> True
-          NotSecure -> False
-      }
+    Right jwt -> return
+      $ Just
+      $ applySessionCookieSettings cookieSettings
+      $ applyCookieSettings cookieSettings
+      $ def{ setCookieValue = BSL.toStrict jwt }
+
+noXsrfTokenCookie :: CookieSettings -> SetCookie
+noXsrfTokenCookie cookieSettings =
+  applyCookieSettings cookieSettings $ def{ setCookieName = "NO-XSRF-TOKEN", setCookieValue = "" }
+
+applyCookieSettings :: CookieSettings -> SetCookie -> SetCookie
+applyCookieSettings cookieSettings setCookie = setCookie
+  { setCookieMaxAge = cookieMaxAge cookieSettings
+  , setCookieExpires = cookieExpires cookieSettings
+  , setCookiePath = cookiePath cookieSettings
+  , setCookieSecure = case cookieIsSecure cookieSettings of
+      Secure -> True
+      NotSecure -> False
+  }
+
+applyXsrfCookieSettings :: XsrfCookieSettings -> SetCookie -> SetCookie
+applyXsrfCookieSettings xsrfCookieSettings setCookie = setCookie
+  { setCookieName = xsrfCookieName xsrfCookieSettings
+  , setCookiePath = xsrfCookiePath xsrfCookieSettings
+  , setCookieHttpOnly = False
+  }
+
+applySessionCookieSettings :: CookieSettings -> SetCookie -> SetCookie
+applySessionCookieSettings cookieSettings setCookie = setCookie
+  { setCookieName = sessionCookieName cookieSettings
+  , setCookieHttpOnly = True
+  }
 
 -- | For a JWT-serializable session, returns a function that decorates a
 -- provided response object with CSRF and session cookies. This should be used
@@ -93,8 +133,18 @@ acceptLogin cookieSettings jwtSettings session = do
   case mSessionCookie of
     Nothing            -> pure Nothing
     Just sessionCookie -> do
-      csrfCookie <- makeCsrfCookie cookieSettings
-      return $ Just $ addHeader sessionCookie . addHeader csrfCookie
+      xsrfCookie <- makeXsrfCookie cookieSettings
+      return $ Just $ addHeader sessionCookie . addHeader xsrfCookie
+
+-- | Adds headers to a response that clears all session cookies.
+clearSession :: ( AddHeader "Set-Cookie" SetCookie response withOneCookie
+                , AddHeader "Set-Cookie" SetCookie withOneCookie withTwoCookies )
+             => CookieSettings
+             -> response
+             -> withTwoCookies
+clearSession cookieSettings
+  = addHeader (applySessionCookieSettings cookieSettings $ applyCookieSettings cookieSettings def)
+  . addHeader (noXsrfTokenCookie cookieSettings)
 
 makeSessionCookieBS :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe BS.ByteString)
 makeSessionCookieBS a b c = fmap (toByteString . renderSetCookie)  <$> makeSessionCookie a b c
