@@ -73,8 +73,9 @@ jwtAuthCheck config = do
 makeJWT :: ToJWT a
   => a -> JWTSettings -> Maybe UTCTime -> IO (Either Jose.Error BSL.ByteString)
 makeJWT v cfg expiry = runExceptT $ do
+  alg <- Jose.bestJWSAlg $ key cfg
   ejwt <- Jose.createJWSJWT (key cfg)
-                            (Jose.newJWSHeader (Jose.Protected, Jose.HS256))
+                            (Jose.newJWSHeader (Jose.Protected, alg))
                             (addExp $ encodeJWT v)
 
   Jose.encodeCompact ejwt
