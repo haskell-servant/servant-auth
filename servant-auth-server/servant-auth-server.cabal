@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:           servant-auth-server
-version:        0.2.8.0
+version:        0.3.0.0
 synopsis:       servant-server/servant-auth compatibility
 description:    This package provides the required instances for using the @Auth@ combinator
                 in your 'servant' server.
@@ -36,9 +36,9 @@ library
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base                    >= 4.7  && < 4.10
+      base                    >= 4.8  && < 4.10
     , text                    >= 1    && < 2
-    , servant-auth            == 0.2.*
+    , servant-auth            == 0.3.*
     , cookie                  >= 0.4  && < 0.4.2.2
     , wai                     >= 3.2  && < 3.3
     , mtl                     >= 2.2  && < 2.3
@@ -82,9 +82,9 @@ executable readme
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall -pgmL markdown-unlit
   build-depends:
-      base                    >= 4.7  && < 4.10
+      base                    >= 4.8  && < 4.10
     , text                    >= 1    && < 2
-    , servant-auth            == 0.2.*
+    , servant-auth            == 0.3.*
     , cookie                  >= 0.4  && < 0.4.2.2
     , wai                     >= 3.2  && < 3.3
     , mtl                     >= 2.2  && < 2.3
@@ -122,9 +122,9 @@ test-suite spec
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base                    >= 4.7  && < 4.10
+      base                    >= 4.8  && < 4.10
     , text                    >= 1    && < 2
-    , servant-auth            == 0.2.*
+    , servant-auth            == 0.3.*
     , cookie                  >= 0.4  && < 0.4.2.2
     , wai                     >= 3.2  && < 3.3
     , mtl                     >= 2.2  && < 2.3

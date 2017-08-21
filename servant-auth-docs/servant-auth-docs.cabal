@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.15.0.
+-- This file has been generated from package.yaml by hpack version 0.17.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -31,11 +31,11 @@ library
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.10
+      base >= 4.8 && < 4.10
     , text
     , servant-docs
     , servant
-    , servant-auth == 0.2.*
+    , servant-auth == 0.3.*
     , lens
   exposed-modules:
       Servant.Auth.Docs
@@ -49,11 +49,11 @@ test-suite doctest
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.10
+      base >= 4.8 && < 4.10
     , text
     , servant-docs
     , servant
-    , servant-auth == 0.2.*
+    , servant-auth == 0.3.*
     , lens
     , doctest >= 0.9 && < 0.12
     , Glob >= 0.7 && < 0.8
@@ -70,11 +70,11 @@ test-suite spec
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.10
+      base >= 4.8 && < 4.10
     , text
     , servant-docs
     , servant
-    , servant-auth == 0.2.*
+    , servant-auth == 0.3.*
     , lens
     , servant-auth-docs
     , hspec > 2 && < 3

@@ -18,12 +18,12 @@ extra-source-files:
   - package.yaml
 
 dependencies:
-  - base >= 4.7 && < 4.10
+  - base >= 4.8 && < 4.10
   - text
   - servant-swagger
   - swagger2 >= 2 && < 3
   - servant
-  - servant-auth == 0.2.*
+  - servant-auth == 0.3.*
   - lens
 
 

@@ -1,9 +1,9 @@
--- This file has been generated from package.yaml by hpack version 0.15.0.
+-- This file has been generated from package.yaml by hpack version 0.17.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:           servant-auth-client
-version:        0.2.7.1
+version:        0.3.0.0
 synopsis:       servant-client/servant-auth compatibility
 description:    This package provides instances that allow generating clients from
                 <https://hackage.haskell.org/package/servant servant>
@@ -36,11 +36,11 @@ library
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base                >= 4.7  && < 4.10
+      base                >= 4.8  && < 4.10
     , text
     , bytestring
     , servant-client      >= 0.7  && < 0.12
-    , servant-auth        == 0.2.*
+    , servant-auth        == 0.3.*
     , servant             >= 0.7  && < 0.12
   exposed-modules:
       Servant.Auth.Client
@@ -55,11 +55,11 @@ test-suite doctest
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base                >= 4.7  && < 4.10
+      base                >= 4.8  && < 4.10
     , text
     , bytestring
     , servant-client      >= 0.7  && < 0.12
-    , servant-auth        == 0.2.*
+    , servant-auth        == 0.3.*
     , servant             >= 0.7  && < 0.12
     , doctest >= 0.9 && < 0.12
     , Glob >= 0.7 && < 0.8
@@ -77,11 +77,11 @@ test-suite spec
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base                >= 4.7  && < 4.10
+      base                >= 4.8  && < 4.10
     , text
     , bytestring
     , servant-client      >= 0.7  && < 0.12
-    , servant-auth        == 0.2.*
+    , servant-auth        == 0.3.*
     , servant             >= 0.7  && < 0.12
     , servant-auth-client
     , hspec > 2 && < 3

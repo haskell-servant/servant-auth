@@ -24,9 +24,9 @@ extra-source-files:
 ghc-options: -Wall
 
 dependencies:
-  - base                    >= 4.7  && < 4.10
+  - base                    >= 4.8  && < 4.10
   - text                    >= 1    && < 2
-  - servant-auth            == 0.2.*
+  - servant-auth            == 0.3.*
   # We have an orphan instance for SetCookie, so we need to be careful about upper bounds.
   - cookie                  >= 0.4  && < 0.4.2.2
   - wai                     >= 3.2  && < 3.3
