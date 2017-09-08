@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.15.0.
+-- This file has been generated from package.yaml by hpack version 0.17.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -31,7 +31,7 @@ library
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.10
+      base >= 4.7 && < 4.11
     , text
     , servant-docs
     , servant
@@ -49,17 +49,15 @@ test-suite doctest
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.10
+      base >= 4.7 && < 4.11
     , text
     , servant-docs
     , servant
     , servant-auth == 0.2.*
     , lens
     , doctest >= 0.9 && < 0.12
-    , Glob >= 0.7 && < 0.8
+    , Glob >= 0.7 && < 0.9
     , yaml == 0.8.*
-  other-modules:
-      Spec
   default-language: Haskell2010
 
 test-suite spec
@@ -70,7 +68,7 @@ test-suite spec
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.10
+      base >= 4.7 && < 4.11
     , text
     , servant-docs
     , servant
@@ -78,7 +76,5 @@ test-suite spec
     , lens
     , servant-auth-docs
     , hspec > 2 && < 3
-    , QuickCheck >= 2.8 && < 2.10
-  other-modules:
-      Doctest
+    , QuickCheck >= 2.8 && < 2.11
   default-language: Haskell2010
