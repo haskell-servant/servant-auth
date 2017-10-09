@@ -6,14 +6,14 @@ packages:
 - servant-auth-client
 - servant-auth-docs
 extra-deps:
-- QuickCheck-2.8.2
+- QuickCheck-2.10.1
 - attoparsec-iso8601-1.0.0.0
 - cabal-doctest-1.0.2
 - http-api-data-0.3.7.1
-- jose-0.5.0.0
+- jose-0.6.0.3
 - servant-0.11
 - servant-client-0.11
 - servant-docs-0.10.0.1
 - servant-server-0.11
 - wreq-0.5.0.0
-resolver: lts-8.3
+resolver: lts-9.6

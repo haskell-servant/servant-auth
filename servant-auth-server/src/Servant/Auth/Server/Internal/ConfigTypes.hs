@@ -90,8 +90,7 @@ defaultCookieSettings = CookieSettings
 
 jwtSettingsToJwtValidationSettings :: JWTSettings -> Jose.JWTValidationSettings
 jwtSettingsToJwtValidationSettings s
-  = defaultJWTValidationSettings
-       & audiencePredicate .~ (toBool <$> audienceMatches s)
+  = defaultJWTValidationSettings (toBool <$> audienceMatches s)
   where
     toBool Matches = True
     toBool DoesNotMatch = False
