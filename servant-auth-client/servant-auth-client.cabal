@@ -62,7 +62,7 @@ test-suite doctest
     , servant-auth        == 0.2.*
     , servant             >= 0.7  && < 0.12
     , doctest >= 0.9 && < 0.12
-    , Glob >= 0.7 && < 0.8
+    , Glob >= 0.7 && < 0.9
     , yaml == 0.8.*
   other-modules:
       Servant.Auth.ClientSpec
@@ -85,7 +85,7 @@ test-suite spec
     , servant             >= 0.7  && < 0.12
     , servant-auth-client
     , hspec > 2 && < 3
-    , QuickCheck >= 2.8 && < 2.10
+    , QuickCheck >= 2.8 && < 2.11
     , aeson
     , bytestring
     , http-client
