@@ -1,0 +1,15 @@
+flags: {}
+apply-ghc-options: targets
+packages:
+- servant-auth
+- servant-auth-server
+- servant-auth-client
+- servant-auth-docs
+- servant-auth-swagger
+extra-deps:
+- jose-0.5.0.5
+- servant-0.11
+- servant-client-0.11
+- servant-docs-0.10.0.1
+- servant-server-0.11
+resolver: nightly-2017-09-07
