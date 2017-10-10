@@ -55,8 +55,8 @@ test-suite doctest
     , servant
     , servant-auth == 0.2.*
     , lens
-    , doctest >= 0.9 && < 0.12
-    , Glob >= 0.7 && < 0.9
+    , doctest >= 0.9 && < 0.14
+    , Glob >= 0.7 && < 0.10
     , yaml == 0.8.*
   default-language: Haskell2010
 
