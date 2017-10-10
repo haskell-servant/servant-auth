@@ -1,6 +1,5 @@
 module Servant.Auth.Server.Internal.ConfigTypes where
 
-import           Control.Lens
 import           Crypto.JOSE        as Jose
 import           Crypto.JWT         as Jose
 import qualified Data.ByteString    as BS
