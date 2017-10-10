@@ -58,7 +58,7 @@ test-suite doctest
     , servant-auth == 0.2.*
     , lens
     , doctest >= 0.9 && < 0.12
-    , Glob >= 0.7 && < 0.8
+    , Glob >= 0.7 && < 0.9
     , yaml == 0.8.*
   other-modules:
       Servant.Auth.SwaggerSpec
