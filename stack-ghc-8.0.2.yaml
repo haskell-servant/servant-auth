@@ -6,7 +6,7 @@ packages:
 - servant-auth-client
 - servant-auth-docs
 extra-deps:
-- QuickCheck-2.10.1
+- QuickCheck-2.9.2
 - attoparsec-iso8601-1.0.0.0
 - cabal-doctest-1.0.2
 - http-api-data-0.3.7.1
