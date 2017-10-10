@@ -10,7 +10,7 @@ maintainer:          jkarni@gmail.com
 category:            Web, Servant, Authentication
 copyright:           (c) Julian K. Arni
 github:              plow-technologies/servant-auth
-tested-with:         GHC == 7.10.2, GHC == 8.0.1
+tested-with:         GHC == 7.10.2, GHC == 8.0.1, GHC == 8.2.1
 
 ghc-options: -Wall
 
@@ -18,7 +18,7 @@ extra-source-files:
   - package.yaml
 
 dependencies:
-  - base >= 4.7 && < 4.10
+  - base >= 4.7 && < 4.11
   - text
   - servant-docs
   - servant
@@ -54,13 +54,15 @@ library:
 tests:
   spec:
     main:            Spec.hs
+    other-modules:   []
     source-dirs:     test
     dependencies:
       - servant-auth-docs
       - hspec > 2 && < 3
-      - QuickCheck >= 2.8 && < 2.10
+      - QuickCheck >= 2.8 && < 2.11
   doctest:
     main:            Doctest.hs
+    other-modules:   []
     source-dirs:     test
     dependencies:
       - doctest >= 0.9 && < 0.12
