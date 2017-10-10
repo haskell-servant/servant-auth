@@ -6,11 +6,9 @@ import           Control.Monad.Except                (runExceptT)
 import           Crypto.JOSE                         (Alg (HS256, None), Error,
                                                       JWK, JWSHeader,
                                                       KeyMaterialGenParam (OctGenParam),
-                                                      Protection (Protected),
                                                       ToCompact, encodeCompact,
                                                       genJWK, newJWSHeader)
 import           Crypto.JWT                          (Audience (..), ClaimsSet,
-                                                      JWT,
                                                       NumericDate (NumericDate),
                                                       SignedJWT,
                                                       claimAud, claimNbf,
