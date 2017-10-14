@@ -2,7 +2,6 @@ sudo: false
 
 env:
   - STACK_YAML=stack.yaml
-  - STACK_YAML=stack-ghc-8.0.2.yaml
   - STACK_YAML=stack-ghc-8.2.1.yaml
 
 addons:
