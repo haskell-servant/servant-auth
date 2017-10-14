@@ -21,6 +21,7 @@ script:
   - stack build --ghc-options=-Werror --no-terminal
   - stack test --ghc-options=-Werror --no-terminal
   # temporarily use a nightly for haddocks until fix is available in LTS
+  - stack setup --resolver nightly-2017-10-13 --no-terminal
   - stack haddock --resolver nightly-2017-10-13 --no-terminal
   # check that the readme is equal to the one we try to compile
   - cmp README.md servant-auth-server/executables/README.lhs
