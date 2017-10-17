@@ -2,6 +2,7 @@ sudo: false
 
 env:
   - STACK_YAML=stack.yaml
+  - STACK_YAML=stack-ghc-7.10.3.yaml
   - STACK_YAML=stack-ghc-8.2.1.yaml
 
 addons:
@@ -20,6 +21,7 @@ script:
   - stack build --ghc-options=-Werror --no-terminal
   - stack test --ghc-options=-Werror --no-terminal
   # temporarily use a nightly for haddocks until fix is available in LTS
+  # https://github.com/haskell/haddock/issues/508
   - stack setup --resolver nightly-2017-10-13 --no-terminal
   - stack haddock --resolver nightly-2017-10-13 --no-terminal
   # check that the readme is equal to the one we try to compile
