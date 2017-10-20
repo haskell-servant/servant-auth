@@ -25,9 +25,9 @@ import Servant.Auth.Server.Internal.Types
 -- The default implementation assumes the data is stored in the unregistered
 -- @dat@ claim, and uses the @FromJSON@ instance to decode value from there.
 class FromJWT a where
-  decodeJWT :: Jose.JWT -> Either T.Text a
-  default decodeJWT :: FromJSON a => Jose.JWT -> Either T.Text a
-  decodeJWT m = case HM.lookup "dat" (Jose._unregisteredClaims $ Jose.jwtClaimsSet m ) of
+  decodeJWT :: Jose.ClaimsSet -> Either T.Text a
+  default decodeJWT :: FromJSON a => Jose.ClaimsSet -> Either T.Text a
+  decodeJWT m = case HM.lookup "dat" (m ^. Jose.unregisteredClaims) of
     Nothing -> Left "Missing 'dat' claim"
     Just v  -> case fromJSON v of
       Error e -> Left $ T.pack e
@@ -55,10 +55,9 @@ jwtAuthCheck config = do
     return rest
   verifiedJWT <- liftIO $ runExceptT $ do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict token
-    Jose.validateJWSJWT (jwtSettingsToJwtValidationSettings config)
-                        (key config)
-                        unverifiedJWT
-    return unverifiedJWT
+    Jose.verifyClaims (jwtSettingsToJwtValidationSettings config)
+                      (key config)
+                      unverifiedJWT
   case verifiedJWT of
     Left (_ :: Jose.JWTError) -> mzero
     Right v -> case decodeJWT v of
@@ -74,11 +73,11 @@ makeJWT :: ToJWT a
   => a -> JWTSettings -> Maybe UTCTime -> IO (Either Jose.Error BSL.ByteString)
 makeJWT v cfg expiry = runExceptT $ do
   alg <- Jose.bestJWSAlg $ key cfg
-  ejwt <- Jose.createJWSJWT (key cfg)
-                            (Jose.newJWSHeader (Jose.Protected, alg))
-                            (addExp $ encodeJWT v)
+  ejwt <- Jose.signClaims (key cfg)
+                          (Jose.newJWSHeader ((), alg))
+                          (addExp $ encodeJWT v)
 
-  Jose.encodeCompact ejwt
+  return $ Jose.encodeCompact ejwt
   where
    addExp claims = case expiry of
      Nothing -> claims

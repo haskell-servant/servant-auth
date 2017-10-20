@@ -7,7 +7,7 @@ packages:
 - servant-auth-docs
 - servant-auth-swagger
 extra-deps:
-- jose-0.5.0.5
+- jose-0.6.0.3
 - servant-0.11
 - servant-client-0.11
 - servant-docs-0.10.0.1
