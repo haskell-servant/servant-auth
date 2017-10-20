@@ -20,10 +20,11 @@ script:
   - stack setup --no-terminal
   - stack build --ghc-options=-Werror --no-terminal
   - stack test --ghc-options=-Werror --no-terminal
-  # temporarily use a nightly for haddocks until fix is available in LTS
+  # only run stack haddock for nightly because of the following issue
   # https://github.com/haskell/haddock/issues/508
-  - stack setup --resolver nightly-2017-10-13 --no-terminal
-  - stack haddock --resolver nightly-2017-10-13 --no-terminal
+  - 'if [ $STACK_YAML = "stack-ghc-8.2.1.yaml" ]; then
+         stack haddock --no-terminal;
+     fi'
   # check that the readme is equal to the one we try to compile
   - cmp README.md servant-auth-server/executables/README.lhs
 
