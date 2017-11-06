@@ -1,6 +1,5 @@
 module Servant.Auth.Server.Internal.ConfigTypes where
 
-import           Control.Lens
 import           Crypto.JOSE        as Jose
 import           Crypto.JWT         as Jose
 import qualified Data.ByteString    as BS
@@ -90,8 +89,7 @@ defaultCookieSettings = CookieSettings
 
 jwtSettingsToJwtValidationSettings :: JWTSettings -> Jose.JWTValidationSettings
 jwtSettingsToJwtValidationSettings s
-  = defaultJWTValidationSettings
-       & audiencePredicate .~ (toBool <$> audienceMatches s)
+  = defaultJWTValidationSettings (toBool <$> audienceMatches s)
   where
     toBool Matches = True
     toBool DoesNotMatch = False
