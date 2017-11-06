@@ -6,14 +6,13 @@ import           Control.Monad.Except                (runExceptT)
 import           Crypto.JOSE                         (Alg (HS256, None), Error,
                                                       JWK, JWSHeader,
                                                       KeyMaterialGenParam (OctGenParam),
-                                                      Protection (Protected),
                                                       ToCompact, encodeCompact,
                                                       genJWK, newJWSHeader)
 import           Crypto.JWT                          (Audience (..), ClaimsSet,
-                                                      JWT,
                                                       NumericDate (NumericDate),
+                                                      SignedJWT,
                                                       claimAud, claimNbf,
-                                                      createJWSJWT,
+                                                      signClaims,
                                                       emptyClaimsSet,
                                                       unregisteredClaims)
 import           Data.Aeson                          (FromJSON, ToJSON, Value,
@@ -114,7 +113,7 @@ authSpec
   context "Setting cookies" $ do
 
     it "sets cookies that it itself accepts" $ \port -> property $ \user -> do
-      jwt <- createJWT theKey (newJWSHeader (Protected, HS256))
+      jwt <- createJWT theKey (newJWSHeader ((), HS256))
         (claims $ toJSON user)
       opts' <- addJwtToCookie jwt
       let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
@@ -130,7 +129,7 @@ authSpec
       resp2 ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
     it "uses the Expiry from the configuration" $ \port -> property $ \(user :: User) -> do
-      jwt <- createJWT theKey (newJWSHeader (Protected, HS256))
+      jwt <- createJWT theKey (newJWSHeader ((), HS256))
         (claims $ toJSON user)
       opts' <- addJwtToCookie jwt
       let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
@@ -142,7 +141,7 @@ authSpec
       xxsrf ^. cookieExpiryTime `shouldBe` future
 
     it "sets the token cookie as HttpOnly" $ \port -> property $ \(user :: User) -> do
-      jwt <- createJWT theKey (newJWSHeader (Protected, HS256))
+      jwt <- createJWT theKey (newJWSHeader ((), HS256))
         (claims $ toJSON user)
       opts' <- addJwtToCookie jwt
       let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
@@ -166,7 +165,7 @@ cookieAuthSpec
 
   it "fails if CSRF header and cookie don't match" $ \port -> property
                                                    $ \(user :: User) -> do
-    jwt <- createJWT theKey (newJWSHeader (Protected, HS256)) (claims $ toJSON user)
+    jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
     opts' <- addJwtToCookie jwt
     let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
                          (xsrfCookieName cookieCfg <> "=blerg")
@@ -174,13 +173,13 @@ cookieAuthSpec
 
   it "fails if there is no CSRF header and cookie" $ \port -> property
                                                    $ \(user :: User) -> do
-    jwt <- createJWT theKey (newJWSHeader (Protected, HS256)) (claims $ toJSON user)
+    jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
     opts <- addJwtToCookie jwt
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
   it "succeeds if CSRF header and cookie match, and JWT is valid" $ \port -> property
                                                                  $ \(user :: User) -> do
-    jwt <- createJWT theKey (newJWSHeader (Protected, HS256)) (claims $ toJSON user)
+    jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
     opts' <- addJwtToCookie jwt
     let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
                          (xsrfCookieName cookieCfg <> "=blah")
@@ -199,24 +198,24 @@ jwtAuthSpec
 
   it "fails if 'aud' does not match predicate" $ \port -> property $
                                                 \(user :: User) -> do
-    jwt <- createJWT theKey (newJWSHeader (Protected, HS256))
+    jwt <- createJWT theKey (newJWSHeader ((), HS256))
       (claims (toJSON user) & claimAud .~ Just (Audience ["boo"]))
-    opts <- addJwtToHeader (jwt >>= encodeCompact)
+    opts <- addJwtToHeader (jwt >>= (return . encodeCompact))
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
   it "succeeds if 'aud' does match predicate" $ \port -> property $
                                                 \(user :: User) -> do
-    jwt <- createJWT theKey (newJWSHeader (Protected, HS256))
+    jwt <- createJWT theKey (newJWSHeader ((), HS256))
       (claims (toJSON user) & claimAud .~ Just (Audience ["anythingElse"]))
-    opts <- addJwtToHeader (jwt >>= encodeCompact)
+    opts <- addJwtToHeader (jwt >>= (return . encodeCompact))
     resp <- getWith opts (url port)
     resp ^. responseStatus `shouldBe` status200
 
   it "fails if 'nbf' is set to a future date" $ \port -> property $
                                                 \(user :: User) -> do
-    jwt <- createJWT theKey (newJWSHeader (Protected, HS256))
+    jwt <- createJWT theKey (newJWSHeader ((), HS256))
       (claims (toJSON user) & claimNbf .~ Just (NumericDate future))
-    opts <- addJwtToHeader (jwt >>= encodeCompact)
+    opts <- addJwtToHeader (jwt >>= (return . encodeCompact))
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
   it "fails if 'exp' is set to a past date" $ \port -> property $
@@ -233,23 +232,23 @@ jwtAuthSpec
     resp ^. responseStatus `shouldBe` status200
 
   it "fails if JWT is not signed" $ \port -> property $ \(user :: User) -> do
-    jwt <- createJWT theKey (newJWSHeader (Protected, None))
+    jwt <- createJWT theKey (newJWSHeader ((), None))
                                (claims $ toJSON user)
-    opts <- addJwtToHeader (jwt >>= encodeCompact)
+    opts <- addJwtToHeader (jwt >>= (return . encodeCompact))
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
   it "fails if JWT does not use expected algorithm" $ const $
     pendingWith "Need https://github.com/frasertweedale/hs-jose/issues/19"
 
   it "fails if data is not valid JSON" $ \port -> do
-    jwt <- createJWT theKey (newJWSHeader (Protected, HS256)) (claims "{{")
-    opts <- addJwtToHeader (jwt >>= encodeCompact)
+    jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims "{{")
+    opts <- addJwtToHeader (jwt >>= (return .encodeCompact))
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
   it "suceeds as wreq's oauth2Bearer" $ \port -> property $ \(user :: User) -> do
-    jwt <- createJWT theKey (newJWSHeader (Protected, HS256))
+    jwt <- createJWT theKey (newJWSHeader ((), HS256))
                                (claims $ toJSON user)
-    resp <- case jwt >>= encodeCompact of
+    resp <- case jwt >>= (return . encodeCompact) of
       Left (e :: Error) -> fail $ show e
       Right v -> getWith (defaults & auth ?~ oauth2Bearer (BSL.toStrict v)) (url port)
     resp ^. responseStatus `shouldBe` status200
@@ -396,11 +395,11 @@ addJwtToHeader jwt = case jwt of
   Right v -> return
     $ defaults & header "Authorization" .~ ["Bearer " <> BSL.toStrict v]
 
-createJWT :: JWK -> JWSHeader -> ClaimsSet -> IO (Either Error Crypto.JWT.JWT)
-createJWT k a b = runExceptT $ createJWSJWT k a b
+createJWT :: JWK -> JWSHeader () -> ClaimsSet -> IO (Either Error Crypto.JWT.SignedJWT)
+createJWT k a b = runExceptT $ signClaims k a b
 
 addJwtToCookie :: ToCompact a => Either Error a -> IO Options
-addJwtToCookie jwt = case jwt >>= encodeCompact of
+addJwtToCookie jwt = case jwt >>= (return . encodeCompact) of
   Left e -> fail $ show e
   Right v -> return
     $ defaults & header "Cookie" .~ ["JWT-Cookie=" <> BSL.toStrict v]

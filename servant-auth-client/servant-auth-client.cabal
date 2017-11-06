@@ -53,7 +53,7 @@ test-suite spec
   build-depends:
       base
     , servant-client
-    , servant-auth       
+    , servant-auth
     , servant
     , servant-auth-client
 
