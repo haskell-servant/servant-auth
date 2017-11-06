@@ -1,1 +1,6 @@
-packages: */*.cabal
+packages:
+  servant-auth
+  servant-auth-client
+  servant-auth-docs
+  servant-auth-server
+  servant-auth-swagger
