@@ -28,11 +28,11 @@ library
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.11
+      base >= 4.8 && < 4.11
     , text
     , servant-docs
     , servant
-    , servant-auth == 0.2.*
+    , servant-auth == 0.3.*
     , lens
   exposed-modules:
       Servant.Auth.Docs
