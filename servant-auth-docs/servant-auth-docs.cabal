@@ -1,5 +1,5 @@
 name:           servant-auth-docs
-version:        0.2.7.0
+version:        0.2.8.0
 synopsis:       servant-docs/servant-auth compatibility
 description:    Please see README.md
 category:       Web, Servant, Authentication
@@ -43,7 +43,7 @@ test-suite doctests
   main-is:             doctests.hs
   build-depends:
     base,
-    doctest >= 0.11.3 && <0.13,
+    doctest >= 0.11.3 && <0.14,
     servant-auth-docs,
     QuickCheck >= 2.8 && <2.11,
     template-haskell
