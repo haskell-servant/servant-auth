@@ -1,5 +1,5 @@
 name:           servant-auth-client
-version:        0.3.0.0
+version:        0.3.1.0
 synopsis:       servant-client/servant-auth compatibility
 description:    This package provides instances that allow generating clients from
                 <https://hackage.haskell.org/package/servant servant>
@@ -23,6 +23,11 @@ source-repository head
   type: git
   location: https://github.com/plow-technologies/servant-auth
 
+flag servant-client-core
+  description: Use servant-client-core
+  default: True
+  manual: False
+
 library
   hs-source-dirs:
       src
@@ -32,9 +37,17 @@ library
       base                >= 4.8  && < 4.11
     , text
     , bytestring
-    , servant-client      >= 0.7  && < 0.12
     , servant-auth        == 0.3.*
-    , servant             >= 0.7  && < 0.12
+    , servant             >= 0.7  && < 0.13
+  if flag(servant-client-core)
+    cpp-options: -DHAS_CLIENT_CORE=1
+    build-depends:
+      servant-client-core >= 0.12 && < 0.13,
+      containers
+  else
+    build-depends:
+      servant-client      >= 0.7  && < 0.12
+
   exposed-modules:
       Servant.Auth.Client
       Servant.Auth.Client.Internal

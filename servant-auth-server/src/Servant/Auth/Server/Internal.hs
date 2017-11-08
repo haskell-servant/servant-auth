@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -20,12 +21,17 @@ import Servant.Server.Internal.RoutingApplication
 
 instance ( n ~ 'S ('S 'Z)
          , HasServer (AddSetCookiesApi n api) ctxs, AreAuths auths ctxs v
+         , HasServer api ctxs -- this constraint is needed to implement hoistServer
          , AddSetCookies n (ServerT api Handler) (ServerT (AddSetCookiesApi n api) Handler)
          , ToJWT v
          , HasContextEntry ctxs CookieSettings
          , HasContextEntry ctxs JWTSettings
          ) => HasServer (Auth auths v :> api) ctxs where
   type ServerT (Auth auths v :> api) m = AuthResult v -> ServerT api m
+
+#if MIN_VERSION_servant_server(0,12,0)
+  hoistServerWithContext _ pc nt s = hoistServerWithContext (Proxy :: Proxy api) pc nt . s
+#endif
 
   route _ context subserver =
     route (Proxy :: Proxy (AddSetCookiesApi n api))
