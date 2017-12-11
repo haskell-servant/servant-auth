@@ -6,6 +6,7 @@ import qualified Data.ByteString    as BS
 import           Data.Default.Class
 import           Data.Time
 import           GHC.Generics       (Generic)
+import           Network.Wai        (Request)
 
 data IsMatch = Matches | DoesNotMatch
   deriving (Eq, Show, Read, Generic, Ord)
@@ -48,40 +49,60 @@ data CookieSettings = CookieSettings
   {
   -- | 'Secure' means browsers will only send cookies over HTTPS. Default:
   -- @Secure@.
-    cookieIsSecure    :: IsSecure
+    cookieIsSecure          :: !IsSecure
   -- | How long from now until the cookie expires. Default: @Nothing@.
-  , cookieMaxAge      :: Maybe DiffTime
+  , cookieMaxAge            :: !(Maybe DiffTime)
   -- | At what time the cookie expires. Default: @Nothing@.
-  , cookieExpires     :: Maybe UTCTime
+  , cookieExpires           :: !(Maybe UTCTime)
   -- | The URL path and sub-paths for which this cookie is used. Default @Just "/"@.
-  , cookiePath        :: Maybe BS.ByteString
+  , cookiePath              :: !(Maybe BS.ByteString)
   -- | 'SameSite' settings. Default: @SameSiteLax@.
-  , cookieSameSite    :: SameSite
+  , cookieSameSite          :: !SameSite
   -- | What name to use for the cookie used for the session.
-  , sessionCookieName :: BS.ByteString
-  -- | What name to use for the cookie used for CSRF protection.
-  , xsrfCookieName    :: BS.ByteString
-  -- | What path to use for the cookie used for CSRF protection. Default @Just "/"@.
-  , xsrfCookiePath    :: Maybe BS.ByteString
-  -- | What name to use for the header used for CSRF protection.
-  , xsrfHeaderName    :: BS.ByteString
-  } deriving (Eq, Show, Generic)
+  , cookieSessionCookieName :: !BS.ByteString
+  -- | The optional settings to use for XSRF protection. Default @Just def@.
+  , cookieXsrfSetting       :: !(Maybe XsrfCookieSettings)
+  -- | An arbitrary check for the request. Use this to implement validating
+  --   the Origin/Referer headers. Default @const True@.
+  , cookieCheckRequest      :: !(Request -> Bool)
+  } deriving (Generic)
 
 instance Default CookieSettings where
   def = defaultCookieSettings
 
 defaultCookieSettings :: CookieSettings
 defaultCookieSettings = CookieSettings
-    { cookieIsSecure    = Secure
-    , cookieMaxAge      = Nothing
-    , cookieExpires     = Nothing
-    , cookiePath        = Just "/"
-    , cookieSameSite    = SameSiteLax
-    , sessionCookieName = "JWT-Cookie"
-    , xsrfCookieName    = "XSRF-TOKEN"
-    , xsrfCookiePath    = Just "/"
-    , xsrfHeaderName    = "X-XSRF-TOKEN"
-    }
+  { cookieIsSecure          = Secure
+  , cookieMaxAge            = Nothing
+  , cookieExpires           = Nothing
+  , cookiePath              = Just "/"
+  , cookieSameSite          = SameSiteLax
+  , cookieSessionCookieName = "JWT-Cookie"
+  , cookieXsrfSetting       = Just def
+  , cookieCheckRequest      = const True
+  }
+
+
+-- | The policies to use when generating and verifying XSRF cookies
+data XsrfCookieSettings = XsrfCookieSettings
+  {
+  -- | What name to use for the cookie used for CSRF protection.
+    xsrfCookieName :: !BS.ByteString
+  -- | What path to use for the cookie used for CSRF protection. Default @Just "/"@.
+  , xsrfCookiePath :: !(Maybe BS.ByteString)
+  -- | What name to use for the header used for CSRF protection.
+  , xsrfHeaderName :: !BS.ByteString
+  } deriving (Eq, Show, Generic)
+
+instance Default XsrfCookieSettings where
+  def = defaultXsrfCookieSettings
+
+defaultXsrfCookieSettings :: XsrfCookieSettings
+defaultXsrfCookieSettings = XsrfCookieSettings
+  { xsrfCookieName = "XSRF-TOKEN"
+  , xsrfCookiePath = Just "/"
+  , xsrfHeaderName = "X-XSRF-TOKEN"
+  }
 
 
 ------------------------------------------------------------------------------
@@ -91,6 +112,6 @@ jwtSettingsToJwtValidationSettings :: JWTSettings -> Jose.JWTValidationSettings
 jwtSettingsToJwtValidationSettings s
   = defaultJWTValidationSettings (toBool <$> audienceMatches s)
   where
-    toBool Matches = True
+    toBool Matches      = True
     toBool DoesNotMatch = False
 -- }}}
