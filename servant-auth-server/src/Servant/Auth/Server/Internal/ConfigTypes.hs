@@ -65,6 +65,8 @@ data CookieSettings = CookieSettings
   , xsrfCookiePath    :: Maybe BS.ByteString
   -- | What name to use for the header used for CSRF protection.
   , xsrfHeaderName    :: BS.ByteString
+  -- | Exclude GET request method from CSRF protection.
+  , xsrfExcludeGet    :: Bool
   } deriving (Eq, Show, Generic)
 
 instance Default CookieSettings where
@@ -81,6 +83,7 @@ defaultCookieSettings = CookieSettings
     , xsrfCookieName    = "XSRF-TOKEN"
     , xsrfCookiePath    = Just "/"
     , xsrfHeaderName    = "X-XSRF-TOKEN"
+    , xsrfExcludeGet    = False
     }
 
 
