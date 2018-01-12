@@ -1,6 +1,39 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Servant.Auth where
 
+import GHC.Generics (Generic)
+import Data.String (IsString)
+import Data.Text (Text)
+import Crypto.Util (constTimeEq)
+import Data.Semigroup ((<>))
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Base64 as B64
+import Data.Text.Encoding (encodeUtf8, decodeLatin1)
+import Web.HttpApiData
+
+-- | A compact JWT Token.
+newtype Token a = Token { getToken :: BS.ByteString }
+  deriving (Eq, Show, Read, Generic, IsString)
+
+instance ToHttpApiData (Token a) where
+  toUrlPiece = bsToText . getToken
+  toHeader = ("Bearer " <>) . getToken
+instance FromHttpApiData (Token a) where
+  parseUrlPiece = pure . Token . textToBs
+  parseHeader bs = do
+    let bearer = "Bearer "
+        (mbearer, token) = BS.splitAt (BS.length bearer) bs
+    if mbearer `constTimeEq` bearer
+    then pure $ Token token
+    else fail "Missing bearer"
+
+
+textToBs :: Text -> BS.ByteString
+textToBs = B64.decodeLenient . encodeUtf8
+
+bsToText :: BS.ByteString -> Text
+bsToText = decodeLatin1 . B64.encode
+
 -- * Authentication
 
 -- | @Auth [auth1, auth2] val :> api@ represents an API protected *either* by

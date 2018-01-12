@@ -5,16 +5,16 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import qualified Crypto.JOSE          as Jose
 import qualified Crypto.JWT           as Jose
-import           Crypto.Util          (constTimeEq)
 import           Data.Aeson           (FromJSON, Result (..), ToJSON, fromJSON,
                                        toJSON)
-import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.HashMap.Strict  as HM
 import qualified Data.Text            as T
 import           Data.Time            (UTCTime)
 import           Network.Wai          (requestHeaders)
+import           Web.HttpApiData      (parseHeader)
 
+import Servant.Auth (Token(..))
 import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth.Server.Internal.Types
 
@@ -47,37 +47,33 @@ class ToJWT a where
 jwtAuthCheck :: FromJWT usr => JWTSettings -> AuthCheck usr
 jwtAuthCheck config = do
   req <- ask
-  token <- maybe mempty return $ do
-    authHdr <- lookup "Authorization" $ requestHeaders req
-    let bearer = "Bearer "
-        (mbearer, rest) = BS.splitAt (BS.length bearer) authHdr
-    guard (mbearer `constTimeEq` bearer)
-    return rest
+  authHdr <- maybe (fail "Missing auth header") pure $
+    lookup "Authorization" $ requestHeaders req
+  either (fail . T.unpack) (parseJWT config) $ parseHeader authHdr
+
+parseJWT :: FromJWT usr => JWTSettings -> Token usr -> AuthCheck usr
+parseJWT config (Token token) = do
   verifiedJWT <- liftIO $ runExceptT $ do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict token
     Jose.verifyClaims (jwtSettingsToJwtValidationSettings config)
-                      (key config)
-                      unverifiedJWT
+      (key config) unverifiedJWT
   case verifiedJWT of
-    Left (_ :: Jose.JWTError) -> mzero
+    Left (e :: Jose.JWTError) -> fail $ "JWTError: " ++ show e
     Right v -> case decodeJWT v of
-      Left _ -> mzero
+      Left e -> fail $ "decodeJWT failed: " ++ show e
       Right v' -> return v'
-
 
 
 -- | Creates a JWT containing the specified data. The data is stored in the
 -- @dat@ claim. The 'Maybe UTCTime' argument indicates the time at which the
 -- token expires.
-makeJWT :: ToJWT a
-  => a -> JWTSettings -> Maybe UTCTime -> IO (Either Jose.Error BSL.ByteString)
+makeJWT :: (Jose.MonadRandom m, ToJWT a)
+  => a -> JWTSettings -> Maybe UTCTime -> m (Either Jose.Error (Token a))
 makeJWT v cfg expiry = runExceptT $ do
   alg <- Jose.bestJWSAlg $ key cfg
-  ejwt <- Jose.signClaims (key cfg)
-                          (Jose.newJWSHeader ((), alg))
-                          (addExp $ encodeJWT v)
-
-  return $ Jose.encodeCompact ejwt
+  let header = Jose.newJWSHeader ((), alg)
+  ejwt <- Jose.signClaims (key cfg) header (addExp $ encodeJWT v)
+  return $ Token $ BSL.toStrict $ Jose.encodeCompact ejwt
   where
    addExp claims = case expiry of
      Nothing -> claims

@@ -15,33 +15,29 @@ import           Servant                  (AddHeader, addHeader)
 import           System.Entropy           (getEntropy)
 import           Web.Cookie
 
+import Servant.Auth (Token(..))
 import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth.Server.Internal.JWT         (FromJWT (decodeJWT), ToJWT,
-                                                 makeJWT)
+                                                 makeJWT, parseJWT)
 import Servant.Auth.Server.Internal.Types
 
 
 cookieAuthCheck :: FromJWT usr => CookieSettings -> JWTSettings -> AuthCheck usr
 cookieAuthCheck ccfg jwtCfg = do
   req <- ask
-  jwtCookie <- maybe mempty return $ do
-    cookies' <- lookup "Cookie" $ requestHeaders req
-    let cookies = parseCookies cookies'
-    xsrfCookie <- lookup (xsrfCookieName ccfg) cookies
-    xsrfHeader <- lookup (mk $ xsrfHeaderName ccfg) $ requestHeaders req
-    guard $ xsrfCookie `constTimeEq` xsrfHeader
-    -- session cookie *must* be HttpOnly and Secure
-    lookup (sessionCookieName ccfg) cookies
-  verifiedJWT <- liftIO $ runExceptT $ do
-    unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict jwtCookie
-    Jose.verifyClaims (jwtSettingsToJwtValidationSettings jwtCfg)
-                      (key jwtCfg)
-                      unverifiedJWT
-  case verifiedJWT of
-    Left (_ :: Jose.JWTError) -> mzero
-    Right v -> case decodeJWT v of
-      Left _ -> mzero
-      Right v' -> return v'
+  cookies' <- maybe (fail "Cookie missing") pure $
+    lookup "Cookie" $ requestHeaders req
+  let cookies = parseCookies cookies'
+  xsrfCookie <- maybe (fail "Missing XSRF cookie") pure $
+    lookup (xsrfCookieName ccfg) cookies
+  xsrfHeader <- maybe (fail "Missing XSRF header") pure $
+    lookup (mk $ xsrfHeaderName ccfg) $ requestHeaders req
+  unless (xsrfCookie `constTimeEq` xsrfHeader) $ fail "XSRF check failed"
+  -- session cookie *must* be HttpOnly and Secure
+  case lookup (sessionCookieName ccfg) cookies of
+    Just bs -> parseJWT jwtCfg $ Token bs
+    Nothing -> fail "Session cookie missing"
+
 
 -- | Makes a cookie to be used for CSRF.
 makeCsrfCookie :: CookieSettings -> IO SetCookie
@@ -59,14 +55,15 @@ makeCsrfCookie cookieSettings = do
     }
 
 -- | Makes a cookie with session information.
-makeSessionCookie :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe SetCookie)
+makeSessionCookie :: (Jose.MonadRandom m, ToJWT v)
+  => CookieSettings -> JWTSettings -> v -> m (Maybe SetCookie)
 makeSessionCookie cookieSettings jwtSettings v = do
-  ejwt <- makeJWT v jwtSettings Nothing
-  case ejwt of
+  eToken <- makeJWT v jwtSettings Nothing
+  case eToken of
     Left _ -> return Nothing
-    Right jwt -> return $ Just $ def
+    Right token -> return $ Just $ def
       { setCookieName = sessionCookieName cookieSettings
-      , setCookieValue = BSL.toStrict jwt
+      , setCookieValue = getToken token
       , setCookieHttpOnly = True
       , setCookieMaxAge = cookieMaxAge cookieSettings
       , setCookieExpires = cookieExpires cookieSettings

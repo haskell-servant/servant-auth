@@ -1,5 +1,5 @@
 name:           servant-auth-client
-version:        0.3.1.0
+version:        0.4.0.0
 synopsis:       servant-client/servant-auth compatibility
 description:    This package provides instances that allow generating clients from
                 <https://hackage.haskell.org/package/servant servant>
@@ -35,9 +35,9 @@ library
   ghc-options: -Wall
   build-depends:
       base                >= 4.8  && < 4.11
+    , http-api-data       >= 0.3  && < 0.3.8
     , text
-    , bytestring
-    , servant-auth        == 0.3.*
+    , servant-auth        == 0.4.*
     , servant             >= 0.7  && < 0.13
   if flag(servant-client-core)
     cpp-options: -DHAS_CLIENT_CORE=1

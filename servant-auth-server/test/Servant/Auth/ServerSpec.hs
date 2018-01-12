@@ -41,7 +41,8 @@ import           Network.Wreq                        (Options, auth, basicAuth,
                                                       responseHeader,
                                                       responseStatus)
 import           Servant                             hiding (BasicAuth,
-                                                      IsSecure (..))
+                                                      IsSecure (..), header)
+import           Servant.Auth
 import           Servant.Auth.Server
 import           Servant.Auth.Server.SetCookieOrphan ()
 import           System.IO.Unsafe                    (unsafePerformIO)
@@ -200,14 +201,14 @@ jwtAuthSpec
                                                 \(user :: User) -> do
     jwt <- createJWT theKey (newJWSHeader ((), HS256))
       (claims (toJSON user) & claimAud .~ Just (Audience ["boo"]))
-    opts <- addJwtToHeader (jwt >>= (return . encodeCompact))
+    opts <- addJwtToHeader (jwt >>= (return . Token . BSL.toStrict . encodeCompact))
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
   it "succeeds if 'aud' does match predicate" $ \port -> property $
                                                 \(user :: User) -> do
     jwt <- createJWT theKey (newJWSHeader ((), HS256))
       (claims (toJSON user) & claimAud .~ Just (Audience ["anythingElse"]))
-    opts <- addJwtToHeader (jwt >>= (return . encodeCompact))
+    opts <- addJwtToHeader (jwt >>= (return . Token . BSL.toStrict . encodeCompact))
     resp <- getWith opts (url port)
     resp ^. responseStatus `shouldBe` status200
 
@@ -215,7 +216,7 @@ jwtAuthSpec
                                                 \(user :: User) -> do
     jwt <- createJWT theKey (newJWSHeader ((), HS256))
       (claims (toJSON user) & claimNbf .~ Just (NumericDate future))
-    opts <- addJwtToHeader (jwt >>= (return . encodeCompact))
+    opts <- addJwtToHeader (jwt >>= (return . Token . BSL.toStrict . encodeCompact))
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
   it "fails if 'exp' is set to a past date" $ \port -> property $
@@ -234,7 +235,7 @@ jwtAuthSpec
   it "fails if JWT is not signed" $ \port -> property $ \(user :: User) -> do
     jwt <- createJWT theKey (newJWSHeader ((), None))
                                (claims $ toJSON user)
-    opts <- addJwtToHeader (jwt >>= (return . encodeCompact))
+    opts <- addJwtToHeader (jwt >>= (return . Token . BSL.toStrict . encodeCompact))
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
   it "fails if JWT does not use expected algorithm" $ const $
@@ -242,7 +243,7 @@ jwtAuthSpec
 
   it "fails if data is not valid JSON" $ \port -> do
     jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims "{{")
-    opts <- addJwtToHeader (jwt >>= (return .encodeCompact))
+    opts <- addJwtToHeader (jwt >>= (return . Token . BSL.toStrict . encodeCompact))
     getWith opts (url port) `shouldHTTPErrorWith` status401
 
   it "suceeds as wreq's oauth2Bearer" $ \port -> property $ \(user :: User) -> do
@@ -339,7 +340,7 @@ instance FromBasicAuthData User where
   fromBasicAuthData (BasicAuthData usr pwd) _
     = return $ if usr == "ali" && pwd == "Open sesame"
       then Authenticated $ User "ali" "ali@the-thieves-den.com"
-      else Indefinite
+      else fail "FromBasicAuthData"
 
 -- Could be anything, really, but since this is already in the cfg we don't
 -- have to add it
@@ -359,7 +360,7 @@ server authResult = case authResult of
                   :<|> postInt usr
                   :<|> getHeaderInt
                   :<|> raw
-  Indefinite -> throwAll err401
+  Indefinite _ -> throwAll err401
   _ -> throwAll err403
   where
     getInt :: User -> Handler Int
@@ -389,11 +390,11 @@ past = parseTimeOrError True defaultTimeLocale "%Y-%m-%d" "1970-01-01"
 future :: UTCTime
 future = parseTimeOrError True defaultTimeLocale "%Y-%m-%d" "2070-01-01"
 
-addJwtToHeader :: Either Error BSL.ByteString -> IO Options
+addJwtToHeader :: Either Error (Token a) -> IO Options
 addJwtToHeader jwt = case jwt of
   Left e -> fail $ show e
   Right v -> return
-    $ defaults & header "Authorization" .~ ["Bearer " <> BSL.toStrict v]
+    $ defaults & header "Authorization" .~ [toHeader v]
 
 createJWT :: JWK -> JWSHeader () -> ClaimsSet -> IO (Either Error Crypto.JWT.SignedJWT)
 createJWT k a b = runExceptT $ signClaims k a b

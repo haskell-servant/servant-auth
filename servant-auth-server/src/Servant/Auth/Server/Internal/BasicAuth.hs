@@ -25,5 +25,5 @@ class FromBasicAuthData a where
 
 basicAuthCheck :: FromBasicAuthData usr => BasicAuthCfg -> AuthCheck usr
 basicAuthCheck cfg = AuthCheck $ \req -> case decodeBAHdr req of
-  Nothing -> return Indefinite
+  Nothing -> pure $ fail "Failed basic auth decoding"
   Just baData -> fromBasicAuthData baData cfg

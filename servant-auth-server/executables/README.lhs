@@ -24,7 +24,7 @@ data AuthResult val
   = BadPassword
   | NoSuchUser
   | Authenticated val
-  | Indefinite
+  | Indefinite [String]
 ~~~
 
 Your handlers will get a value of type `AuthResult Something`, and can decide

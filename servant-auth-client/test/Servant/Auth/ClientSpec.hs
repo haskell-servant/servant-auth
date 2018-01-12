@@ -31,6 +31,7 @@ import Servant.Client (ClientEnv (..), runClientM)
 import Control.Monad.Trans.Except (runExceptT)
 #endif
 
+import Servant.Auth
 import Servant.Auth.Client
 import Servant.Auth.Server
 import Servant.Auth.Server.SetCookieOrphan ()
@@ -46,10 +47,10 @@ spec = describe "The JWT combinator" $ do
 hasClientSpec :: Spec
 hasClientSpec = describe "HasClient" $ around (testWithApplication $ return app) $ do
 
-  let mkTok :: User -> Maybe UTCTime -> IO Token
+  let mkTok :: User -> Maybe UTCTime -> IO (Token User)
       mkTok user mexp = do
         Right tok <- makeJWT user jwtCfg mexp
-        return $ Token $ BSL.toStrict tok
+        pure tok
 
   it "succeeds when the token does not have expiry" $ \port -> property $ \user -> do
     tok <- mkTok user Nothing
@@ -74,7 +75,7 @@ hasClientSpec = describe "HasClient" $ around (testWithApplication $ return app)
     stat `shouldBe` status401
 
 
-getIntClient :: Token -> Manager -> BaseUrl -> IO (Either ServantError Int)
+getIntClient :: Token User -> Manager -> BaseUrl -> IO (Either ServantError Int)
 #if MIN_VERSION_servant(0,9,0)
 getIntClient tok m burl = runClientM (client api tok) (ClientEnv m burl)
 #else

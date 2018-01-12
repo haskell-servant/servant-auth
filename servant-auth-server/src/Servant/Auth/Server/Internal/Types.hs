@@ -3,7 +3,7 @@ module Servant.Auth.Server.Internal.Types where
 import Control.Applicative
 import Control.Monad.Reader
 import Control.Monad.Time
-import Data.Monoid
+import Data.Semigroup
 import Data.Time            (getCurrentTime)
 import GHC.Generics         (Generic)
 import Network.Wai          (Request)
@@ -18,31 +18,38 @@ data AuthResult val
   -- expects a password and username in a header that is not present -
   -- @Indefinite@ is returned. This indicates that other authentication
   -- methods should be tried.
-  | Indefinite
+  | Indefinite [String]
   deriving (Eq, Show, Read, Generic, Ord, Functor, Traversable, Foldable)
 
+instance Semigroup (AuthResult val) where
+  Authenticated v <> _ = Authenticated v
+  _ <> Authenticated v = Authenticated v
+  Indefinite e <> Indefinite e' = Indefinite $ e ++ e'
+  Indefinite _ <> x = x
+  x <> _ = x
+
 instance Monoid (AuthResult val) where
-  mempty = Indefinite
-  Indefinite `mappend` x = x
-  x `mappend` _ = x
+  mempty = fail "mempty"
+  mappend = (<>)
 
 instance Applicative AuthResult where
-  pure = return
+  pure = Authenticated
   (<*>) = ap
 
 instance Monad AuthResult where
-  return = Authenticated
+  return = pure
+  fail = Indefinite . pure
   Authenticated v >>= f = f v
   BadPassword  >>= _ = BadPassword
   NoSuchUser   >>= _ = NoSuchUser
-  Indefinite   >>= _ = Indefinite
+  Indefinite e >>= _ = Indefinite e
 
 instance Alternative AuthResult where
-  empty = mzero
+  empty = fail "empty"
   (<|>) = mplus
 
 instance MonadPlus AuthResult where
-  mzero = mempty
+  mzero = fail "mzero"
   mplus = (<>)
 
 
@@ -54,27 +61,30 @@ newtype AuthCheck val = AuthCheck
   { runAuthCheck :: Request -> IO (AuthResult val) }
   deriving (Generic, Functor)
 
-instance Monoid (AuthCheck val) where
-  mempty = AuthCheck $ const $ return mempty
-  AuthCheck f `mappend` AuthCheck g = AuthCheck $ \x -> do
+instance Semigroup (AuthCheck val) where
+  AuthCheck f <> AuthCheck g = AuthCheck $ \x -> do
     fx <- f x
     gx <- g x
     return $ fx <> gx
 
+instance Monoid (AuthCheck val) where
+  mempty = AuthCheck $ const $ return mempty
+  mappend = (<>)
+
 instance Applicative AuthCheck where
-  pure = return
+  pure = AuthCheck . pure . pure . pure
   (<*>) = ap
 
 instance Monad AuthCheck where
-  return = AuthCheck . return . return . return
-  fail _ = AuthCheck . const $ return Indefinite
+  return = pure
+  fail e = AuthCheck . const $ return $ Indefinite [e]
   AuthCheck ac >>= f = AuthCheck $ \req -> do
     aresult <- ac req
     case aresult of
       Authenticated usr -> runAuthCheck (f usr) req
       BadPassword       -> return BadPassword
       NoSuchUser        -> return NoSuchUser
-      Indefinite        -> return Indefinite
+      Indefinite e      -> return $ Indefinite e
 
 instance MonadReader Request AuthCheck where
   ask = AuthCheck $ \x -> return (Authenticated x)
