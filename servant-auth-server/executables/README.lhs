@@ -64,7 +64,7 @@ type Protected
 
 
 -- | 'Protected' will be protected by 'auths', which we still have to specify.
-protected :: AuthResult User -> Server Protected
+protected :: AuthResult es User -> Server Protected
 -- If we get an "Authenticated v", we can trust the information in v, since
 -- it was signed by a key we trust.
 protected (Authenticated user) = return (name user) :<|> return (email user)

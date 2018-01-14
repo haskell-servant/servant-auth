@@ -8,7 +8,7 @@ import Crypto.Util (constTimeEq)
 import Data.Semigroup ((<>))
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Base64 as B64
-import Data.Text.Encoding (encodeUtf8, decodeLatin1)
+import Data.Text.Encoding (encodeUtf8, decodeUtf8)
 import Web.HttpApiData
 
 -- | A compact JWT Token.
@@ -32,7 +32,7 @@ textToBs :: Text -> BS.ByteString
 textToBs = B64.decodeLenient . encodeUtf8
 
 bsToText :: BS.ByteString -> Text
-bsToText = decodeLatin1 . B64.encode
+bsToText = decodeUtf8 . B64.encode
 
 -- * Authentication
 

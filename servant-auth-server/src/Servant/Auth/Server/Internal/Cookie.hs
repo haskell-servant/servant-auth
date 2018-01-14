@@ -4,39 +4,50 @@ import           Blaze.ByteString.Builder (toByteString)
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import qualified Crypto.JOSE              as Jose
-import qualified Crypto.JWT               as Jose
 import           Crypto.Util              (constTimeEq)
 import qualified Data.ByteString          as BS
 import qualified Data.ByteString.Base64   as BS64
-import qualified Data.ByteString.Lazy     as BSL
 import           Data.CaseInsensitive     (mk)
+import           GHC.Generics             (Generic)
 import           Network.Wai              (requestHeaders)
 import           Servant                  (AddHeader, addHeader)
 import           System.Entropy           (getEntropy)
 import           Web.Cookie
 
-import Servant.Auth (Token(..))
+import Servant.Auth
 import Servant.Auth.Server.Internal.ConfigTypes
-import Servant.Auth.Server.Internal.JWT         (FromJWT (decodeJWT), ToJWT,
-                                                 makeJWT, parseJWT)
+import Servant.Auth.Server.Internal.JWT         (FromJWT, ToJWT,
+                                                 makeJWT, verifyAndDecodeJWT,
+                                                 JWTDecodeError)
 import Servant.Auth.Server.Internal.Types
 
+data CookieAuthError
+  = CookiesMissing
+  | XSRFCookieMissing
+  | XSRFHeaderMissing
+  | XSRFCheckFailed
+  | SessionCookieMissing
+  | CookieDecodeError JWTDecodeError
+  deriving (Eq, Generic, Show)
 
-cookieAuthCheck :: FromJWT usr => CookieSettings -> JWTSettings -> AuthCheck usr
+cookieAuthCheck :: FromJWT usr
+  => CookieSettings -> JWTSettings -> AuthCheck CookieAuthError usr
 cookieAuthCheck ccfg jwtCfg = do
   req <- ask
-  cookies' <- maybe (fail "Cookie missing") pure $
+  cookies' <- maybe (failWith CookiesMissing) pure $
     lookup "Cookie" $ requestHeaders req
   let cookies = parseCookies cookies'
-  xsrfCookie <- maybe (fail "Missing XSRF cookie") pure $
+  xsrfCookie <- maybe (failWith XSRFCookieMissing) pure $
     lookup (xsrfCookieName ccfg) cookies
-  xsrfHeader <- maybe (fail "Missing XSRF header") pure $
+  xsrfHeader <- maybe (failWith XSRFHeaderMissing) pure $
     lookup (mk $ xsrfHeaderName ccfg) $ requestHeaders req
-  unless (xsrfCookie `constTimeEq` xsrfHeader) $ fail "XSRF check failed"
+  unless (xsrfCookie `constTimeEq` xsrfHeader) $ failWith XSRFCheckFailed
   -- session cookie *must* be HttpOnly and Secure
   case lookup (sessionCookieName ccfg) cookies of
-    Just bs -> parseJWT jwtCfg $ Token bs
-    Nothing -> fail "Session cookie missing"
+    Just bs -> do
+      result <- liftIO $ verifyAndDecodeJWT jwtCfg $ Token bs
+      either (failWith . CookieDecodeError) pure result
+    Nothing -> failWith SessionCookieMissing
 
 
 -- | Makes a cookie to be used for CSRF.

@@ -32,7 +32,7 @@ library
     , text
     , servant-docs
     , servant
-    , servant-auth == 0.3.*
+    , servant-auth >= 0.3 && < 0.5
     , lens
   exposed-modules:
       Servant.Auth.Docs

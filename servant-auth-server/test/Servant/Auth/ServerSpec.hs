@@ -20,6 +20,7 @@ import           Data.Aeson                          (FromJSON, ToJSON, Value,
 import           Data.Aeson.Lens                     (_JSON)
 import qualified Data.ByteString                     as BS
 import qualified Data.ByteString.Lazy                as BSL
+import qualified Data.ByteString.Lazy.Char8          as BSC
 import           Data.CaseInsensitive                (mk)
 import           Data.Foldable                       (find)
 import           Data.Monoid
@@ -337,31 +338,33 @@ jwtCfg = (defaultJWTSettings theKey) { audienceMatches = \x ->
     if x == "boo" then DoesNotMatch else Matches }
 
 instance FromBasicAuthData User where
-  fromBasicAuthData (BasicAuthData usr pwd) _
-    = return $ if usr == "ali" && pwd == "Open sesame"
-      then Authenticated $ User "ali" "ali@the-thieves-den.com"
-      else fail "FromBasicAuthData"
+  fromBasicAuthData (BasicAuthData usr pwd) _ = return $
+    if usr /= "ali"
+    then Left BasicAuthNoSuchUser
+    else if pwd /= "Open sesame"
+      then Left BasicAuthBadPassword
+      else Right $ User "ali" "ali@the-thieves-den.com"
 
 -- Could be anything, really, but since this is already in the cfg we don't
 -- have to add it
 type instance BasicAuthCfg = JWK
 
 -- | Takes a proxy parameter indicating which authentication systems to enable.
-app :: AreAuths auths '[CookieSettings, JWTSettings, JWK] User
+app :: (AreAuths auths '[CookieSettings, JWTSettings, JWK] User
+       , Show (ErrorList (AuthsToErrors auths)))
   => Proxy (API auths) -> Application
 app api = serveWithContext api ctx server
   where
     ctx = cookieCfg :. jwtCfg :. theKey :. EmptyContext
 
 
-server :: Server (API auths)
+server :: Show (ErrorList (AuthsToErrors auths)) => Server (API auths)
 server authResult = case authResult of
   Authenticated usr -> getInt usr
                   :<|> postInt usr
                   :<|> getHeaderInt
                   :<|> raw
-  Indefinite _ -> throwAll err401
-  _ -> throwAll err403
+  AuthFailed e -> throwAll err401 { errBody = BSC.pack (show e) }
   where
     getInt :: User -> Handler Int
     getInt usr = return . length $ name usr

@@ -9,14 +9,29 @@ import           Data.Aeson           (FromJSON, Result (..), ToJSON, fromJSON,
                                        toJSON)
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.HashMap.Strict  as HM
-import qualified Data.Text            as T
+import           Data.Text            (Text)
 import           Data.Time            (UTCTime)
+import           GHC.Generics         (Generic)
 import           Network.Wai          (requestHeaders)
 import           Web.HttpApiData      (parseHeader)
 
-import Servant.Auth (Token(..))
+import Servant.Auth
 import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth.Server.Internal.Types
+
+data JWTDecodeError
+  = JWTError Jose.JWTError
+  | JWTMissingDATClaim
+  | JWTJSONError String
+  | JWTOtherError Text
+  deriving (Eq, Generic, Show)
+
+data JWTAuthError
+  = JWTAuthHeaderMissing
+  | JWTParseHeaderFailed Text
+  | JWTDecodeError JWTDecodeError
+  deriving (Eq, Generic, Show)
+
 
 -- This should probably also be from ClaimSet
 --
@@ -25,12 +40,12 @@ import Servant.Auth.Server.Internal.Types
 -- The default implementation assumes the data is stored in the unregistered
 -- @dat@ claim, and uses the @FromJSON@ instance to decode value from there.
 class FromJWT a where
-  decodeJWT :: Jose.ClaimsSet -> Either T.Text a
-  default decodeJWT :: FromJSON a => Jose.ClaimsSet -> Either T.Text a
+  decodeJWT :: Jose.ClaimsSet -> Either JWTDecodeError a
+  default decodeJWT :: FromJSON a => Jose.ClaimsSet -> Either JWTDecodeError a
   decodeJWT m = case HM.lookup "dat" (m ^. Jose.unregisteredClaims) of
-    Nothing -> Left "Missing 'dat' claim"
+    Nothing -> Left JWTMissingDATClaim
     Just v  -> case fromJSON v of
-      Error e -> Left $ T.pack e
+      Error e -> Left $ JWTJSONError e
       Success a -> Right a
 
 -- | How to encode data from a JWT.
@@ -44,24 +59,25 @@ class ToJWT a where
 
 -- | A JWT @AuthCheck@. You likely won't need to use this directly unless you
 -- are protecting a @Raw@ endpoint.
-jwtAuthCheck :: FromJWT usr => JWTSettings -> AuthCheck usr
+jwtAuthCheck :: FromJWT usr => JWTSettings -> AuthCheck JWTAuthError usr
 jwtAuthCheck config = do
   req <- ask
-  authHdr <- maybe (fail "Missing auth header") pure $
-    lookup "Authorization" $ requestHeaders req
-  either (fail . T.unpack) (parseJWT config) $ parseHeader authHdr
+  case lookup "Authorization" $ requestHeaders req of
+    Nothing -> failWith JWTAuthHeaderMissing
+    Just authHdr -> case parseHeader authHdr of
+      Left err -> failWith $ JWTParseHeaderFailed err
+      Right jwt -> do
+        result <- liftIO $ verifyAndDecodeJWT config jwt
+        either (failWith . JWTDecodeError) pure result
 
-parseJWT :: FromJWT usr => JWTSettings -> Token usr -> AuthCheck usr
-parseJWT config (Token token) = do
+verifyAndDecodeJWT :: FromJWT usr
+  => JWTSettings -> Token usr -> IO (Either JWTDecodeError usr)
+verifyAndDecodeJWT config (Token token) = do
   verifiedJWT <- liftIO $ runExceptT $ do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict token
     Jose.verifyClaims (jwtSettingsToJwtValidationSettings config)
       (key config) unverifiedJWT
-  case verifiedJWT of
-    Left (e :: Jose.JWTError) -> fail $ "JWTError: " ++ show e
-    Right v -> case decodeJWT v of
-      Left e -> fail $ "decodeJWT failed: " ++ show e
-      Right v' -> return v'
+  pure $ either (Left . JWTError) decodeJWT verifiedJWT
 
 
 -- | Creates a JWT containing the specified data. The data is stored in the

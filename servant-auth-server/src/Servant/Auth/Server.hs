@@ -21,6 +21,9 @@ module Servant.Auth.Server
     Auth
   , AuthResult(..)
   , AuthCheck(..)
+  , ErrorList (..)
+  , AuthsToErrors
+  , AuthError
 
   ----------------------------------------------------------------------------
   -- * JWT
@@ -46,6 +49,7 @@ module Servant.Auth.Server
   , ToJWT(..)
 
   -- ** Related types
+  , JWTAuthError(..)
   , IsMatch(..)
 
   -- ** Settings
@@ -77,6 +81,7 @@ module Servant.Auth.Server
 
 
   -- ** Related types
+  , CookieAuthError(..)
   , IsSecure(..)
 
   , AreAuths
@@ -94,6 +99,7 @@ module Servant.Auth.Server
   , BasicAuthCfg
 
   -- ** Related types
+  , BasicAuthError(..)
   , BasicAuthData(..)
   , IsPasswordCorrect(..)
 
