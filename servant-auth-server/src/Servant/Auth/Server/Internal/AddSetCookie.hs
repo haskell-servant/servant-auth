@@ -27,14 +27,16 @@ type family AddSetCookiesApi (n :: Nat) a where
   AddSetCookiesApi ('S 'Z) a = AddSetCookieApi a
   AddSetCookiesApi ('S n) a = AddSetCookiesApi n (AddSetCookieApi a)
 
-type family AddSetCookieApi a where
-  AddSetCookieApi (a :> b) = a :> AddSetCookieApi b
-  AddSetCookieApi (a :<|> b) = AddSetCookieApi a :<|> AddSetCookieApi b
-  AddSetCookieApi (Verb method stat ctyps (Headers ls a))
-     = Verb method stat ctyps (Headers ((Header "Set-Cookie" SetCookie) ': ls) a)
-  AddSetCookieApi (Verb method stat ctyps a)
-     = Verb method stat ctyps (Headers '[Header "Set-Cookie" SetCookie] a)
-  AddSetCookieApi Raw = Raw
+type family AddSetCookieApiVerb a where
+  AddSetCookieApiVerb (Headers ls a) = Headers ((Header "Set-Cookie" SetCookie) ': ls) a
+  AddSetCookieApiVerb a = Headers '[Header "Set-Cookie" SetCookie] a
+
+type family AddSetCookieApi a :: *
+type instance AddSetCookieApi (a :> b) = a :> AddSetCookieApi b
+type instance AddSetCookieApi (a :<|> b) = AddSetCookieApi a :<|> AddSetCookieApi b
+type instance AddSetCookieApi (Verb method stat ctyps a)
+  = Verb method stat ctyps (AddSetCookieApiVerb a)
+type instance AddSetCookieApi Raw = Raw
 
 data SetCookieList (n :: Nat) :: * where
   SetCookieNil :: SetCookieList 'Z
