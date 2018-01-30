@@ -9,8 +9,9 @@ import           Servant.Server.Internal.BasicAuth (decodeBAHdr,
 
 import Servant.Auth.Server.Internal.Types
 
--- | A 'ServantErr' that asks the client to authenticated via Basic
--- Authentication. The argument is the realm.
+-- | A 'ServantErr' that asks the client to authenticate via Basic
+-- Authentication, should be invoked by an application whenever
+-- appropriate. The argument is the realm.
 wwwAuthenticatedErr :: BS.ByteString -> ServantErr
 wwwAuthenticatedErr realm = err401 { errHeaders = [mkBAChallengerHdr realm] }
 

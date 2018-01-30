@@ -97,6 +97,9 @@ module Servant.Auth.Server
   , BasicAuthData(..)
   , IsPasswordCorrect(..)
 
+  -- ** Authentication request
+  , wwwAuthenticatedErr
+
   ----------------------------------------------------------------------------
   -- * Utilies
   , ThrowAll(throwAll)
