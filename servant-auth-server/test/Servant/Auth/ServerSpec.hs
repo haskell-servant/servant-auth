@@ -160,31 +160,41 @@ authSpec
 
 cookieAuthSpec :: Spec
 cookieAuthSpec
-  = describe "The Auth combinator"
-  $ around (testWithApplication . return $ app cookieOnlyApi) $ do
+  = describe "The Auth combinator" $ do
+      around (testWithApplication . return $ app cookieOnlyApi) $ do
 
-  it "fails if CSRF header and cookie don't match" $ \port -> property
-                                                   $ \(user :: User) -> do
-    jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
-    opts' <- addJwtToCookie jwt
-    let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
-                         (xsrfCookieName cookieCfg <> "=blerg")
-    getWith opts (url port) `shouldHTTPErrorWith` status401
+        it "fails if CSRF header and cookie don't match" $ \port -> property
+                                                         $ \(user :: User) -> do
+          jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
+          opts' <- addJwtToCookie jwt
+          let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
+                               (xsrfCookieName cookieCfg <> "=blerg")
+          getWith opts (url port) `shouldHTTPErrorWith` status401
 
-  it "fails if there is no CSRF header and cookie" $ \port -> property
-                                                   $ \(user :: User) -> do
-    jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
-    opts <- addJwtToCookie jwt
-    getWith opts (url port) `shouldHTTPErrorWith` status401
+        it "fails if there is no CSRF header and cookie" $ \port -> property
+                                                         $ \(user :: User) -> do
+          jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
+          opts <- addJwtToCookie jwt
+          getWith opts (url port) `shouldHTTPErrorWith` status401
 
-  it "succeeds if CSRF header and cookie match, and JWT is valid" $ \port -> property
-                                                                 $ \(user :: User) -> do
-    jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
-    opts' <- addJwtToCookie jwt
-    let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
-                         (xsrfCookieName cookieCfg <> "=blah")
-    resp <- getWith opts (url port)
-    resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
+        it "succeeds if CSRF header and cookie match, and JWT is valid" $ \port -> property
+                                                                       $ \(user :: User) -> do
+          jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
+          opts' <- addJwtToCookie jwt
+          let opts = addCookie (opts' & header (mk (xsrfHeaderName cookieCfg)) .~ ["blah"])
+                               (xsrfCookieName cookieCfg <> "=blah")
+          resp <- getWith opts (url port)
+          resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
+
+      around (testWithApplication . return $ appWithCookie cookieOnlyApi cookieCfg{xsrfExcludeGet = True}) $ do
+        it "succeeds without CSRF header for GET when enabled, and JWT is valid"
+              $ \port -> property
+              $ \(user :: User) -> do
+          jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
+          opts' <- addJwtToCookie jwt
+          let opts = addCookie opts' (xsrfCookieName cookieCfg <> "=blah")
+          resp <- getWith opts (url port)
+          resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
 
 -- }}}
@@ -345,13 +355,16 @@ instance FromBasicAuthData User where
 -- have to add it
 type instance BasicAuthCfg = JWK
 
+appWithCookie :: AreAuths auths '[CookieSettings, JWTSettings, JWK] User
+  => Proxy (API auths) -> CookieSettings -> Application
+appWithCookie api ccfg = serveWithContext api ctx server
+  where
+    ctx = ccfg :. jwtCfg :. theKey :. EmptyContext
+
 -- | Takes a proxy parameter indicating which authentication systems to enable.
 app :: AreAuths auths '[CookieSettings, JWTSettings, JWK] User
   => Proxy (API auths) -> Application
-app api = serveWithContext api ctx server
-  where
-    ctx = cookieCfg :. jwtCfg :. theKey :. EmptyContext
-
+app api = appWithCookie api cookieCfg
 
 server :: Server (API auths)
 server authResult = case authResult of

@@ -10,7 +10,8 @@ import qualified Data.ByteString          as BS
 import qualified Data.ByteString.Base64   as BS64
 import qualified Data.ByteString.Lazy     as BSL
 import           Data.CaseInsensitive     (mk)
-import           Network.Wai              (requestHeaders)
+import           Network.HTTP.Types       (methodGet)
+import           Network.Wai              (requestHeaders, requestMethod)
 import           Servant                  (AddHeader, addHeader)
 import           System.Entropy           (getEntropy)
 import           Web.Cookie
@@ -28,8 +29,9 @@ cookieAuthCheck ccfg jwtCfg = do
     cookies' <- lookup "Cookie" $ requestHeaders req
     let cookies = parseCookies cookies'
     xsrfCookie <- lookup (xsrfCookieName ccfg) cookies
-    xsrfHeader <- lookup (mk $ xsrfHeaderName ccfg) $ requestHeaders req
-    guard $ xsrfCookie `constTimeEq` xsrfHeader
+    when (((requestMethod req) /= methodGet) || not (xsrfExcludeGet ccfg)) $ do
+      xsrfHeader <- lookup (mk $ xsrfHeaderName ccfg) $ requestHeaders req
+      guard $ xsrfCookie `constTimeEq` xsrfHeader
     -- session cookie *must* be HttpOnly and Secure
     lookup (sessionCookieName ccfg) cookies
   verifiedJWT <- liftIO $ runExceptT $ do
