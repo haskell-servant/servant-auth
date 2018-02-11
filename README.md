@@ -1,6 +1,6 @@
 # servant-auth
 
-[![Build Status](https://travis-ci.org/plow-technologies/servant-auth.svg?branch=master)](https://travis-ci.org/plow-technologies/servant-auth)
+[![Build Status](https://travis-ci.org/haskell-servant/servant-auth.svg?branch=master)](https://travis-ci.org/haskell-servant/servant-auth)
 
 This package provides safe and easy-to-use authentication options for
 `servant`. The same API can be protected via login and cookies, or API tokens,
