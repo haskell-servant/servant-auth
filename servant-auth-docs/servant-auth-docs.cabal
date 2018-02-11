@@ -10,7 +10,7 @@ maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
 license:        BSD3
 license-file:   LICENSE
-tested-with:    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.1
+tested-with:    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2
 build-type:     Custom
 cabal-version:  >= 1.10
 
@@ -45,7 +45,7 @@ test-suite doctests
     base,
     doctest >= 0.11.3 && <0.14,
     servant-auth-docs,
-    QuickCheck >= 2.8 && <2.11,
+    QuickCheck >= 2.8 && <2.12,
     template-haskell
   ghc-options:         -Wall -threaded
   hs-source-dirs:      test
@@ -73,6 +73,6 @@ test-suite spec
   build-depends:
       servant-auth-docs
     , hspec > 2 && < 3
-    , QuickCheck >= 2.8 && < 2.11
+    , QuickCheck >= 2.8 && < 2.12
 
   default-language: Haskell2010
