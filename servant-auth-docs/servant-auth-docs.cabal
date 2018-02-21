@@ -1,5 +1,5 @@
 name:           servant-auth-docs
-version:        0.2.8.0
+version:        0.2.9.0
 synopsis:       servant-docs/servant-auth compatibility
 description:    This package provides instances that allow generating docs from
                 <https://hackage.haskell.org/package/servant servant>
