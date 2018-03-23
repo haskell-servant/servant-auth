@@ -15,7 +15,7 @@ maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
 license:        BSD3
 license-file:   LICENSE
-tested-with:    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2
+tested-with:    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC==8.4.1
 build-type:     Custom
 cabal-version:  >= 1.10
 
@@ -33,7 +33,7 @@ library
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.8 && < 4.11
+      base >= 4.8 && < 4.12
     , text
     , servant-docs
     , servant
@@ -48,7 +48,7 @@ test-suite doctests
   main-is:             doctests.hs
   build-depends:
     base,
-    doctest >= 0.11.3 && <0.14,
+    doctest >= 0.11.3 && <0.16,
     servant-auth-docs,
     QuickCheck >= 2.8 && <2.12,
     template-haskell
