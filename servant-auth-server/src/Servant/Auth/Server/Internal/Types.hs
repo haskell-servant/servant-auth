@@ -3,7 +3,8 @@ module Servant.Auth.Server.Internal.Types where
 import Control.Applicative
 import Control.Monad.Reader
 import Control.Monad.Time
-import Data.Monoid
+import Data.Monoid          (Monoid (..))
+import Data.Semigroup       (Semigroup (..))
 import Data.Time            (getCurrentTime)
 import GHC.Generics         (Generic)
 import Network.Wai          (Request)
@@ -21,10 +22,13 @@ data AuthResult val
   | Indefinite
   deriving (Eq, Show, Read, Generic, Ord, Functor, Traversable, Foldable)
 
+instance Semigroup (AuthResult val) where
+  Indefinite <> y = y
+  x          <> _ = x
+
 instance Monoid (AuthResult val) where
   mempty = Indefinite
-  Indefinite `mappend` x = x
-  x `mappend` _ = x
+  mappend = (<>)
 
 instance Applicative AuthResult where
   pure = return
@@ -54,12 +58,15 @@ newtype AuthCheck val = AuthCheck
   { runAuthCheck :: Request -> IO (AuthResult val) }
   deriving (Generic, Functor)
 
-instance Monoid (AuthCheck val) where
-  mempty = AuthCheck $ const $ return mempty
-  AuthCheck f `mappend` AuthCheck g = AuthCheck $ \x -> do
+instance Semigroup (AuthCheck val) where
+  AuthCheck f <> AuthCheck g = AuthCheck $ \x -> do
     fx <- f x
     gx <- g x
     return $ fx <> gx
+
+instance Monoid (AuthCheck val) where
+  mempty = AuthCheck $ const $ return mempty
+  mappend = (<>)
 
 instance Applicative AuthCheck where
   pure = return
