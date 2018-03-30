@@ -57,7 +57,7 @@ jwtAuthCheck config = do
   verifiedJWT <- liftIO $ runExceptT $ do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict token
     Jose.verifyClaims (jwtSettingsToJwtValidationSettings config)
-                      (key config)
+                      (keySet config)
                       unverifiedJWT
   case verifiedJWT of
     Left (_ :: Jose.JWTError) -> mzero
