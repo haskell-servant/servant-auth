@@ -121,7 +121,7 @@ applySessionCookieSettings cookieSettings setCookie = setCookie
   }
 
 -- | For a JWT-serializable session, returns a function that decorates a
--- provided response object with CSRF and session cookies. This should be used
+-- provided response object with XSRF and session cookies. This should be used
 -- when a user successfully authenticates with credentials.
 acceptLogin :: ( ToJWT session
                , AddHeader "Set-Cookie" SetCookie response withOneCookie

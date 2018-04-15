@@ -81,13 +81,13 @@ defaultCookieSettings = CookieSettings
 -- | The policies to use when generating and verifying XSRF cookies
 data XsrfCookieSettings = XsrfCookieSettings
   {
-  -- | What name to use for the cookie used for CSRF protection.
+  -- | What name to use for the cookie used for XSRF protection.
     xsrfCookieName :: !BS.ByteString
-  -- | What path to use for the cookie used for CSRF protection. Default @Just "/"@.
+  -- | What path to use for the cookie used for XSRF protection. Default @Just "/"@.
   , xsrfCookiePath :: !(Maybe BS.ByteString)
-  -- | What name to use for the header used for CSRF protection.
+  -- | What name to use for the header used for XSRF protection.
   , xsrfHeaderName :: !BS.ByteString
-  -- | Exclude GET request method from CSRF protection.
+  -- | Exclude GET request method from XSRF protection.
   , xsrfExcludeGet :: !Bool
   } deriving (Eq, Show, Generic)
 

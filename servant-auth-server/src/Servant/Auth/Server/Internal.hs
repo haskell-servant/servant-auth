@@ -53,8 +53,8 @@ instance ( n ~ 'S ('S 'Z)
 
       makeCookies :: AuthResult v -> IO (SetCookieList ('S ('S 'Z)))
       makeCookies authResult = do
-        csrf <- makeXsrfCookie cookieSettings
-        fmap (Just csrf `SetCookieCons`) $
+        xsrf <- makeXsrfCookie cookieSettings
+        fmap (Just xsrf `SetCookieCons`) $
           case authResult of
             (Authenticated v) -> do
               ejwt <- makeSessionCookie cookieSettings jwtSettings v

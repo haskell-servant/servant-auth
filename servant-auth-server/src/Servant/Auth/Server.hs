@@ -72,6 +72,7 @@ module Servant.Auth.Server
   , defaultXsrfCookieSettings
   , makeSessionCookie
   , makeSessionCookieBS
+  , makeXsrfCookie
   , makeCsrfCookie
   , makeCookie
   , makeCookieBS

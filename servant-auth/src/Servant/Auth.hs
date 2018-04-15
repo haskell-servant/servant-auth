@@ -21,7 +21,7 @@ data JWT
 
 -- | A cookie. The content cookie itself is a JWT. Another cookie is also used,
 -- the contents of which are expected to be send back to the server in a
--- header, for CSRF protection.
+-- header, for XSRF protection.
 data Cookie
 
 
