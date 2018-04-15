@@ -32,9 +32,9 @@ cookieAuthCheck ccfg jwtCfg = do
     cookies' <- lookup hCookie $ requestHeaders req
     let cookies = parseCookies cookies'
     -- Apply the XSRF check if enabled.
-    guard $ case cookieXsrfSetting ccfg of
-      Just xsrfCookieSettings -> xsrfCookieAuthCheck xsrfCookieSettings req cookies
-      Nothing                 -> True
+    guard $ fromMaybe True $ do
+      xsrfCookieCfg <- xsrfCheckRequired ccfg req
+      return $ xsrfCookieAuthCheck xsrfCookieCfg req cookies
     -- session cookie *must* be HttpOnly and Secure
     lookup (sessionCookieName ccfg) cookies
   verifiedJWT <- liftIO $ runExceptT $ do
@@ -48,16 +48,18 @@ cookieAuthCheck ccfg jwtCfg = do
       Left _ -> mzero
       Right v' -> return v'
 
+xsrfCheckRequired :: CookieSettings -> Request -> Maybe XsrfCookieSettings
+xsrfCheckRequired cookieSettings req = do
+    xsrfCookieCfg <- cookieXsrfSetting cookieSettings
+    let disableForGetReq = xsrfExcludeGet xsrfCookieCfg && requestMethod req == methodGet
+    guard $ not disableForGetReq
+    return xsrfCookieCfg
+
 xsrfCookieAuthCheck :: XsrfCookieSettings -> Request -> [(BS.ByteString, BS.ByteString)] -> Bool
 xsrfCookieAuthCheck xsrfCookieCfg req cookies = fromMaybe False $ do
   xsrfCookie <- lookup (xsrfCookieName xsrfCookieCfg) cookies
   xsrfHeader <- lookup (mk $ xsrfHeaderName xsrfCookieCfg) $ requestHeaders req
-  guard checkEnabled
   return $ xsrfCookie `constTimeEq` xsrfHeader
-  where
-    checkDisabled = xsrfExcludeGet xsrfCookieCfg && requestMethod req == methodGet
-    checkEnabled = not checkDisabled
-
 
 -- | Makes a cookie to be used for XSRF.
 makeXsrfCookie :: CookieSettings -> IO SetCookie
