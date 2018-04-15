@@ -1,6 +1,13 @@
 upcoming:
 
 releases:
+  - version: *unreleased*
+      - description: extract 'XsrfCookieSettings' from 'CookieSettings' and make XSRF checking optional.
+        notes: >
+            Renamed 'makeCsrfCookie' to 'makeXsrfCookie' and marked the former as deprecated.
+            Made several changes to the structure of 'CookieSettings' which will require attention by users who have modified the XSRF settings.
+        authors: 3noch, plredmond
+        pr: *not yet PR'd*
   - version: 0.3.0.0
     changes: 
       - description: 'cookiePath' and 'xsrfCookiePath' added to 'CookieSettings'
