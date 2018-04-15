@@ -58,11 +58,11 @@ import Network.HTTP.Client (HttpException (StatusCodeException))
 
 spec :: Spec
 spec = do
---authSpec
+  authSpec
   cookieAuthSpec
---jwtAuthSpec
---throwAllSpec
---basicAuthSpec
+  jwtAuthSpec
+  throwAllSpec
+  basicAuthSpec
 
 ------------------------------------------------------------------------------
 -- * Auth {{{
@@ -164,7 +164,7 @@ cookieAuthSpec
       describe "With XSRF check" $
        around (testWithApplication . return $ app cookieOnlyApi) $ do
 
-        it "fails if CSRF header and cookie don't match" $ \port -> property
+        it "fails if XSRF header and cookie don't match" $ \port -> property
                                                          $ \(user :: User) -> do
           jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
           opts' <- addJwtToCookie jwt
@@ -172,13 +172,13 @@ cookieAuthSpec
                                (xsrfField xsrfCookieName cookieCfg <> "=blerg")
           getWith opts (url port) `shouldHTTPErrorWith` status401
 
-        it "fails with no CSRF header or cookie" $ \port -> property
+        it "fails with no XSRF header or cookie" $ \port -> property
                                                          $ \(user :: User) -> do
           jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
           opts <- addJwtToCookie jwt
           getWith opts (url port) `shouldHTTPErrorWith` status401
 
-        it "succeeds if CSRF header and cookie match, and JWT is valid" $ \port -> property
+        it "succeeds if XSRF header and cookie match, and JWT is valid" $ \port -> property
                                                                         $ \(user :: User) -> do
           jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
           opts' <- addJwtToCookie jwt
@@ -187,35 +187,35 @@ cookieAuthSpec
           resp <- getWith opts (url port)
           resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
-      describe "With no CSRF check for GET requests" $ let
+      describe "With no XSRF check for GET requests" $ let
             noXsrfGet xsrfCfg = xsrfCfg { xsrfExcludeGet = True }
             cookieCfgNoXsrfGet = cookieCfg { cookieXsrfSetting = fmap noXsrfGet $ cookieXsrfSetting cookieCfg }
        in around (testWithApplication . return $ appWithCookie cookieOnlyApi cookieCfgNoXsrfGet) $ do
 
-        it "succeeds with no CSRF header or cookie for GET" $ \port -> property
+        it "succeeds with no XSRF header or cookie for GET" $ \port -> property
                                                             $ \(user :: User) -> do
           jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
           opts <- addJwtToCookie jwt
           resp <- getWith opts (url port)
           resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
-        it "fails with no CSRF header or cookie for POST" $ \port -> property
+        it "fails with no XSRF header or cookie for POST" $ \port -> property
                                                           $ \(user :: User) number -> do
           jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
           opts <- addJwtToCookie jwt
           postWith opts (url port) (toJSON (number :: Int)) `shouldHTTPErrorWith` status401
 
-      describe "With no CSRF check at all" $
+      describe "With no XSRF check at all" $
        around (testWithApplication . return $ appWithCookie cookieOnlyApi cookieCfg { cookieXsrfSetting = Nothing }) $ do
 
-        it "succeeds with no CSRF header or cookie for GET" $ \port -> property
+        it "succeeds with no XSRF header or cookie for GET" $ \port -> property
                                                             $ \(user :: User) -> do
           jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
           opts <- addJwtToCookie jwt
           resp <- getWith opts (url port)
           resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
-        it "succeeds with no CSRF header or cookie for POST" $ \port -> property
+        it "succeeds with no XSRF header or cookie for POST" $ \port -> property
                                                              $ \(user :: User) number -> do
           jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
           opts <- addJwtToCookie jwt
