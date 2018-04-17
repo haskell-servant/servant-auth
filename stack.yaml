@@ -12,6 +12,7 @@ extra-deps:
 - servant-docs-0.11.2
 - servant-server-0.13
 - servant-swagger-1.1.5
+- http-api-data-0.3.8.1
 - http-types-0.12.1
 - text-1.2.3.0
 resolver: lts-10.6
