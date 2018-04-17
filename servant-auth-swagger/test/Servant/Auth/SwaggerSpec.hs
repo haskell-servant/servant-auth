@@ -3,6 +3,7 @@ module Servant.Auth.SwaggerSpec (spec) where
 import Control.Lens
 import Data.Proxy
 import Servant.API
+import Servant.Auth
 import Servant.Auth.Swagger
 import Data.Swagger
 import Servant.Swagger
@@ -23,7 +24,7 @@ spec = describe "HasSwagger instance" $ do
 
 -- * API
 
-type API =   "secure" :> Auth '[JWT] Int :> SecureAPI
+type API =   "secure" :> Auth '[JWT, Cookie] Int :> SecureAPI
         :<|> "insecure" :> InsecureAPI
 
 type SecureAPI = Get '[JSON] Int :<|> ReqBody '[JSON] Int :> Post '[JSON] Int
