@@ -56,11 +56,17 @@ instance HasSecurity JWT where
 class AllHasSecurity (x :: [*]) where
   securities :: Proxy x -> [(T.Text,SecurityScheme)]
 
-instance (HasSecurity x, AllHasSecurity xs) => AllHasSecurity (x ': xs) where
+instance {-# OVERLAPPABLE #-} (HasSecurity x, AllHasSecurity xs) => AllHasSecurity (x ': xs) where
   securities _ = (securityName px, securityScheme px) : securities pxs
     where
       px :: Proxy x
       px = Proxy
+      pxs :: Proxy xs
+      pxs = Proxy
+
+instance {-# OVERLAPPING #-} AllHasSecurity xs => AllHasSecurity (Cookie ': xs) where
+  securities _ = securities pxs
+    where
       pxs :: Proxy xs
       pxs = Proxy
 
