@@ -3,6 +3,7 @@ module Servant.Auth.ServerSpec (spec) where
 
 import           Control.Lens
 import           Control.Monad.Except                (runExceptT)
+import           Control.Monad.IO.Class              (liftIO)
 import           Crypto.JOSE                         (Alg (HS256, None), Error,
                                                       JWK, JWSHeader,
                                                       KeyMaterialGenParam (OctGenParam),
@@ -16,7 +17,7 @@ import           Crypto.JWT                          (Audience (..), ClaimsSet,
                                                       emptyClaimsSet,
                                                       unregisteredClaims)
 import           Data.Aeson                          (FromJSON, ToJSON, Value,
-                                                      toJSON)
+                                                      toJSON, encode)
 import           Data.Aeson.Lens                     (_JSON)
 import qualified Data.ByteString                     as BS
 import qualified Data.ByteString.Lazy                as BSL
@@ -40,6 +41,8 @@ import           Network.Wreq                        (Options, auth, basicAuth,
                                                       responseCookieJar,
                                                       responseHeader,
                                                       responseStatus)
+import qualified Network.Wreq.Session                as WreqSess
+import qualified Network.Wreq.Types                  as Wreq
 import           Servant                             hiding (BasicAuth,
                                                       IsSecure (..), header)
 import           Servant.Auth.Server
@@ -187,6 +190,37 @@ cookieAuthSpec
           resp <- getWith opts (url port)
           resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
+        it "sets and clears the right cookies" $ \port -> property
+                                     $ \(user :: User) -> do
+          sess <- WreqSess.newSession
+          sess `shouldMatchCookieNames` []
+
+          -- not yet logged in
+          WreqSess.get sess (url port) `shouldHTTPErrorWith` status401
+
+          WreqSess.post sess (url port ++ "/login") user
+          sess `shouldMatchCookieNames`
+            [ sessionCookieName cookieCfg
+            , xsrfField xsrfCookieName cookieCfg
+            ]
+
+          -- while logged in
+          cookies <- maybe (error "unable to read cookie jar from session") destroyCookieJar
+            <$> WreqSess.getSessionCookieJar sess
+          let Just xsrfCookieValue = cookie_value <$> find (\c -> cookie_name c == xsrfField xsrfCookieName cookieCfg) cookies
+              opts = defaults & header (mk (xsrfField xsrfHeaderName cookieCfg)) .~ [xsrfCookieValue]
+          resp <- WreqSess.getWith opts sess (url port)
+          resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
+
+          WreqSess.get sess (url port ++ "/logout")
+          sess `shouldMatchCookieNameValues`
+            [ (sessionCookieName cookieCfg, "value")
+            , (xsrfField xsrfCookieName cookieCfg, "value")
+            ]
+
+          -- after logging out
+          WreqSess.get sess (url port) `shouldHTTPErrorWith` status401
+
       describe "With no XSRF check for GET requests" $ let
             noXsrfGet xsrfCfg = xsrfCfg { xsrfExcludeGet = True }
             cookieCfgNoXsrfGet = cookieCfg { cookieXsrfSetting = fmap noXsrfGet $ cookieXsrfSetting cookieCfg }
@@ -221,6 +255,33 @@ cookieAuthSpec
           opts <- addJwtToCookie jwt
           resp <- postWith opts (url port) $ toJSON (number :: Int)
           resp ^? responseBody . _JSON `shouldBe` Just number
+
+        it "sets and clears the right cookies" $ \port -> property
+                                     $ \(user :: User) -> do
+          sess <- WreqSess.newSession
+          sess `shouldMatchCookieNames` []
+
+          -- not yet logged in
+          WreqSess.get sess (url port) `shouldHTTPErrorWith` status401
+
+          WreqSess.post sess (url port ++ "/login") user
+          sess `shouldMatchCookieNames`
+            [ sessionCookieName cookieCfg
+            , "NO-XSRF-TOKEN"
+            ]
+
+          -- while logged in
+          resp <- WreqSess.get sess (url port)
+          resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
+
+          WreqSess.get sess (url port ++ "/logout")
+          sess `shouldMatchCookieNameValues`
+            [ (sessionCookieName cookieCfg, "value")
+            , ("NO-XSRF-TOKEN", "")
+            ]
+
+          -- after logging out
+          WreqSess.get sess (url port) `shouldHTTPErrorWith` status401
 
 -- }}}
 ------------------------------------------------------------------------------
@@ -340,6 +401,10 @@ type API auths
        :<|> "header" :> Get '[JSON] (Headers '[Header "Blah" Int] Int)
        :<|> "raw" :> Raw
         )
+      :<|> "login" :> ReqBody '[JSON] User :> Post '[JSON] (Headers '[ Header "Set-Cookie" SetCookie
+                                                                     , Header "Set-Cookie" SetCookie ] NoContent)
+      :<|> "logout" :> Get '[JSON] (Headers '[ Header "Set-Cookie" SetCookie
+                                             , Header "Set-Cookie" SetCookie ] NoContent)
 
 jwtOnlyApi :: Proxy (API '[Servant.Auth.Server.JWT])
 jwtOnlyApi = Proxy
@@ -386,7 +451,7 @@ type instance BasicAuthCfg = JWK
 
 appWithCookie :: AreAuths auths '[CookieSettings, JWTSettings, JWK] User
   => Proxy (API auths) -> CookieSettings -> Application
-appWithCookie api ccfg = serveWithContext api ctx server
+appWithCookie api ccfg = serveWithContext api ctx $ server ccfg
   where
     ctx = ccfg :. jwtCfg :. theKey :. EmptyContext
 
@@ -395,14 +460,18 @@ app :: AreAuths auths '[CookieSettings, JWTSettings, JWK] User
   => Proxy (API auths) -> Application
 app api = appWithCookie api cookieCfg
 
-server :: Server (API auths)
-server authResult = case authResult of
-  Authenticated usr -> getInt usr
-                  :<|> postInt usr
-                  :<|> getHeaderInt
-                  :<|> raw
-  Indefinite -> throwAll err401
-  _ -> throwAll err403
+server :: CookieSettings -> Server (API auths)
+server ccfg =
+    (\authResult -> case authResult of
+        Authenticated usr -> getInt usr
+                        :<|> postInt usr
+                        :<|> getHeaderInt
+                        :<|> raw
+        Indefinite -> throwAll err401
+        _ -> throwAll err403
+    )
+    :<|> getLogin
+    :<|> getLogout
   where
     getInt :: User -> Handler Int
     getInt usr = return . length $ name usr
@@ -412,6 +481,16 @@ server authResult = case authResult of
 
     getHeaderInt :: Handler (Headers '[Header "Blah" Int] Int)
     getHeaderInt = return $ addHeader 1797 17
+
+    getLogin :: User -> Handler (Headers '[ Header "Set-Cookie" SetCookie
+                                          , Header "Set-Cookie" SetCookie ] NoContent)
+    getLogin user = do
+        Just applyCookies <- liftIO $ acceptLogin ccfg jwtCfg user
+        return $ applyCookies NoContent
+
+    getLogout :: Handler (Headers '[ Header "Set-Cookie" SetCookie
+                                   , Header "Set-Cookie" SetCookie ] NoContent)
+    getLogout = return $ clearSession ccfg NoContent
 
     raw :: Server Raw
     raw =
@@ -463,6 +542,18 @@ shouldHTTPErrorWith act stat = act `shouldThrow` \e -> case e of
 #endif
   _ -> False
 
+shouldMatchCookieNames :: WreqSess.Session -> [BS.ByteString] -> Expectation
+shouldMatchCookieNames sess patterns = do
+    cookies <- maybe (error "unable to read cookie jar from session") destroyCookieJar
+        <$> WreqSess.getSessionCookieJar sess
+    fmap cookie_name cookies `shouldMatchList` patterns
+
+shouldMatchCookieNameValues :: WreqSess.Session -> [(BS.ByteString, BS.ByteString)] -> Expectation
+shouldMatchCookieNameValues sess patterns = do
+    cookies <- maybe (error "unable to read cookie jar from session") destroyCookieJar
+        <$> WreqSess.getSessionCookieJar sess
+    fmap ((,) <$> cookie_name <*> cookie_value) cookies `shouldMatchList` patterns
+
 url :: Int -> String
 url port = "http://localhost:" <> show port
 
@@ -484,5 +575,12 @@ instance ToJSON User
 
 instance Arbitrary User where
   arbitrary = User <$> arbitrary <*> arbitrary
+
+instance Wreq.Postable User where
+  postPayload user request = return $ request
+    { HCli.requestBody = HCli.RequestBodyLBS $ encode user
+    , HCli.requestHeaders = (mk "Content-Type", "application/json") : HCli.requestHeaders request
+    }
+
 
 -- }}}

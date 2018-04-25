@@ -144,9 +144,12 @@ clearSession :: ( AddHeader "Set-Cookie" SetCookie response withOneCookie
              => CookieSettings
              -> response
              -> withTwoCookies
-clearSession cookieSettings
-  = addHeader (applySessionCookieSettings cookieSettings $ applyCookieSettings cookieSettings def)
-  . addHeader (noXsrfTokenCookie cookieSettings)
+clearSession cookieSettings = addHeader clearedSessionCookie . addHeader clearedXsrfCookie
+  where
+    clearedSessionCookie = applySessionCookieSettings cookieSettings $ applyCookieSettings cookieSettings def
+    clearedXsrfCookie = case cookieXsrfSetting cookieSettings of
+        Just xsrfCookieSettings -> applyXsrfCookieSettings xsrfCookieSettings $ applyCookieSettings cookieSettings def
+        Nothing                 -> noXsrfTokenCookie cookieSettings
 
 makeSessionCookieBS :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe BS.ByteString)
 makeSessionCookieBS a b c = fmap (toByteString . renderSetCookie)  <$> makeSessionCookie a b c
