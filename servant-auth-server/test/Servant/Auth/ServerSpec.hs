@@ -35,12 +35,13 @@ import           Network.Wai                         (responseLBS)
 import           Network.Wai.Handler.Warp            (testWithApplication)
 import           Network.Wreq                        (Options, auth, basicAuth,
                                                       cookieExpiryTime, cookies,
-                                                      defaults, get, getWith, postWith, Postable
+                                                      defaults, get, getWith, postWith,
                                                       header, oauth2Bearer,
                                                       responseBody,
                                                       responseCookieJar,
                                                       responseHeader,
                                                       responseStatus)
+import           Network.Wreq.Types                  (Postable(..))
 import           Servant                             hiding (BasicAuth,
                                                       IsSecure (..), header)
 import           Servant.Auth.Server
