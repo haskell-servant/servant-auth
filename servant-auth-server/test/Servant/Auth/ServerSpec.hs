@@ -118,7 +118,7 @@ authSpec
     it "sets cookies that it itself accepts" $ \port -> property $ \user -> do
       jwt <- createJWT theKey (newJWSHeader ((), HS256))
         (claims $ toJSON user)
-      opts' <- addJwtToCookie jwt
+      opts' <- addJwtToCookie cookieCfg jwt
       let opts = addCookie (opts' & header (mk (xsrfField xsrfHeaderName cookieCfg)) .~ ["blah"])
                            (xsrfField xsrfCookieName cookieCfg <> "=blah")
       resp <- getWith opts (url port)
@@ -134,7 +134,7 @@ authSpec
     it "uses the Expiry from the configuration" $ \port -> property $ \(user :: User) -> do
       jwt <- createJWT theKey (newJWSHeader ((), HS256))
         (claims $ toJSON user)
-      opts' <- addJwtToCookie jwt
+      opts' <- addJwtToCookie cookieCfg jwt
       let opts = addCookie (opts' & header (mk (xsrfField xsrfHeaderName cookieCfg)) .~ ["blah"])
                            (xsrfField xsrfCookieName cookieCfg <> "=blah")
       resp <- getWith opts (url port)
@@ -146,12 +146,12 @@ authSpec
     it "sets the token cookie as HttpOnly" $ \port -> property $ \(user :: User) -> do
       jwt <- createJWT theKey (newJWSHeader ((), HS256))
         (claims $ toJSON user)
-      opts' <- addJwtToCookie jwt
+      opts' <- addJwtToCookie cookieCfg jwt
       let opts = addCookie (opts' & header (mk (xsrfField xsrfHeaderName cookieCfg)) .~ ["blah"])
                            (xsrfField xsrfCookieName cookieCfg <> "=blah")
       resp <- getWith opts (url port)
       let (cookieJar:_) = resp ^.. responseCookieJar
-          Just token = find (\x -> cookie_name x == "JWT-Cookie")
+          Just token = find (\x -> cookie_name x == sessionCookieName cookieCfg)
                      $ destroyCookieJar cookieJar
       cookie_http_only token `shouldBe` True
 
@@ -170,7 +170,7 @@ cookieAuthSpec
         it "fails if XSRF header and cookie don't match" $ \port -> property
                                                          $ \(user :: User) -> do
           jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
-          opts' <- addJwtToCookie jwt
+          opts' <- addJwtToCookie cookieCfg jwt
           let opts = addCookie (opts' & header (mk (xsrfField xsrfHeaderName cookieCfg)) .~ ["blah"])
                                (xsrfField xsrfCookieName cookieCfg <> "=blerg")
           getWith opts (url port) `shouldHTTPErrorWith` status401
@@ -178,13 +178,13 @@ cookieAuthSpec
         it "fails with no XSRF header or cookie" $ \port -> property
                                                          $ \(user :: User) -> do
           jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
-          opts <- addJwtToCookie jwt
+          opts <- addJwtToCookie cookieCfg jwt
           getWith opts (url port) `shouldHTTPErrorWith` status401
 
         it "succeeds if XSRF header and cookie match, and JWT is valid" $ \port -> property
                                                                         $ \(user :: User) -> do
           jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
-          opts' <- addJwtToCookie jwt
+          opts' <- addJwtToCookie cookieCfg jwt
           let opts = addCookie (opts' & header (mk (xsrfField xsrfHeaderName cookieCfg)) .~ ["blah"])
                                (xsrfField xsrfCookieName cookieCfg <> "=blah")
           resp <- getWith opts (url port)
@@ -229,30 +229,31 @@ cookieAuthSpec
         it "succeeds with no XSRF header or cookie for GET" $ \port -> property
                                                             $ \(user :: User) -> do
           jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
-          opts <- addJwtToCookie jwt
+          opts <- addJwtToCookie cookieCfgNoXsrfGet jwt
           resp <- getWith opts (url port)
           resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
         it "fails with no XSRF header or cookie for POST" $ \port -> property
                                                           $ \(user :: User) number -> do
           jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
-          opts <- addJwtToCookie jwt
+          opts <- addJwtToCookie cookieCfgNoXsrfGet jwt
           postWith opts (url port) (toJSON (number :: Int)) `shouldHTTPErrorWith` status401
 
-      describe "With no XSRF check at all" $
-       around (testWithApplication . return $ appWithCookie cookieOnlyApi cookieCfg { cookieXsrfSetting = Nothing }) $ do
+      describe "With no XSRF check at all" $ let
+            cookieCfgNoXsrf = cookieCfg { cookieXsrfSetting = Nothing }
+       in around (testWithApplication . return $ appWithCookie cookieOnlyApi cookieCfgNoXsrf) $ do
 
         it "succeeds with no XSRF header or cookie for GET" $ \port -> property
                                                             $ \(user :: User) -> do
           jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
-          opts <- addJwtToCookie jwt
+          opts <- addJwtToCookie cookieCfgNoXsrf jwt
           resp <- getWith opts (url port)
           resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
         it "succeeds with no XSRF header or cookie for POST" $ \port -> property
                                                              $ \(user :: User) number -> do
           jwt <- createJWT theKey (newJWSHeader ((), HS256)) (claims $ toJSON user)
-          opts <- addJwtToCookie jwt
+          opts <- addJwtToCookie cookieCfgNoXsrf jwt
           resp <- postWith opts (url port) $ toJSON (number :: Int)
           resp ^? responseBody . _JSON `shouldBe` Just number
 
@@ -427,6 +428,7 @@ cookieCfg :: CookieSettings
 cookieCfg = def
   { cookieExpires = Just future
   , cookieIsSecure = NotSecure
+  , sessionCookieName = "RuncibleSpoon"
   , cookieXsrfSetting = pure $ def
     { xsrfCookieName = "TheyDinedOnMince"
     , xsrfHeaderName = "AndSlicesOfQuince"
@@ -519,11 +521,11 @@ addJwtToHeader jwt = case jwt of
 createJWT :: JWK -> JWSHeader () -> ClaimsSet -> IO (Either Error Crypto.JWT.SignedJWT)
 createJWT k a b = runExceptT $ signClaims k a b
 
-addJwtToCookie :: ToCompact a => Either Error a -> IO Options
-addJwtToCookie jwt = case jwt >>= (return . encodeCompact) of
+addJwtToCookie :: ToCompact a => CookieSettings -> Either Error a -> IO Options
+addJwtToCookie ccfg jwt = case jwt >>= (return . encodeCompact) of
   Left e -> fail $ show e
   Right v -> return
-    $ defaults & header "Cookie" .~ ["JWT-Cookie=" <> BSL.toStrict v]
+    $ defaults & header "Cookie" .~ [sessionCookieName ccfg <> "=" <> BSL.toStrict v]
 
 addCookie :: Options -> BS.ByteString -> Options
 addCookie opts cookie' = opts & header "Cookie" %~ \c -> case c of
