@@ -35,14 +35,12 @@ import           Network.Wai                         (responseLBS)
 import           Network.Wai.Handler.Warp            (testWithApplication)
 import           Network.Wreq                        (Options, auth, basicAuth,
                                                       cookieExpiryTime, cookies,
-                                                      defaults, get, getWith, postWith,
+                                                      defaults, get, getWith, postWith, Postable
                                                       header, oauth2Bearer,
                                                       responseBody,
                                                       responseCookieJar,
                                                       responseHeader,
                                                       responseStatus)
-import qualified Network.Wreq.Session                as WreqSess
-import qualified Network.Wreq.Types                  as Wreq
 import           Servant                             hiding (BasicAuth,
                                                       IsSecure (..), header)
 import           Servant.Auth.Server
@@ -50,12 +48,7 @@ import           Servant.Auth.Server.SetCookieOrphan ()
 import           System.IO.Unsafe                    (unsafePerformIO)
 import           Test.Hspec
 import           Test.QuickCheck
-
-#if MIN_VERSION_http_client(0,5,0)
 import qualified Network.HTTP.Client as HCli
-#else
-import Network.HTTP.Client (HttpException (StatusCodeException))
-#endif
 
 
 
@@ -192,34 +185,31 @@ cookieAuthSpec
 
         it "sets and clears the right cookies" $ \port -> property
                                                $ \(user :: User) -> do
-          sess <- WreqSess.newSession
-          sess `shouldMatchCookieNames` []
+          let optsFromResp resp =
+                let jar = resp ^. responseCookieJar
+                    Just xsrfCookieValue = cookie_value <$> find (\c -> cookie_name c == xsrfField xsrfCookieName cookieCfg) (destroyCookieJar jar)
+                in defaults
+                    & cookies .~ Just jar -- real cookie jars aren't updated by being replaced
+                    & header (mk (xsrfField xsrfHeaderName cookieCfg)) .~ [xsrfCookieValue]
 
-          -- not yet logged in
-          WreqSess.get sess (url port) `shouldHTTPErrorWith` status401
-
-          WreqSess.post sess (url port ++ "/login") user
-          sess `shouldMatchCookieNames`
+          resp <- postWith defaults (url port ++ "/login") user
+          (resp ^. responseCookieJar) `shouldMatchCookieNames`
             [ sessionCookieName cookieCfg
             , xsrfField xsrfCookieName cookieCfg
             ]
+          let loggedInOpts = optsFromResp resp
 
-          -- while logged in
-          cookies <- maybe (error "unable to read cookie jar from session") destroyCookieJar
-            <$> WreqSess.getSessionCookieJar sess
-          let Just xsrfCookieValue = cookie_value <$> find (\c -> cookie_name c == xsrfField xsrfCookieName cookieCfg) cookies
-              opts = defaults & header (mk (xsrfField xsrfHeaderName cookieCfg)) .~ [xsrfCookieValue]
-          resp <- WreqSess.getWith opts sess (url port)
+          resp <- getWith loggedInOpts (url port)
           resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
-          WreqSess.get sess (url port ++ "/logout")
-          sess `shouldMatchCookieNameValues`
+          resp <- getWith loggedInOpts (url port ++ "/logout")
+          (resp ^. responseCookieJar) `shouldMatchCookieNameValues`
             [ (sessionCookieName cookieCfg, "value")
             , (xsrfField xsrfCookieName cookieCfg, "value")
             ]
+          let loggedOutOpts = optsFromResp resp
 
-          -- after logging out
-          WreqSess.get sess (url port) `shouldHTTPErrorWith` status401
+          getWith loggedOutOpts (url port) `shouldHTTPErrorWith` status401
 
       describe "With no XSRF check for GET requests" $ let
             noXsrfGet xsrfCfg = xsrfCfg { xsrfExcludeGet = True }
@@ -259,30 +249,27 @@ cookieAuthSpec
 
         it "sets and clears the right cookies" $ \port -> property
                                                $ \(user :: User) -> do
-          sess <- WreqSess.newSession
-          sess `shouldMatchCookieNames` []
+          let optsFromResp resp = defaults
+                & cookies .~ Just (resp ^. responseCookieJar) -- real cookie jars aren't updated by being replaced
 
-          -- not yet logged in
-          WreqSess.get sess (url port) `shouldHTTPErrorWith` status401
-
-          WreqSess.post sess (url port ++ "/login") user
-          sess `shouldMatchCookieNames`
+          resp <- postWith defaults (url port ++ "/login") user
+          (resp ^. responseCookieJar) `shouldMatchCookieNames`
             [ sessionCookieName cookieCfg
             , "NO-XSRF-TOKEN"
             ]
+          let loggedInOpts = optsFromResp resp
 
-          -- while logged in
-          resp <- WreqSess.get sess (url port)
+          resp <- getWith (loggedInOpts) (url port)
           resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
-          WreqSess.get sess (url port ++ "/logout")
-          sess `shouldMatchCookieNameValues`
+          resp <- getWith loggedInOpts (url port ++ "/logout")
+          (resp ^. responseCookieJar) `shouldMatchCookieNameValues`
             [ (sessionCookieName cookieCfg, "value")
             , ("NO-XSRF-TOKEN", "")
             ]
+          let loggedOutOpts = optsFromResp resp
 
-          -- after logging out
-          WreqSess.get sess (url port) `shouldHTTPErrorWith` status401
+          getWith loggedOutOpts (url port) `shouldHTTPErrorWith` status401
 
 -- }}}
 ------------------------------------------------------------------------------
@@ -540,21 +527,19 @@ shouldHTTPErrorWith act stat = act `shouldThrow` \e -> case e of
   HCli.HttpExceptionRequest _ (HCli.StatusCodeException resp _)
     -> HCli.responseStatus resp == stat
 #else
-  StatusCodeException x _ _ -> x == stat
+  HCli.StatusCodeException x _ _ -> x == stat
 #endif
   _ -> False
 
-shouldMatchCookieNames :: WreqSess.Session -> [BS.ByteString] -> Expectation
-shouldMatchCookieNames sess patterns = do
-    cookies <- maybe (error "unable to read cookie jar from session") destroyCookieJar
-        <$> WreqSess.getSessionCookieJar sess
-    fmap cookie_name cookies `shouldMatchList` patterns
+shouldMatchCookieNames :: HCli.CookieJar -> [BS.ByteString] -> Expectation
+shouldMatchCookieNames cj patterns
+    = fmap cookie_name (destroyCookieJar cj)
+    `shouldMatchList` patterns
 
-shouldMatchCookieNameValues :: WreqSess.Session -> [(BS.ByteString, BS.ByteString)] -> Expectation
-shouldMatchCookieNameValues sess patterns = do
-    cookies <- maybe (error "unable to read cookie jar from session") destroyCookieJar
-        <$> WreqSess.getSessionCookieJar sess
-    fmap ((,) <$> cookie_name <*> cookie_value) cookies `shouldMatchList` patterns
+shouldMatchCookieNameValues :: HCli.CookieJar -> [(BS.ByteString, BS.ByteString)] -> Expectation
+shouldMatchCookieNameValues cj patterns
+    = fmap ((,) <$> cookie_name <*> cookie_value) (destroyCookieJar cj)
+    `shouldMatchList` patterns
 
 url :: Int -> String
 url port = "http://localhost:" <> show port
@@ -578,7 +563,7 @@ instance ToJSON User
 instance Arbitrary User where
   arbitrary = User <$> arbitrary <*> arbitrary
 
-instance Wreq.Postable User where
+instance Postable User where
   postPayload user request = return $ request
     { HCli.requestBody = HCli.RequestBodyLBS $ encode user
     , HCli.requestHeaders = (mk "Content-Type", "application/json") : HCli.requestHeaders request
