@@ -191,7 +191,7 @@ cookieAuthSpec
           resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
         it "sets and clears the right cookies" $ \port -> property
-                                     $ \(user :: User) -> do
+                                               $ \(user :: User) -> do
           sess <- WreqSess.newSession
           sess `shouldMatchCookieNames` []
 
@@ -258,7 +258,7 @@ cookieAuthSpec
           resp ^? responseBody . _JSON `shouldBe` Just number
 
         it "sets and clears the right cookies" $ \port -> property
-                                     $ \(user :: User) -> do
+                                               $ \(user :: User) -> do
           sess <- WreqSess.newSession
           sess `shouldMatchCookieNames` []
 
