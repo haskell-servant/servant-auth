@@ -223,9 +223,9 @@ checkCreds cookieSettings jwtSettings (Login "Ali Baba" "Open Sesame") = do
 checkCreds _ _ _ = throwError err401
 ~~~
 
-### CSRF and the frontend
+### XSRF and the frontend
 
-CSRF protection works by requiring that there be a header of the same value as
+XSRF protection works by requiring that there be a header of the same value as
 a distinguished cookie that is set by the server on each request. What the
 cookie and header name are can be configured (see `xsrfCookieName` and
 `xsrfHeaderName` in `CookieSettings`), but by default they are "XSRF-TOKEN" and
@@ -247,9 +247,18 @@ $.ajaxPrefilter(function(opts, origOpts, xhr) {
 
 ~~~
 
-
 I *believe* nothing at all needs to be done if you're using Angular's `$http`
 directive, but I haven't tested this.
+
+XSRF protection can be disabled just for `GET` requests by setting
+`xsrfExcludeGet = False`. You might want this if you're relying on the browser
+to navigate between pages that require cookie authentication.
+
+XSRF protection can be completely disabled by setting `cookieXsrfSetting =
+Nothing` in `CookieSettings`. This is not recommended! If your cookie
+authenticated web application runs any javascript, it's recommended to send the
+XSRF header. However, if your web application runs no javascript, disabling
+XSRF entirely may be required.
 
 # Note on this README
 

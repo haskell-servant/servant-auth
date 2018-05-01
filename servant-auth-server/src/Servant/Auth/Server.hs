@@ -67,13 +67,17 @@ module Servant.Auth.Server
 
   -- ** Settings
   , CookieSettings(..)
+  , XsrfCookieSettings(..)
   , defaultCookieSettings
+  , defaultXsrfCookieSettings
   , makeSessionCookie
   , makeSessionCookieBS
+  , makeXsrfCookie
   , makeCsrfCookie
   , makeCookie
   , makeCookieBS
   , acceptLogin
+  , clearSession
 
 
   -- ** Related types
