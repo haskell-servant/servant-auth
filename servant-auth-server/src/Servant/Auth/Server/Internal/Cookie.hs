@@ -84,7 +84,7 @@ makeCsrfCookie = makeXsrfCookie
 -- | Makes a cookie with session information.
 makeSessionCookie :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe SetCookie)
 makeSessionCookie cookieSettings jwtSettings v = do
-  ejwt <- makeJWT v jwtSettings Nothing
+  ejwt <- makeJWT v jwtSettings (cookieExpires cookieSettings)
   case ejwt of
     Left _ -> return Nothing
     Right jwt -> return
