@@ -16,7 +16,7 @@ extra-deps:
 - hspec-expectations-0.8.2
 - http-api-data-0.3.3
 - concise-0.1.0.0
-- jose-0.6.0.3
+- jose-0.7.0.0
 - mmorph-1.0.9
 - servant-0.9.1.1
 - servant-client-0.9.1.1
