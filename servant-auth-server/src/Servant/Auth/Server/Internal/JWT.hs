@@ -11,6 +11,7 @@ import           Data.Aeson           (FromJSON, Result (..), ToJSON, fromJSON,
 import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.HashMap.Strict  as HM
+import           Data.Maybe           (fromMaybe)
 import qualified Data.Text            as T
 import           Data.Time            (UTCTime)
 import           Network.Wai          (requestHeaders)
@@ -72,7 +73,8 @@ jwtAuthCheck config = do
 makeJWT :: ToJWT a
   => a -> JWTSettings -> Maybe UTCTime -> IO (Either Jose.Error BSL.ByteString)
 makeJWT v cfg expiry = runExceptT $ do
-  alg <- Jose.bestJWSAlg $ key cfg
+  bestAlg <- Jose.bestJWSAlg $ key cfg
+  let alg = fromMaybe bestAlg $ jwtAlg cfg
   ejwt <- Jose.signClaims (key cfg)
                           (Jose.newJWSHeader ((), alg))
                           (addExp $ encodeJWT v)
