@@ -27,8 +27,13 @@ data SameSite = AnySite | SameSiteStrict | SameSiteLax
 
 -- | @JWTSettings@ are used to generate cookies, and to verify JWTs.
 data JWTSettings = JWTSettings
-  { key             :: Jose.JWK
+  {
+  -- | Key used to sign JWT.
+    signingKey      :: Jose.JWK
+  -- | Algorithm used to sign JWT.
   , jwtAlg          :: Maybe Jose.Alg
+  -- | Keys used to validate JWT.
+  , validationKeys  :: Jose.JWKSet
   -- | An @aud@ predicate. The @aud@ is a string or URI that identifies the
   -- intended recipient of the JWT.
   , audienceMatches :: Jose.StringOrURI -> IsMatch
@@ -37,9 +42,10 @@ data JWTSettings = JWTSettings
 -- | A @JWTSettings@ where the audience always matches.
 defaultJWTSettings :: Jose.JWK -> JWTSettings
 defaultJWTSettings k = JWTSettings
-  { key = k
-  , jwtAlg = Nothing
-  , audienceMatches = const Matches }
+   { signingKey = k
+   , jwtAlg = Nothing
+   , validationKeys = Jose.JWKSet [k]
+   , audienceMatches = const Matches }
 
 -- | The policies to use when generating cookies.
 --
