@@ -57,7 +57,7 @@ jwtAuthCheck config = do
   verifiedJWT <- liftIO $ runExceptT $ do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict token
     Jose.verifyClaims (jwtSettingsToJwtValidationSettings config)
-                      (keySet config)
+                      (validationKeys config)
                       unverifiedJWT
   case verifiedJWT of
     Left (_ :: Jose.JWTError) -> mzero
@@ -73,9 +73,9 @@ jwtAuthCheck config = do
 makeJWT :: ToJWT a
   => a -> JWTSettings -> Maybe UTCTime -> IO (Either Jose.Error BSL.ByteString)
 makeJWT v cfg expiry = runExceptT $ do
-  bestAlg <- Jose.bestJWSAlg $ key cfg
+  bestAlg <- Jose.bestJWSAlg $ signingKey cfg
   let alg = fromMaybe bestAlg $ jwtAlg cfg
-  ejwt <- Jose.signClaims (key cfg)
+  ejwt <- Jose.signClaims (signingKey cfg)
                           (Jose.newJWSHeader ((), alg))
                           (addExp $ encodeJWT v)
 
