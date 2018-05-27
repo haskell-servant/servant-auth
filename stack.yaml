@@ -15,4 +15,5 @@ extra-deps:
 - http-api-data-0.3.8.1
 - http-types-0.12.1
 - text-1.2.3.0
+- jose-0.7.0.0
 resolver: lts-10.6
