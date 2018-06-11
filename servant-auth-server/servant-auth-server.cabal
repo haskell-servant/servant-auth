@@ -44,7 +44,7 @@ library
     , http-types              >= 0.9  && < 0.13
     , jose                    >= 0.6  && < 0.8
     , lens                    >= 4    && < 5
-    , monad-time              >= 0.2  && < 0.3
+    , monad-time              >= 0.2  && < 0.4
     , mtl                     >= 2.2  && < 2.3
     , servant-auth            == 0.3.*
     , servant-server          >= 0.9.1  && < 0.14
