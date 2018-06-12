@@ -15,7 +15,7 @@ maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
 license:        BSD3
 license-file:   LICENSE
-tested-with:    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC==8.4.1
+tested-with:    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC==8.4.3
 build-type:     Simple
 cabal-version:  >= 1.10
 
@@ -38,11 +38,11 @@ library
     , text
     , bytestring
     , servant-auth        == 0.3.*
-    , servant             >= 0.7  && < 0.14
+    , servant             >= 0.7  && < 0.15
   if flag(servant-client-core)
     cpp-options: -DHAS_CLIENT_CORE=1
     build-depends:
-      servant-client-core >= 0.12 && < 0.14,
+      servant-client-core >= 0.12 && < 0.15,
       containers
   else
     build-depends:
