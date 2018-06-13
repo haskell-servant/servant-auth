@@ -47,6 +47,11 @@ instance (HasJWT auths, HasClient m api) => HasClient m (Auth auths a :> api) wh
     $ req { requestHeaders = ("Authorization", headerVal) <| requestHeaders req  }
       where
         headerVal = "Bearer " <> token
+
+#if MIN_VERSION_servant_client_core(0,14,0)
+  hoistClientMonad pm _ nt cl = hoistClientMonad pm (Proxy :: Proxy api) nt . cl
+#endif
+
 #else
 instance (HasJWT auths, HasClient api) => HasClient (Auth auths a :> api) where
   type Client (Auth auths a :> api) = Token -> Client api
