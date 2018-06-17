@@ -9,28 +9,9 @@ without much extra work.
 
 ## How it works
 
-This library introduces a combinator `Auth`:
+First some imports:
 
-~~~ {.haskell ignore}
-Auth (auths :: [*]) val
-~~~
-
-What `Auth [Auth1, Auth2] Something :> API` means is that `API` is protected by
-*either* `Auth1` *or* `Auth2`, and the result of authentication will be of type
-`AuthResult Something`, where :
-
-~~~ {.haskell ignore}
-data AuthResult val
-  = BadPassword
-  | NoSuchUser
-  | Authenticated val
-  | Indefinite
-~~~
-
-Your handlers will get a value of type `AuthResult Something`, and can decide
-what to do with it.
-
-~~~ {.haskell}
+~~~ haskell
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 import Control.Concurrent (forkIO)
@@ -43,6 +24,30 @@ import System.Environment (getArgs)
 import Servant
 import Servant.Auth.Server
 import Servant.Auth.Server.SetCookieOrphan ()
+~~~
+
+`servant-auth` library introduces a combinator `Auth`:
+
+~~~ haskell
+data Auth (auths :: [*]) val
+~~~
+
+What `Auth [Auth1, Auth2] Something :> API` means is that `API` is protected by
+*either* `Auth1` *or* `Auth2`, and the result of authentication will be of type
+`AuthResult Something`, where :
+
+~~~ haskell
+data AuthResult val
+  = BadPassword
+  | NoSuchUser
+  | Authenticated val
+  | Indefinite
+~~~
+
+Your handlers will get a value of type `AuthResult Something`, and can decide
+what to do with it.
+
+~~~ haskell
 
 data User = User { name :: String, email :: String }
    deriving (Eq, Show, Read, Generic)
@@ -64,10 +69,10 @@ type Protected
 
 
 -- | 'Protected' will be protected by 'auths', which we still have to specify.
-protected :: AuthResult User -> Server Protected
+protected :: Servant.Auth.Server.AuthResult User -> Server Protected
 -- If we get an "Authenticated v", we can trust the information in v, since
 -- it was signed by a key we trust.
-protected (Authenticated user) = return (name user) :<|> return (email user)
+protected (Servant.Auth.Server.Authenticated user) = return (name user) :<|> return (email user)
 -- Otherwise, we return a 401.
 protected _ = throwAll err401
 
@@ -82,7 +87,7 @@ type Unprotected =
 unprotected :: CookieSettings -> JWTSettings -> Server Unprotected
 unprotected cs jwts = checkCreds cs jwts :<|> serveDirectory "example/static"
 
-type API auths = (Auth auths User :> Protected) :<|> Unprotected
+type API auths = (Servant.Auth.Server.Auth auths User :> Protected) :<|> Unprotected
 
 server :: CookieSettings -> JWTSettings -> Server (API auths)
 server cs jwts = protected :<|> unprotected cs jwts
@@ -98,7 +103,7 @@ parameters.
 The following example illustrates how to protect an API with tokens.
 
 
-~~~ {.haskell}
+~~~ haskell
 -- In main, we fork the server, and allow new tokens to be created in the
 -- command line for the specified user name and email.
 mainWithJWT :: IO ()
@@ -131,7 +136,7 @@ mainWithJWT = do
 
 And indeed:
 
-~~~ {.bash}
+~~~ bash
 
 ./readme JWT
 
@@ -190,7 +195,7 @@ curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJkYXQiOnsiZW1haWwiOiJhbGlj
 What if, in addition to API tokens, we want to expose our API to browsers? All
 we need to do is say so!
 
-~~~ {.haskell}
+~~~ haskell
 mainWithCookies :: IO ()
 mainWithCookies = do
   -- We *also* need a key to sign the cookies
@@ -233,7 +238,7 @@ cookie and header name are can be configured (see `xsrfCookieName` and
 cookies, Javascript on the client must set the header of each request by
 reading the cookie. For jQuery, and with the default values, that might be:
 
-~~~ { .javascript }
+~~~ javascript
 
 var token = (function() {
   r = document.cookie.match(new RegExp('XSRF-TOKEN=([^;]+)'))
@@ -265,7 +270,7 @@ XSRF entirely may be required.
 This README is a literate haskell file. Here is 'main', allowing you to pick
 between the examples above.
 
-~~~ { .haskell }
+~~~ haskell
 
 main :: IO ()
 main = do
@@ -274,6 +279,6 @@ main = do
   case args of
     ["JWT"] -> mainWithJWT
     ["Cookie"] -> mainWithCookies
-    e -> error $ "Arguments: \"" ++ unwords e ++ "\" not understood\n" ++ usage
+    e -> putStrLn $ "Arguments: \"" ++ unwords e ++ "\" not understood\n" ++ usage
 
 ~~~
