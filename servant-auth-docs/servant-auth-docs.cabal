@@ -1,5 +1,5 @@
 name:           servant-auth-docs
-version:        0.2.9.0
+version:        0.2.10.0
 synopsis:       servant-docs/servant-auth compatibility
 description:    This package provides instances that allow generating docs from
                 <https://hackage.haskell.org/package/servant servant>
@@ -20,7 +20,7 @@ build-type:     Custom
 cabal-version:  >= 1.10
 extra-source-files:
     CHANGELOG.md
-  
+
 custom-setup
   setup-depends:
     base, Cabal, cabal-doctest >=1.0.2 && <1.1

@@ -1,5 +1,5 @@
 name:           servant-auth-swagger
-version:        0.2.9.0
+version:        0.2.10.0
 synopsis:       servant-swagger/servant-auth compatibility
 description:    This package provides instances that allow generating swagger2 schemas from
                 <https://hackage.haskell.org/package/servant servant>
@@ -20,7 +20,7 @@ build-type:     Simple
 cabal-version:  >= 1.10
 extra-source-files:
     CHANGELOG.md
-    
+
 source-repository head
   type: git
   location: https://github.com/haskell-servant/servant-auth
