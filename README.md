@@ -11,7 +11,7 @@ without much extra work.
 
 This library introduces a combinator `Auth`:
 
-~~~ {.haskell ignore}
+~~~ haskell
 Auth (auths :: [*]) val
 ~~~
 
@@ -19,7 +19,7 @@ What `Auth [Auth1, Auth2] Something :> API` means is that `API` is protected by
 *either* `Auth1` *or* `Auth2`, and the result of authentication will be of type
 `AuthResult Something`, where :
 
-~~~ {.haskell ignore}
+~~~ haskell
 data AuthResult val
   = BadPassword
   | NoSuchUser
@@ -30,7 +30,7 @@ data AuthResult val
 Your handlers will get a value of type `AuthResult Something`, and can decide
 what to do with it.
 
-~~~ {.haskell}
+~~~ haskell
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 {-# OPTIONS_GHC -fno-warn-deprecations #-}
 import Control.Concurrent (forkIO)
@@ -98,7 +98,7 @@ parameters.
 The following example illustrates how to protect an API with tokens.
 
 
-~~~ {.haskell}
+~~~ haskell
 -- In main, we fork the server, and allow new tokens to be created in the
 -- command line for the specified user name and email.
 mainWithJWT :: IO ()
@@ -131,7 +131,7 @@ mainWithJWT = do
 
 And indeed:
 
-~~~ {.bash}
+~~~ bash
 
 ./readme JWT
 
@@ -190,7 +190,7 @@ curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJkYXQiOnsiZW1haWwiOiJhbGlj
 What if, in addition to API tokens, we want to expose our API to browsers? All
 we need to do is say so!
 
-~~~ {.haskell}
+~~~ haskell
 mainWithCookies :: IO ()
 mainWithCookies = do
   -- We *also* need a key to sign the cookies
@@ -233,7 +233,7 @@ cookie and header name are can be configured (see `xsrfCookieName` and
 cookies, Javascript on the client must set the header of each request by
 reading the cookie. For jQuery, and with the default values, that might be:
 
-~~~ { .javascript }
+~~~ javascript
 
 var token = (function() {
   r = document.cookie.match(new RegExp('XSRF-TOKEN=([^;]+)'))
@@ -265,7 +265,7 @@ XSRF entirely may be required.
 This README is a literate haskell file. Here is 'main', allowing you to pick
 between the examples above.
 
-~~~ { .haskell }
+~~~ haskell
 
 main :: IO ()
 main = do
