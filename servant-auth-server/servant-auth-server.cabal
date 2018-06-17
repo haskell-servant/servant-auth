@@ -46,6 +46,7 @@ library
     , lens                    >= 4    && < 5
     , monad-time              >= 0.2  && < 0.4
     , mtl                     >= 2.2  && < 2.3
+    , servant                 >= 0.9.1  && < 0.15
     , servant-auth            == 0.3.*
     , servant-server          >= 0.9.1  && < 0.15
     , tagged                  >= 0.7.3 && < 0.9

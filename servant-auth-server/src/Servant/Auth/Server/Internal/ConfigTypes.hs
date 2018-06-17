@@ -1,4 +1,7 @@
-module Servant.Auth.Server.Internal.ConfigTypes where
+module Servant.Auth.Server.Internal.ConfigTypes
+  ( module Servant.Auth.Server.Internal.ConfigTypes
+  , Servant.API.IsSecure(..)
+  ) where
 
 import           Crypto.JOSE        as Jose
 import           Crypto.JWT         as Jose
@@ -6,12 +9,9 @@ import qualified Data.ByteString    as BS
 import           Data.Default.Class
 import           Data.Time
 import           GHC.Generics       (Generic)
-import           Network.Wai        (Request)
+import           Servant.API        (IsSecure(..))
 
 data IsMatch = Matches | DoesNotMatch
-  deriving (Eq, Show, Read, Generic, Ord)
-
-data IsSecure = Secure | NotSecure
   deriving (Eq, Show, Read, Generic, Ord)
 
 data IsPasswordCorrect = PasswordCorrect | PasswordIncorrect
