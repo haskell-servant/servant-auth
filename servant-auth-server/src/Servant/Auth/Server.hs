@@ -82,7 +82,7 @@ module Servant.Auth.Server
 
   -- ** Related types
   , IsSecure(..)
-
+  , SameSite(..)
   , AreAuths
 
   ----------------------------------------------------------------------------
