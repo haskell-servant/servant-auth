@@ -1,19 +1,8 @@
-flags: {}
+resolver: lts-11.14
+apply-ghc-options: targets
 packages:
 - servant-auth
 - servant-auth-server
 - servant-auth-client
 - servant-auth-docs
 - servant-auth-swagger
-extra-deps:
-- servant-0.13
-- servant-client-0.13
-- servant-client-core-0.13
-- servant-docs-0.11.2
-- servant-server-0.13
-- servant-swagger-1.1.5
-- http-api-data-0.3.8.1
-- http-types-0.12.1
-- text-1.2.3.0
-- jose-0.7.0.0
-resolver: lts-10.6
