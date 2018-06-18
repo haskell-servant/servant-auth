@@ -1,5 +1,5 @@
 name:           servant-auth
-version:        0.3.1.0
+version:        0.3.2.0
 synopsis:       Authentication combinators for servant
 description:    This package provides an @Auth@ combinator for 'servant'. This combinator
                 allows using different authentication schemes in a straightforward way,
@@ -20,6 +20,8 @@ license-file:   LICENSE
 tested-with:    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC==8.4.3
 build-type:     Simple
 cabal-version:  >= 1.10
+extra-source-files:
+    CHANGELOG.md
 
 source-repository head
   type: git
