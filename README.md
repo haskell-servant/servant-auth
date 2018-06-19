@@ -2,10 +2,20 @@
 
 [![Build Status](https://travis-ci.org/haskell-servant/servant-auth.svg?branch=master)](https://travis-ci.org/haskell-servant/servant-auth)
 
-This package provides safe and easy-to-use authentication options for
-`servant`. The same API can be protected via login and cookies, or API tokens,
-without much extra work.
+These packages provides safe and easy-to-use authentication options for
+`servant`. The same API can be protected via:
+- basicauth
+- cookies
+- JWT tokens
 
+
+| Package              | Hackage                                                                                                                           |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| servant-auth         | [![Hackage](https://img.shields.io/hackage/v/servant-auth.svg)](https://hackage.haskell.org/package/servant-auth)                 |
+| servant-auth-server  | [![Hackage](https://img.shields.io/hackage/v/servant-auth-server.svg)](https://hackage.haskell.org/package/servant-auth-server)   |
+| servant-auth-client  | [![Hackage](https://img.shields.io/hackage/v/servant-auth-client.svg)](https://hackage.haskell.org/package/servant-auth-client)   |
+| servant-auth-swagger | [![Hackage](https://img.shields.io/hackage/v/servant-auth-swagger.svg)](https://hackage.haskell.org/package/servant-auth-swagger) |
+| servant-auth-docs    | [![Hackage](https://img.shields.io/hackage/v/servant-auth-docs.svg)](https://hackage.haskell.org/package/servant-auth-docs)       |
 
 ## How it works
 
