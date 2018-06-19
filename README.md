@@ -197,7 +197,27 @@ curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJkYXQiOnsiZW1haWwiOiJhbGlj
     * Connection #0 to host localhost left intact
     "alice"%
 
+curl localhost:7249/login -H 'Content-Type: application/json' -d '{"username":"Ali Baba","password":"Open Sesame"}' -v
 
+    *   Trying 127.0.0.1...
+    * TCP_NODELAY set
+    * Connected to localhost (127.0.0.1) port 7249 (#0)
+    > POST /login HTTP/1.1
+    > Host: localhost:7249
+    > User-Agent: curl/7.54.0
+    > Accept: */*
+    > Content-Type: application/json
+    > Content-Length: 48
+    >
+    * upload completely sent off: 48 out of 48 bytes
+    < HTTP/1.1 204 No Content
+    < Date: Wed, 07 Sep 2016 20:16:11 GMT
+    < Server: Warp/3.2.7
+    < Content-Type: application/json
+    < Set-Cookie: JWT-Cookie=eyJhbGciOiJIUzI1NiJ9.eyJkYXQiOnsiZW1haWwiOiJhbGlAZW1haWwuY29tIiwibmFtZSI6IkFsaSBCYWJhIn19.ewGozIYPTo5p3tNrZwyLVL1mXc2zvYIFamnwD471Iv4; HttpOnly; Secure
+    < Set-Cookie: XSRF-TOKEN=1HWPHtrL9uLDbKatdzM0iFy65tuB9QCPfjYirqQ4I8g=; Secure
+    <
+    * Connection #0 to host localhost left intact
 ~~~
 
 ## Cookies
