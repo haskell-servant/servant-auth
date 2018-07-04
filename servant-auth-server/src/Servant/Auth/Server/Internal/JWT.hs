@@ -83,4 +83,4 @@ makeJWT v cfg expiry = runExceptT $ do
   where
    addExp claims = case expiry of
      Nothing -> claims
-     Just e  -> claims & Jose.claimExp .~ Just (Jose.NumericDate e)
+     Just e  -> claims & Jose.claimExp ?~ Jose.NumericDate e
