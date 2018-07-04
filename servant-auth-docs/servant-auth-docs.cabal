@@ -50,7 +50,7 @@ test-suite doctests
   main-is:             doctests.hs
   build-depends:
     base,
-    doctest >= 0.11.3 && <0.16,
+    doctest >= 0.11.3 && <0.17,
     servant-auth-docs,
     QuickCheck >= 2.8 && <2.12,
     template-haskell
