@@ -7,11 +7,10 @@ import qualified Crypto.JOSE              as Jose
 import qualified Crypto.JWT               as Jose
 import           Crypto.Util              (constTimeEq)
 import qualified Data.ByteString          as BS
-import qualified Data.ByteString.Char8    as BSC
 import qualified Data.ByteString.Base64   as BS64
 import qualified Data.ByteString.Lazy     as BSL
 import           Data.CaseInsensitive     (mk)
-import           Data.Maybe               (fromMaybe, isJust)
+import           Data.Maybe               (fromMaybe)
 import           Network.HTTP.Types       (methodGet)
 import           Network.HTTP.Types.Header(hCookie)
 import           Network.Wai              (Request, requestHeaders, requestMethod)

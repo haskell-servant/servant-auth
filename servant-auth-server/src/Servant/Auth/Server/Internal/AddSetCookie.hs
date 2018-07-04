@@ -1,4 +1,3 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PolyKinds                  #-}
 {-# LANGUAGE TupleSections              #-}
 {-# LANGUAGE UndecidableInstances       #-}
@@ -28,7 +27,7 @@ type family AddSetCookiesApi (n :: Nat) a where
   AddSetCookiesApi ('S n) a = AddSetCookiesApi n (AddSetCookieApi a)
 
 type family AddSetCookieApiVerb a where
-  AddSetCookieApiVerb (Headers ls a) = Headers ((Header "Set-Cookie" SetCookie) ': ls) a
+  AddSetCookieApiVerb (Headers ls a) = Headers (Header "Set-Cookie" SetCookie ': ls) a
   AddSetCookieApiVerb a = Headers '[Header "Set-Cookie" SetCookie] a
 
 type family AddSetCookieApi a :: *
@@ -47,7 +46,7 @@ class AddSetCookies (n :: Nat) orig new where
 
 instance {-# OVERLAPS #-} AddSetCookies ('S n) oldb newb
   => AddSetCookies ('S n) (a -> oldb) (a -> newb) where
-  addSetCookies cookies oldfn = \val -> addSetCookies cookies $ oldfn val
+  addSetCookies cookies oldfn = addSetCookies cookies . oldfn
 
 instance AddSetCookies 'Z orig orig where
   addSetCookies _ = id
@@ -71,15 +70,13 @@ instance {-# OVERLAPS #-}
 instance
   AddSetCookies ('S n) Application Application where
   addSetCookies cookies r request respond
-    = r request (\response -> respond
-               $ mapResponseHeaders (++ mkHeaders cookies) response)
+    = r request $ respond . mapResponseHeaders (++ mkHeaders cookies)
 
 -- | for @servant >=0.11@
 instance
   AddSetCookies ('S n) (Tagged m Application) (Tagged m Application) where
   addSetCookies cookies r = Tagged $ \request respond ->
-    unTagged r request (\response -> respond
-               $ mapResponseHeaders (++ mkHeaders cookies) response)
+    unTagged r request $ respond . mapResponseHeaders (++ mkHeaders cookies)
 
 mkHeaders :: SetCookieList x -> [HTTP.Header]
 mkHeaders x = ("Set-Cookie",) <$> mkCookies x
