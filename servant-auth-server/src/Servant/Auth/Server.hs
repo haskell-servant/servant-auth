@@ -14,6 +14,25 @@ module Servant.Auth.Server
   -- > server _ = throwAll err401
   --
   -- Additional configuration happens via 'Context'.
+  --
+  -- == Example for Custom Handler
+  -- To use a custom 'Servant.Server.Handler' it is necessary to use
+  -- 'Servant.Server.hoistServerWithContext' instead of
+  -- 'Servant.Server.hoistServer' and specify the 'Context'.
+  --
+  -- Below is an example of passing 'CookieSettings' and 'JWTSettings' in the
+  -- 'Context' to create a specialized function equivalent to
+  -- 'Servant.Server.hoistServer' for an API that includes cookie
+  -- authentication.
+  --
+  -- > hoistServerWithAuth
+  -- >   :: HasServer api '[CookieSettings, JWTSettings]
+  -- >   => Proxy api
+  -- >   -> (forall x. m x -> n x)
+  -- >   -> ServerT api m
+  -- >   -> ServerT api n
+  -- > hoistServerWithAuth api =
+  -- >   hoistServerWithContext api (Proxy :: Proxy '[CookieSettings, JWTSettings])
 
   ----------------------------------------------------------------------------
   -- * Auth
