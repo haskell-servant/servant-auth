@@ -127,6 +127,10 @@ module Servant.Auth.Server
   -- * Utilies
   , ThrowAll(throwAll)
   , generateKey
+  , generateSecret
+  , fromSecret
+  , writeKey
+  , readKey
   , makeJWT
 
   -- ** Re-exports
@@ -134,6 +138,8 @@ module Servant.Auth.Server
   , SetCookie
   ) where
 
+import Prelude hiding                           (readFile, writeFile)
+import Data.ByteString                          (ByteString, writeFile, readFile)
 import Data.Default.Class                       (Default (def))
 import Servant.Auth
 import Servant.Auth.Server.Internal             ()
@@ -153,3 +159,21 @@ import Web.Cookie  (SetCookie)
 -- | Generate a key suitable for use with 'defaultConfig'.
 generateKey :: IO Jose.JWK
 generateKey = Jose.genJWK $ Jose.OctGenParam 256
+
+-- | Generate a bytestring suitable for use with 'fromSecret'.
+generateSecret :: MonadRandom m => m ByteString
+generateSecret = Jose.getRandomBytes 256
+
+-- | Restores a key from a bytestring.
+fromSecret :: ByteString -> Jose.JWK
+fromSecret = Jose.fromOctets
+
+-- | Writes a secret to a file. Can for instance be used from the REPL
+-- to persist a key to a file, which can then be included with the
+-- application. Restore the key using 'readKey'.
+writeKey :: FilePath -> IO ()
+writeKey fp = writeFile fp =<< generateSecret
+
+-- | Reads a key from a file.
+readKey :: FilePath -> IO Jose.JWK
+readKey fp = fromSecret <$> readFile fp
