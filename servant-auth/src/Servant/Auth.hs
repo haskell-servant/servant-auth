@@ -1,11 +1,23 @@
+{-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeOperators              #-}
 module Servant.Auth where
+
+import           Data.Proxy          (Proxy(..))
+import           Servant.API         ((:>))
+import           Servant.Utils.Links (HasLink (..))
 
 -- * Authentication
 
 -- | @Auth [auth1, auth2] val :> api@ represents an API protected *either* by
 -- @auth1@ or @auth2@
 data Auth (auths :: [*]) val
+
+-- | A @HasLink@ instance for @Auth@
+instance HasLink sub => HasLink (Auth (tag :: [*]) value :> sub) where
+  type MkLink (Auth (tag :: [*]) value :> sub) r = MkLink sub r
+  toLink toA _ = toLink toA (Proxy :: Proxy sub)
 
 -- ** Combinators
 
