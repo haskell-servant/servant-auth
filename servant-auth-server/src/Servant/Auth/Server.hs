@@ -40,6 +40,7 @@ module Servant.Auth.Server
     Auth
   , AuthResult(..)
   , AuthCheck(..)
+  , IsAuth
 
   ----------------------------------------------------------------------------
   -- * JWT

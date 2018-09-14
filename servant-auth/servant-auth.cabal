@@ -34,7 +34,7 @@ library
   ghc-options: -Wall
   build-depends:
       base >= 4.8 && < 4.12
-    , servant >= 0.9.1 && < 0.15
+    , servant >= 0.14.1 && < 0.15
   exposed-modules:
       Servant.Auth
   default-language: Haskell2010
