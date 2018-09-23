@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies               #-}
@@ -16,8 +17,13 @@ data Auth (auths :: [*]) val
 
 -- | A @HasLink@ instance for @Auth@
 instance HasLink sub => HasLink (Auth (tag :: [*]) value :> sub) where
-  type MkLink (Auth (tag :: [*]) value :> sub) r = MkLink sub r
+#if MIN_VERSION_servant(0,14,0)
+  type MkLink (Auth (tag :: [*]) value :> sub) a = MkLink sub a
   toLink toA _ = toLink toA (Proxy :: Proxy sub)
+#else
+  type MkLink (Auth (tag :: [*]) value :> sub) = MkLink sub
+  toLink _ = toLink (Proxy :: Proxy sub)
+#endif
 
 -- ** Combinators
 
