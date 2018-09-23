@@ -116,6 +116,10 @@ applyXsrfCookieSettings xsrfCookieSettings setCookie = setCookie
 applySessionCookieSettings :: CookieSettings -> SetCookie -> SetCookie
 applySessionCookieSettings cookieSettings setCookie = setCookie
   { setCookieName = sessionCookieName cookieSettings
+  , setCookieSameSite = case cookieSameSite cookieSettings of
+      AnySite -> Nothing
+      SameSiteStrict -> Just sameSiteStrict
+      SameSiteLax -> Just sameSiteLax
   , setCookieHttpOnly = True
   }
 
