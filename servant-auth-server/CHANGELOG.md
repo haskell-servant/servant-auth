@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.4.0.1] - 2018-09-23
+
+### Security
+- #123 Session cookie did not apply SameSite attribute [@domenkozar]
+
+### Added
+- #112 HasLink instance for Auth combinator [@adetokunbo]
+- #111 Documentation for using hoistServer [@mschristiansen]
+- #107 Add utility functions for reading and writing a key to a file [@mschristiansen]
+
 ## [0.4.0.0] - 2018-06-17
 
 ### Added
