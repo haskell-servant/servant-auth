@@ -150,7 +150,6 @@ import Servant.Auth.Server.Internal.Cookie
 import Servant.Auth.Server.Internal.JWT
 import Servant.Auth.Server.Internal.ThrowAll
 import Servant.Auth.Server.Internal.Types
-import Servant.Auth.Server.SetCookieOrphan      ()
 
 import Crypto.JOSE as Jose
 import Servant     (BasicAuthData (..))
