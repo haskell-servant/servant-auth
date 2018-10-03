@@ -64,13 +64,15 @@ data CookieSettings = CookieSettings
   , cookieMaxAge      :: !(Maybe DiffTime)
   -- | At what time the cookie expires. Default: @Nothing@.
   , cookieExpires     :: !(Maybe UTCTime)
-  -- | The URL path and sub-paths for which this cookie is used. Default @Just "/"@.
+  -- | The URL path and sub-paths for which this cookie is used. Default: @Just "/"@.
   , cookiePath        :: !(Maybe BS.ByteString)
+  -- | Domain name, if set cookie also allows subdomains. Default: @Nothing@.
+  , cookieDomain      :: !(Maybe BS.ByteString)
   -- | 'SameSite' settings. Default: @SameSiteLax@.
   , cookieSameSite    :: !SameSite
   -- | What name to use for the cookie used for the session.
   , sessionCookieName :: !BS.ByteString
-  -- | The optional settings to use for XSRF protection. Default @Just def@.
+  -- | The optional settings to use for XSRF protection. Default: @Just def@.
   , cookieXsrfSetting :: !(Maybe XsrfCookieSettings)
   } deriving (Eq, Show, Generic)
 
@@ -83,6 +85,7 @@ defaultCookieSettings = CookieSettings
     , cookieMaxAge      = Nothing
     , cookieExpires     = Nothing
     , cookiePath        = Just "/"
+    , cookieDomain      = Nothing
     , cookieSameSite    = SameSiteLax
     , sessionCookieName = "JWT-Cookie"
     , cookieXsrfSetting = Just def
