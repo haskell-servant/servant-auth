@@ -101,6 +101,7 @@ applyCookieSettings cookieSettings setCookie = setCookie
   { setCookieMaxAge = cookieMaxAge cookieSettings
   , setCookieExpires = cookieExpires cookieSettings
   , setCookiePath = cookiePath cookieSettings
+  , setCookieDomain = cookieDomain cookieSettings
   , setCookieSecure = case cookieIsSecure cookieSettings of
       Secure -> True
       NotSecure -> False
