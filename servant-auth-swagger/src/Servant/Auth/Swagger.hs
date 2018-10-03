@@ -10,6 +10,9 @@ module Servant.Auth.Swagger
     JWT
   , BasicAuth
   , Auth
+
+  -- * Needed to define instances of @HasSwagger@
+  , HasSecurity (..)
   ) where
 
 import Control.Lens    ((&), (<>~))
