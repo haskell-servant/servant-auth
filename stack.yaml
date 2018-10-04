@@ -1,4 +1,4 @@
-resolver: lts-11.14
+resolver: lts-12.9
 apply-ghc-options: targets
 packages:
 - servant-auth
