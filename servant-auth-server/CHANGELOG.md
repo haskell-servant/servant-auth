@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.4.0.2] - 2018-10-05
+
+### Added
+- #125 Allow setting domain name for a cookie [@domenkozar]
+
+## Changed
+- bump http-api-data to 0.3.10 that includes Cookie orphan instances previously located in servant-auth-server [@phadej]
+- #114 Export `HasSecurity` typeclass [@rockbmb]
+
 ## [0.4.0.1] - 2018-09-23
 
 ### Security
