@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [0.4.0.2] - 2018-10-05
+## [0.4.1.0] - 2018-10-05
 
 ### Added
 - #125 Allow setting domain name for a cookie [@domenkozar]
