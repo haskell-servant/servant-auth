@@ -1,4 +1,4 @@
-resolver: lts-11.14
+resolver: lts-12.11
 apply-ghc-options: targets
 packages:
 - servant-auth
@@ -6,3 +6,5 @@ packages:
 - servant-auth-client
 - servant-auth-docs
 - servant-auth-swagger
+extra-deps:
+- http-api-data-0.3.10
