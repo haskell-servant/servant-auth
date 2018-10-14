@@ -36,6 +36,7 @@ type instance AddSetCookieApi (a :<|> b) = AddSetCookieApi a :<|> AddSetCookieAp
 type instance AddSetCookieApi (Verb method stat ctyps a)
   = Verb method stat ctyps (AddSetCookieApiVerb a)
 type instance AddSetCookieApi Raw = Raw
+type instance AddSetCookieApi (Headers hs a) = AddSetCookieApiVerb (Headers hs a)
 
 data SetCookieList (n :: Nat) :: * where
   SetCookieNil :: SetCookieList 'Z
