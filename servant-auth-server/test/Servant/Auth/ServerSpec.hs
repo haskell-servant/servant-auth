@@ -475,8 +475,10 @@ server ccfg =
     getLogin :: User -> Handler (Headers '[ Header "Set-Cookie" SetCookie
                                           , Header "Set-Cookie" SetCookie ] NoContent)
     getLogin user = do
-        Just applyCookies <- liftIO $ acceptLogin ccfg jwtCfg user
-        return $ applyCookies NoContent
+        maybeApplyCookies <- liftIO $ acceptLogin ccfg jwtCfg user
+        case maybeApplyCookies of
+          Just applyCookies -> return $ applyCookies NoContent
+          Nothing -> error "cookies failed to apply"
 
     getLogout :: Handler (Headers '[ Header "Set-Cookie" SetCookie
                                    , Header "Set-Cookie" SetCookie ] NoContent)
