@@ -7,6 +7,12 @@ and this project adheres to [PVP Versioning](https://pvp.haskell.org/).
 
 ## [Unreleased]
 
+## [0.4.2.0] - 2018-11-05
+
+### Added
+- `Headers hs a` instance for AddSetCookieApi [@domenkozar]
+- GHC 8.6.x support [@domenkozar]
+
 ## [0.4.1.0] - 2018-10-05
 
 ### Added
