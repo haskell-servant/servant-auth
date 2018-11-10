@@ -5,7 +5,7 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import qualified Crypto.JOSE              as Jose
 import qualified Crypto.JWT               as Jose
-import           Crypto.Util              (constTimeEq)
+import           Data.ByteArray           (constEq)
 import qualified Data.ByteString          as BS
 import qualified Data.ByteString.Base64   as BS64
 import qualified Data.ByteString.Lazy     as BSL
@@ -58,7 +58,7 @@ xsrfCookieAuthCheck :: XsrfCookieSettings -> Request -> [(BS.ByteString, BS.Byte
 xsrfCookieAuthCheck xsrfCookieCfg req cookies = fromMaybe False $ do
   xsrfCookie <- lookup (xsrfCookieName xsrfCookieCfg) cookies
   xsrfHeader <- lookup (mk $ xsrfHeaderName xsrfCookieCfg) $ requestHeaders req
-  return $ xsrfCookie `constTimeEq` xsrfHeader
+  return $ xsrfCookie `constEq` xsrfHeader
 
 -- | Makes a cookie to be used for XSRF.
 makeXsrfCookie :: CookieSettings -> IO SetCookie

@@ -5,9 +5,9 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import qualified Crypto.JOSE          as Jose
 import qualified Crypto.JWT           as Jose
-import           Crypto.Util          (constTimeEq)
 import           Data.Aeson           (FromJSON, Result (..), ToJSON, fromJSON,
                                        toJSON)
+import           Data.ByteArray       (constEq)
 import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.HashMap.Strict  as HM
@@ -52,7 +52,7 @@ jwtAuthCheck config = do
     authHdr <- lookup "Authorization" $ requestHeaders req
     let bearer = "Bearer "
         (mbearer, rest) = BS.splitAt (BS.length bearer) authHdr
-    guard (mbearer `constTimeEq` bearer)
+    guard (mbearer `constEq` bearer)
     return rest
   verifiedJWT <- liftIO $ runExceptT $ do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict token
