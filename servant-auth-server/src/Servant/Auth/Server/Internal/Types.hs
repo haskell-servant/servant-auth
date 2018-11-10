@@ -61,8 +61,9 @@ newtype AuthCheck val = AuthCheck
 instance Semigroup (AuthCheck val) where
   AuthCheck f <> AuthCheck g = AuthCheck $ \x -> do
     fx <- f x
-    gx <- g x
-    return $ fx <> gx
+    case fx of
+      Indefinite -> g x
+      r -> pure r
 
 instance Monoid (AuthCheck val) where
   mempty = AuthCheck $ const $ return mempty
