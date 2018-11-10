@@ -25,9 +25,11 @@ import           Data.CaseInsensitive                (mk)
 import           Data.Foldable                       (find)
 import           Data.Monoid
 import           Data.Time
+import           Data.Time.Clock                     (getCurrentTime)
 import           GHC.Generics                        (Generic)
 import           Network.HTTP.Client                 (cookie_http_only,
                                                       cookie_name, cookie_value,
+                                                      cookie_expiry_time,
                                                       destroyCookieJar)
 import           Network.HTTP.Types                  (Status, status200,
                                                       status401)
@@ -45,6 +47,7 @@ import           Network.Wreq.Types                  (Postable(..))
 import           Servant                             hiding (BasicAuth,
                                                       IsSecure (..), header)
 import           Servant.Auth.Server
+import           Servant.Auth.Server.Internal.Cookie (expireTime)
 import           Servant.Auth.Server.SetCookieOrphan ()
 import           System.IO.Unsafe                    (unsafePerformIO)
 import           Test.Hspec
@@ -203,13 +206,15 @@ cookieAuthSpec
           resp <- getWith loggedInOpts (url port)
           resp ^? responseBody . _JSON `shouldBe` Just (length $ name user)
 
+          -- logout
           resp <- getWith loggedInOpts (url port ++ "/logout")
-          (resp ^. responseCookieJar) `shouldMatchCookieNameValues`
-            [ (sessionCookieName cookieCfg, "value")
-            , (xsrfField xsrfCookieName cookieCfg, "value")
-            ]
-          let loggedOutOpts = optsFromResp resp
 
+          -- assert cookies were expired
+          now <- getCurrentTime
+          let assertCookie c = now >= cookie_expiry_time c
+          all assertCookie (destroyCookieJar (resp ^. responseCookieJar)) `shouldBe` True
+
+          let loggedOutOpts = optsFromResp resp
           getWith loggedOutOpts (url port) `shouldHTTPErrorWith` status401
 
       describe "With no XSRF check for GET requests" $ let
@@ -268,6 +273,12 @@ cookieAuthSpec
             [ (sessionCookieName cookieCfg, "value")
             , ("NO-XSRF-TOKEN", "")
             ]
+
+          -- assert cookies were expired
+          now <- getCurrentTime
+          let assertCookie c = now >= cookie_expiry_time c
+          all assertCookie (destroyCookieJar (resp ^. responseCookieJar)) `shouldBe` True
+
           let loggedOutOpts = optsFromResp resp
 
           getWith loggedOutOpts (url port) `shouldHTTPErrorWith` status401
