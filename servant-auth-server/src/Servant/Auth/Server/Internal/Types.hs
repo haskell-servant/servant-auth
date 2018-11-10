@@ -53,7 +53,7 @@ instance MonadPlus AuthResult where
 -- | An @AuthCheck@ is the function used to decide the authentication status
 -- (the 'AuthResult') of a request. Different @AuthCheck@s may be combined as a
 -- Monoid or Alternative; the semantics of this is that the *first*
--- non-'Indefinite' result from left to right is used.
+-- non-'Indefinite' result from left to right is used and the rest are ignored.
 newtype AuthCheck val = AuthCheck
   { runAuthCheck :: Request -> IO (AuthResult val) }
   deriving (Generic, Functor)
