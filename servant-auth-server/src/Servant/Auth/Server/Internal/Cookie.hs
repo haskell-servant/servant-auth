@@ -11,6 +11,8 @@ import qualified Data.ByteString.Base64   as BS64
 import qualified Data.ByteString.Lazy     as BSL
 import           Data.CaseInsensitive     (mk)
 import           Data.Maybe               (fromMaybe)
+import           Data.Time.Calendar       (Day(..))
+import           Data.Time.Clock          (UTCTime(..), secondsToDiffTime)
 import           Network.HTTP.Types       (methodGet)
 import           Network.HTTP.Types.Header(hCookie)
 import           Network.Wai              (Request, requestHeaders, requestMethod)
@@ -142,7 +144,12 @@ acceptLogin cookieSettings jwtSettings session = do
       xsrfCookie <- makeXsrfCookie cookieSettings
       return $ Just $ addHeader sessionCookie . addHeader xsrfCookie
 
--- | Adds headers to a response that clears all session cookies.
+-- | Arbitrary cookie expiry time set back in history after unix time 0
+expireTime :: UTCTime
+expireTime = UTCTime (ModifiedJulianDay 50000) 0
+
+-- | Adds headers to a response that clears all session cookies
+-- | using max-age and expires cookie attributes.
 clearSession :: ( AddHeader "Set-Cookie" SetCookie response withOneCookie
                 , AddHeader "Set-Cookie" SetCookie withOneCookie withTwoCookies )
              => CookieSettings
@@ -150,10 +157,15 @@ clearSession :: ( AddHeader "Set-Cookie" SetCookie response withOneCookie
              -> withTwoCookies
 clearSession cookieSettings = addHeader clearedSessionCookie . addHeader clearedXsrfCookie
   where
-    clearedSessionCookie = applySessionCookieSettings cookieSettings $ applyCookieSettings cookieSettings def
+    -- According to RFC6265 max-age takes precedence, but IE/Edge ignore it completely so we set both
+    cookieSettingsExpires = cookieSettings
+      { cookieExpires = Just expireTime
+      , cookieMaxAge = Just (secondsToDiffTime 0)
+      }
+    clearedSessionCookie = applySessionCookieSettings cookieSettingsExpires $ applyCookieSettings cookieSettingsExpires def
     clearedXsrfCookie = case cookieXsrfSetting cookieSettings of
-        Just xsrfCookieSettings -> applyXsrfCookieSettings xsrfCookieSettings $ applyCookieSettings cookieSettings def
-        Nothing                 -> noXsrfTokenCookie cookieSettings
+        Just xsrfCookieSettings -> applyXsrfCookieSettings xsrfCookieSettings $ applyCookieSettings cookieSettingsExpires def
+        Nothing                 -> noXsrfTokenCookie cookieSettingsExpires
 
 makeSessionCookieBS :: ToJWT v => CookieSettings -> JWTSettings -> v -> IO (Maybe BS.ByteString)
 makeSessionCookieBS a b c = fmap (toByteString . renderSetCookie)  <$> makeSessionCookie a b c
