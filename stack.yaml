@@ -1,9 +1,7 @@
-resolver: lts-12.14
+resolver: lts-12.18
 packages:
 - servant-auth
 - servant-auth-server
 - servant-auth-client
 - servant-auth-docs
 - servant-auth-swagger
-extra-deps:
-- http-api-data-0.3.10

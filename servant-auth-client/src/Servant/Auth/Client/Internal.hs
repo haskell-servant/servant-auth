@@ -16,14 +16,8 @@ import           GHC.Generics       (Generic)
 import           Servant.API        ((:>))
 import           Servant.Auth
 
-#ifdef HAS_CLIENT_CORE
 import           Servant.Client.Core
 import           Data.Sequence ((<|))
-#else
-import           Servant.Client
-import           Servant.Common.Req (Req (..))
-import qualified Data.Text.Encoding as T
-#endif
 
 -- | A compact JWT Token.
 newtype Token = Token { getToken :: BS.ByteString }
@@ -38,7 +32,6 @@ class JWTAuthNotEnabled
 
 -- | @'HasJWT' auths@ is nominally a redundant constraint, but ensures we're not
 -- trying to send a token to an API that doesn't accept them.
-#ifdef HAS_CLIENT_CORE
 instance (HasJWT auths, HasClient m api) => HasClient m (Auth auths a :> api) where
   type Client m (Auth auths a :> api) = Token -> Client m api
 
@@ -50,17 +43,4 @@ instance (HasJWT auths, HasClient m api) => HasClient m (Auth auths a :> api) wh
 
 #if MIN_VERSION_servant_client_core(0,14,0)
   hoistClientMonad pm _ nt cl = hoistClientMonad pm (Proxy :: Proxy api) nt . cl
-#endif
-
-#else
-instance (HasJWT auths, HasClient api) => HasClient (Auth auths a :> api) where
-  type Client (Auth auths a :> api) = Token -> Client api
-
-  clientWithRoute _ req (Token token)
-    = clientWithRoute (Proxy :: Proxy api)
-    $ req { headers = ("Authorization", headerVal):headers req  }
-      where
-        -- 'servant-client' shouldn't be using a Text here; it should be using a
-        -- ByteString.
-        headerVal = "Bearer " <> T.decodeLatin1 token
 #endif
