@@ -15,7 +15,7 @@ maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
 license:        BSD3
 license-file:   LICENSE
-tested-with:    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.3, GHC == 8.6.1
+tested-with:    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.2
 build-type:     Simple
 cabal-version:  >= 1.10
 extra-source-files:
@@ -41,16 +41,16 @@ library
     , cookie                  >= 0.4  && < 0.5
     , data-default-class      >= 0.0  && < 0.2
     , entropy                 >= 0.3  && < 0.5
-    , http-api-data           >= 0.3.10 && < 0.4
+    , http-api-data           >= 0.3.10 && < 0.5
     , http-types              >= 0.9  && < 0.13
     , jose                    >= 0.6  && < 0.8
     , lens                    >= 4    && < 5
     , memory                  >= 0.14 && < 0.15
     , monad-time              >= 0.2  && < 0.4
     , mtl                     >= 2.2  && < 2.3
-    , servant                 >= 0.9.1  && < 0.15
+    , servant                 >= 0.9.1  && < 0.16
     , servant-auth            == 0.3.*
-    , servant-server          >= 0.9.1  && < 0.15
+    , servant-server          >= 0.9.1  && < 0.16
     , tagged                  >= 0.7.3 && < 0.9
     , text                    >= 1    && < 2
     , time                    >= 1.5  && < 1.9
