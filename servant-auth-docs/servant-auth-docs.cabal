@@ -15,7 +15,7 @@ maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
 license:        BSD3
 license-file:   LICENSE
-tested-with:    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC==8.4.3, GHC==8.6.1
+tested-with:    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC==8.4.4, GHC==8.6.2
 build-type:     Custom
 cabal-version:  >= 1.10
 extra-source-files:
@@ -23,7 +23,7 @@ extra-source-files:
 
 custom-setup
   setup-depends:
-    base, Cabal, cabal-doctest >=1.0.2 && <1.1
+    base, Cabal, cabal-doctest >=1.0.6 && <1.1
 
 source-repository head
   type: git
@@ -35,12 +35,12 @@ library
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.8 && < 4.13
-    , text
-    , servant-docs
-    , servant
+      base         >= 4.8     && < 4.13
+    , text         >= 1.2.3.0 && < 1.3
+    , servant-docs >= 0.11.2  && < 0.12
+    , servant      >= 0.13    && < 0.16
     , servant-auth == 0.3.*
-    , lens
+    , lens         >= 4.16.1  && <4.18
   exposed-modules:
       Servant.Auth.Docs
   default-language: Haskell2010
@@ -50,9 +50,9 @@ test-suite doctests
   main-is:             doctests.hs
   build-depends:
     base,
-    doctest >= 0.11.3 && <0.17,
     servant-auth-docs,
-    QuickCheck >= 2.8 && <2.13,
+    doctest             >= 0.16   && < 0.17,
+    QuickCheck          >= 2.11.3 && < 2.13,
     template-haskell
   ghc-options:         -Wall -threaded
   hs-source-dirs:      test
@@ -65,7 +65,7 @@ test-suite spec
       test
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
-  build-tool-depends: hspec-discover:hspec-discover
+  build-tool-depends: hspec-discover:hspec-discover >=2.5.5 && <2.7
 
   -- dependencies with bounds inherited from the library stanza
   build-depends:
@@ -79,7 +79,7 @@ test-suite spec
   -- test dependencies
   build-depends:
       servant-auth-docs
-    , hspec > 2 && < 3
-    , QuickCheck >= 2.8 && < 2.13
+    , hspec             >= 2.5.5  && < 2.7
+    , QuickCheck        >= 2.11.3 && < 2.13
 
   default-language: Haskell2010
