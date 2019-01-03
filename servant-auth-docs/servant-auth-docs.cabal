@@ -36,7 +36,6 @@ library
   ghc-options: -Wall
   build-depends:
       base         >= 4.8     && < 4.13
-    , text         >= 1.2.3.0 && < 1.3
     , servant-docs >= 0.11.2  && < 0.12
     , servant      >= 0.13    && < 0.16
     , servant-auth == 0.3.*

@@ -218,6 +218,7 @@ mainWithCookies = do
       api = Proxy :: Proxy (API '[Cookie])
   run 7249 $ serveWithContext api cfg (server defaultCookieSettings jwtCfg)
 
+deriving instance ToHttpApiData SetCookie
 
 -- Here is the login handler
 checkCreds :: CookieSettings

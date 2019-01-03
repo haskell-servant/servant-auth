@@ -103,6 +103,8 @@ mgr :: Manager
 mgr = unsafePerformIO $ newManager defaultManagerSettings
 {-# NOINLINE mgr #-}
 
+deriving instance ToHttpApiData SetCookie
+
 app :: Application
 app = serveWithContext api ctx server
   where
