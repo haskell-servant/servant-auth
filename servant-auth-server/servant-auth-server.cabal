@@ -36,10 +36,8 @@ library
     , base64-bytestring       >= 1.0.0.1  && < 1.1
     , blaze-builder           >= 0.4.1.0  && < 0.5
     , bytestring              >= 0.10.6.0 && < 0.11
-    , bytestring-conversion   >= 0.3.1    && < 0.4
     , case-insensitive        >= 1.2.0.11 && < 1.3
     , cookie                  >= 0.4.4    && < 0.5
-    , crypto-api              >= 0.13.2   && < 0.14
     , data-default-class      >= 0.1.2.0  && < 0.2
     , entropy                 >= 0.4.1.3  && < 0.5
     , http-types              >= 0.12.2   && < 0.13
@@ -88,8 +86,6 @@ test-suite readme
     , aeson
     , mtl
     , warp
-    , transformers
-    , markdown-unlit
   default-language: Haskell2010
   if impl(ghcjs)
     buildable: False
