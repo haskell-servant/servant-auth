@@ -44,7 +44,6 @@ library
   default-language: Haskell2010
 
 test-suite spec
-  extensions: StandaloneDeriving DeriveAnyClass
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   hs-source-dirs:

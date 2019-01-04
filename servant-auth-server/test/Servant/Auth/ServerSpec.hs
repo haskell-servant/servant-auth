@@ -450,9 +450,6 @@ instance FromBasicAuthData User where
 -- have to add it
 type instance BasicAuthCfg = JWK
 
--- needed to build with weeder
-deriving instance ToHttpApiData SetCookie
-
 appWithCookie :: AreAuths auths '[CookieSettings, JWTSettings, JWK] User
   => Proxy (API auths) -> CookieSettings -> Application
 appWithCookie api ccfg = serveWithContext api ctx $ server ccfg
