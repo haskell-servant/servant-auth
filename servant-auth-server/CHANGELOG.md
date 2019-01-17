@@ -7,6 +7,14 @@ and this project adheres to [PVP Versioning](https://pvp.haskell.org/).
 
 ## [Unreleased]
 
+## [0.4.3.0] - 2019-01-17
+
+## Changed
+- #117 Avoid running auth checks unnecessarily [@sopvop]
+- #110 Get rid of crypto-api dependency [@domenkozar]
+- #130 clearSession: improve cross-browser compatibility [@domenkozar]
+- #136 weed out bytestring-conversion [@stephenirl]
+
 ## [0.4.2.0] - 2018-11-05
 
 ### Added
