@@ -1,6 +1,7 @@
 {-# LANGUAGE PolyKinds                  #-}
 {-# LANGUAGE TupleSections              #-}
 {-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE CPP                        #-}
 
 module Servant.Auth.Server.Internal.AddSetCookie where
 
@@ -36,6 +37,10 @@ type instance AddSetCookieApi (a :<|> b) = AddSetCookieApi a :<|> AddSetCookieAp
 type instance AddSetCookieApi (Verb method stat ctyps a)
   = Verb method stat ctyps (AddSetCookieApiVerb a)
 type instance AddSetCookieApi Raw = Raw
+#if MIN_VERSION_servant_server(0,15,0)
+type instance AddSetCookieApi (Stream method stat framing ctyps a)
+  = Stream method stat framing ctyps (AddSetCookieApiVerb a)
+#endif
 type instance AddSetCookieApi (Headers hs a) = AddSetCookieApiVerb (Headers hs a)
 
 data SetCookieList (n :: Nat) :: * where
