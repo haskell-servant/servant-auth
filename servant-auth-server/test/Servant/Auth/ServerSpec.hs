@@ -49,6 +49,9 @@ import           Servant                             hiding (BasicAuth,
 import           Servant.Auth.Server
 import           Servant.Auth.Server.Internal.Cookie (expireTime)
 import           Servant.Auth.Server.SetCookieOrphan ()
+#if MIN_VERSION_servant_server(0,15,0)
+import qualified Servant.Types.SourceT             as S
+#endif
 import           System.IO.Unsafe                    (unsafePerformIO)
 import           Test.Hspec
 import           Test.QuickCheck
@@ -399,6 +402,9 @@ type API auths
         ( Get '[JSON] Int
        :<|> ReqBody '[JSON] Int :> Post '[JSON] Int
        :<|> "header" :> Get '[JSON] (Headers '[Header "Blah" Int] Int)
+#if MIN_VERSION_servant_server(0,15,0)
+       :<|> "stream" :> StreamGet NoFraming OctetStream (SourceIO BS.ByteString)
+#endif
        :<|> "raw" :> Raw
         )
       :<|> "login" :> ReqBody '[JSON] User :> Post '[JSON] (Headers '[ Header "Set-Cookie" SetCookie
@@ -467,6 +473,9 @@ server ccfg =
         Authenticated usr -> getInt usr
                         :<|> postInt usr
                         :<|> getHeaderInt
+#if MIN_VERSION_servant_server(0,15,0)
+                        :<|> return (S.source ["bytestring"])
+#endif
                         :<|> raw
         Indefinite -> throwAll err401
         _ -> throwAll err403
