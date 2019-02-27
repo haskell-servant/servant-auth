@@ -1,6 +1,10 @@
 {-# LANGUAGE CPP #-}
 module Servant.Auth.ServerSpec (spec) where
 
+#if !MIN_VERSION_servant_server(0,16,0)
+#define ServerError ServantErr
+#endif
+
 import           Control.Lens
 import           Control.Monad.Except                (runExceptT)
 import           Control.Monad.IO.Class              (liftIO)
@@ -380,12 +384,12 @@ throwAllSpec :: Spec
 throwAllSpec = describe "throwAll" $ do
 
   it "works for plain values" $ do
-    let t :: Either ServantErr Int :<|> Either ServantErr Bool :<|> Either ServantErr String
+    let t :: Either ServerError Int :<|> Either ServerError Bool :<|> Either ServerError String
         t = throwAll err401
     t `shouldBe` throwError err401 :<|> throwError err401 :<|> throwError err401
 
   it "works for function types" $ property $ \i -> do
-    let t :: Int -> (Either ServantErr Bool :<|> Either ServantErr String)
+    let t :: Int -> (Either ServerError Bool :<|> Either ServerError String)
         t = throwAll err401
         expected _ = throwError err401 :<|> throwError err401
     t i `shouldBe` expected i

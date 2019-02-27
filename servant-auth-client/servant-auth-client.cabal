@@ -35,8 +35,8 @@ library
     , bytestring          >= 0.10.6.0 && < 0.11
     , containers          >= 0.5.6.2  && < 0.7
     , servant-auth        == 0.3.*
-    , servant             >= 0.13     && < 0.16
-    , servant-client-core >= 0.13     && < 0.16
+    , servant             >= 0.13     && < 0.17
+    , servant-client-core >= 0.13     && < 0.17
 
   exposed-modules:
       Servant.Auth.Client
@@ -50,7 +50,7 @@ test-suite spec
       test
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
-  build-tool-depends: hspec-discover:hspec-discover >=2.5.5 && <2.7
+  build-tool-depends: hspec-discover:hspec-discover >=2.5.5 && <2.8
 
   -- dependencies with bounds inherited from the library stanza
   build-depends:
@@ -62,11 +62,11 @@ test-suite spec
 
   -- test dependencies
   build-depends:
-      hspec                >= 2.5.5    && < 2.7
+      hspec                >= 2.5.5    && < 2.8
     , QuickCheck           >= 2.11.3   && < 2.13
     , aeson                >= 1.3.1.1  && < 1.5
     , bytestring           >= 0.10.6.0 && < 0.11
-    , http-client          >= 0.5.13.1 && < 0.6
+    , http-client          >= 0.5.13.1 && < 0.7
     , http-types           >= 0.12.2   && < 0.13
     , servant-auth-server  >= 0.4.2.0  && < 0.5
     , servant-server       >= 0.13     && < 0.16

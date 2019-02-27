@@ -1,18 +1,22 @@
+{-# LANGUAGE CPP #-}
 module Servant.Auth.Server.Internal.BasicAuth where
+
+#if !MIN_VERSION_servant_server(0,16,0)
+#define ServerError ServantErr
+#endif
 
 import qualified Data.ByteString                   as BS
 import           Servant                           (BasicAuthData (..),
-                                                    ServantErr (..), err401)
+                                                    ServerError (..), err401)
 import           Servant.Server.Internal.BasicAuth (decodeBAHdr,
                                                     mkBAChallengerHdr)
 
-
 import Servant.Auth.Server.Internal.Types
 
--- | A 'ServantErr' that asks the client to authenticate via Basic
+-- | A 'ServerError' that asks the client to authenticate via Basic
 -- Authentication, should be invoked by an application whenever
 -- appropriate. The argument is the realm.
-wwwAuthenticatedErr :: BS.ByteString -> ServantErr
+wwwAuthenticatedErr :: BS.ByteString -> ServerError
 wwwAuthenticatedErr realm = err401 { errHeaders = [mkBAChallengerHdr realm] }
 
 type family BasicAuthCfg

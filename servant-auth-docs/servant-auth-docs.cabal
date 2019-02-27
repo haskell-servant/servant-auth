@@ -37,7 +37,7 @@ library
   build-depends:
       base         >= 4.8     && < 4.13
     , servant-docs >= 0.11.2  && < 0.12
-    , servant      >= 0.13    && < 0.16
+    , servant      >= 0.13    && < 0.17
     , servant-auth == 0.3.*
     , lens         >= 4.16.1  && <4.18
   exposed-modules:
@@ -64,7 +64,7 @@ test-suite spec
       test
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
-  build-tool-depends: hspec-discover:hspec-discover >=2.5.5 && <2.7
+  build-tool-depends: hspec-discover:hspec-discover >=2.5.5 && <2.8
 
   -- dependencies with bounds inherited from the library stanza
   build-depends:
@@ -78,7 +78,7 @@ test-suite spec
   -- test dependencies
   build-depends:
       servant-auth-docs
-    , hspec             >= 2.5.5  && < 2.7
+    , hspec             >= 2.5.5  && < 2.8
     , QuickCheck        >= 2.11.3 && < 2.13
 
   default-language: Haskell2010
