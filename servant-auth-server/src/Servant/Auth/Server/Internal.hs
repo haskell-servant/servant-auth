@@ -17,7 +17,7 @@ import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth.Server.Internal.JWT
 import Servant.Auth.Server.Internal.Types
 
-import Servant.Server.Internal.RoutingApplication
+import Servant.Server.Internal (DelayedIO, addAuthCheck, withRequest)
 
 instance ( n ~ 'S ('S 'Z)
          , HasServer (AddSetCookiesApi n api) ctxs, AreAuths auths ctxs v
