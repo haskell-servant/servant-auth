@@ -7,6 +7,12 @@ and this project adheres to [PVP Versioning](https://pvp.haskell.org/).
 
 ## [Unreleased]
 
+## [0.4.4.0] - 2019-03-02
+
+### Added
+- #141 Support Stream combinator [@domenkozar]
+- #143 Allow servant-0.16 [@phadej]
+
 ## [0.4.3.0] - 2019-01-17
 
 ## Changed
