@@ -15,7 +15,7 @@ maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
 license:        BSD3
 license-file:   LICENSE
-tested-with:    GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC==8.4.4, GHC==8.6.2
+tested-with:    GHC == 8.0.2, GHC == 8.2.2, GHC==8.4.4, GHC==8.6.2
 build-type:     Simple
 cabal-version:  >= 1.10
 extra-source-files:
@@ -31,7 +31,7 @@ library
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base                >= 4.8      && < 4.13
+      base                >= 4.9      && < 4.13
     , bytestring          >= 0.10.6.0 && < 0.11
     , containers          >= 0.5.6.2  && < 0.7
     , servant-auth        == 0.3.*
