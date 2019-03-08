@@ -7,6 +7,13 @@ and this project adheres to [PVP Versioning](https://pvp.haskell.org/).
 
 ## [Unreleased]
 
+## [0.4.0.0] - 2019-03-08
+
+## Changed
+
+- #145 Support servant-0.16 in tests @domenkozar
+- #145 Drop GHC 7.10 support @domenkozar
+
 ## [0.3.3.0] - 2018-06-18
 
 ### Added
