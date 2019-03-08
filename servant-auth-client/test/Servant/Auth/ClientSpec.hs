@@ -16,8 +16,10 @@ import           Network.HTTP.Types       (status401)
 import           Network.Wai.Handler.Warp (testWithApplication)
 import           Servant
 import           Servant.Client           (BaseUrl (..), Scheme (Http),
-                                           ServantError (FailureResponse),
-#if MIN_VERSION_servant_client(0,13,0)
+                                           ClientError (FailureResponse),
+#if MIN_VERSION_servant_client(0,16,0)
+                                           ResponseF(..),
+#elif MIN_VERSION_servant_client(0,13,0)
                                            GenResponse(..),
 #elif MIN_VERSION_servant_client(0,12,0)
                                            Response(..),
@@ -33,6 +35,9 @@ import Servant.Client (mkClientEnv, runClientM)
 import Servant.Client (ClientEnv (..), runClientM)
 #else
 import Control.Monad.Trans.Except (runExceptT)
+#endif
+#if !MIN_VERSION_servant_server(0,16,0)
+#define ClientError ServantError
 #endif
 
 import Servant.Auth.Client
@@ -67,7 +72,9 @@ hasClientSpec = describe "HasClient" $ around (testWithApplication $ return app)
 
   it "fails when token is expired" $ \port -> property $ \user -> do
     tok <- mkTok user (Just past)
-#if MIN_VERSION_servant_client(0,12,0)
+#if MIN_VERSION_servant_client(0,16,0)
+    Left (FailureResponse _ (Response stat _ _ _))
+#elif MIN_VERSION_servant_client(0,12,0)
     Left (FailureResponse (Response stat _ _ _))
 #elif MIN_VERSION_servant_client(0,11,0)
     Left (FailureResponse _ stat _ _)
@@ -78,7 +85,7 @@ hasClientSpec = describe "HasClient" $ around (testWithApplication $ return app)
     stat `shouldBe` status401
 
 
-getIntClient :: Token -> Manager -> BaseUrl -> IO (Either ServantError Int)
+getIntClient :: Token -> Manager -> BaseUrl -> IO (Either ClientError Int)
 #if MIN_VERSION_servant(0,13,0)
 getIntClient tok m burl = runClientM (client api tok) (mkClientEnv m burl)
 #elif MIN_VERSION_servant(0,9,0)
