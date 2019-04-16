@@ -119,7 +119,7 @@ test-suite spec
   build-depends:
       servant-auth-server
     , hspec       >= 2.5.5     && < 2.8
-    , QuickCheck  >= 2.11.3    && < 2.13
+    , QuickCheck  >= 2.11.3    && < 2.14
     , http-client >= 0.5.13.1  && < 0.7
     , lens-aeson  >= 1.0.2     && < 1.1
     , warp        >= 3.2.25    && < 3.3
