@@ -63,9 +63,7 @@ instance ( n ~ 'S ('S 'Z)
                 Just jwt -> return $ Just jwt `SetCookieCons` SetCookieNil
             _ -> return $ Nothing `SetCookieCons` SetCookieNil
 
-      go :: ( old ~ ServerT api Handler
-            , new ~ ServerT (AddSetCookiesApi n api) Handler
-            )
-         => (AuthResult v -> ServerT api Handler)
-         -> (AuthResult v, SetCookieList n) -> new
+      go :: (AuthResult v -> ServerT api Handler)
+         -> (AuthResult v, SetCookieList n)
+         -> ServerT (AddSetCookiesApi n api) Handler
       go fn (authResult, cookies) = addSetCookies cookies $ fn authResult
