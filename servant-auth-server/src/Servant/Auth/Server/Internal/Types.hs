@@ -75,7 +75,6 @@ instance Applicative AuthCheck where
 
 instance Monad AuthCheck where
   return = AuthCheck . return . return . return
-  fail _ = AuthCheck . const $ return Indefinite
   AuthCheck ac >>= f = AuthCheck $ \req -> do
     aresult <- ac req
     case aresult of
@@ -83,6 +82,9 @@ instance Monad AuthCheck where
       BadPassword       -> return BadPassword
       NoSuchUser        -> return NoSuchUser
       Indefinite        -> return Indefinite
+
+instance MonadFail AuthCheck where
+  fail _ = AuthCheck . const $ return Indefinite
 
 instance MonadReader Request AuthCheck where
   ask = AuthCheck $ \x -> return (Authenticated x)
