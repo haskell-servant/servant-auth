@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Servant.Auth.Server.Internal.Types where
 
 import Control.Applicative
@@ -8,6 +9,8 @@ import Data.Semigroup       (Semigroup (..))
 import Data.Time            (getCurrentTime)
 import GHC.Generics         (Generic)
 import Network.Wai          (Request)
+
+import qualified Control.Monad.Fail as Fail
 
 -- | The result of an authentication attempt.
 data AuthResult val
@@ -75,7 +78,6 @@ instance Applicative AuthCheck where
 
 instance Monad AuthCheck where
   return = AuthCheck . return . return . return
-  fail _ = AuthCheck . const $ return Indefinite
   AuthCheck ac >>= f = AuthCheck $ \req -> do
     aresult <- ac req
     case aresult of
@@ -83,6 +85,13 @@ instance Monad AuthCheck where
       BadPassword       -> return BadPassword
       NoSuchUser        -> return NoSuchUser
       Indefinite        -> return Indefinite
+
+#if !MIN_VERSION_base(4,13,0)
+  fail = Fail.fail
+#endif
+
+instance Fail.MonadFail AuthCheck where
+  fail _ = AuthCheck . const $ return Indefinite
 
 instance MonadReader Request AuthCheck where
   ask = AuthCheck $ \x -> return (Authenticated x)
