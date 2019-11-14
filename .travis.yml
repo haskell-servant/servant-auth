@@ -180,10 +180,6 @@ script:
   - ${CABAL} v2-build $WITHCOMPILER --disable-tests --disable-benchmarks all | color_cabal_output
   # Constraint sets
   - rm -rf cabal.project.local
-  # Constraint set servant-0.13
-  - if [ $HCNUMVER -lt 80600 ] ; then ${CABAL} v2-build $WITHCOMPILER --disable-tests --disable-benchmarks --constraint='servant ==0.13.*' all | color_cabal_output ; fi
-  # Constraint set servant-0.14
-  - if [ $HCNUMVER -lt 80800 ] ; then ${CABAL} v2-build $WITHCOMPILER --disable-tests --disable-benchmarks --constraint='servant ==0.14.*' all | color_cabal_output ; fi
   # Constraint set servant-0.15
   - if [ $HCNUMVER -lt 80800 ] ; then ${CABAL} v2-build $WITHCOMPILER --disable-tests --disable-benchmarks --constraint='servant ==0.15.*' all | color_cabal_output ; fi
   # Constraint set servant-0.16
