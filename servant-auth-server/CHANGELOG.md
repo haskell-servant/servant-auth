@@ -7,6 +7,17 @@ and this project adheres to [PVP Versioning](https://pvp.haskell.org/).
 
 ## [Unreleased]
 
+## [0.4.5.0] - 2019-12-28
+
+## Changed
+- #144 servant 0.16 support and drop GHC 7.10 support [@domenkozar]
+- #148 removed unused constaint in HasServer instance for Auth 
+- #154 GHC 8.8 support [@phadej]
+
+### Added
+- #141 Support Stream combinator [@domenkozar]
+- #143 Allow servant-0.16 [@phadej]
+
 ## [0.4.4.0] - 2019-03-02
 
 ### Added
