@@ -35,8 +35,8 @@ library
     , bytestring          >= 0.10.6.0 && < 0.11
     , containers          >= 0.5.6.2  && < 0.7
     , servant-auth        == 0.3.*
-    , servant             >= 0.13     && < 0.17
-    , servant-client-core >= 0.13     && < 0.17
+    , servant             >= 0.13     && < 0.18
+    , servant-client-core >= 0.13     && < 0.18
 
   exposed-modules:
       Servant.Auth.Client
@@ -69,7 +69,7 @@ test-suite spec
     , http-client          >= 0.5.13.1 && < 0.7
     , http-types           >= 0.12.2   && < 0.13
     , servant-auth-server  >= 0.4.2.0  && < 0.5
-    , servant-server       >= 0.13     && < 0.17
+    , servant-server       >= 0.13     && < 0.18
     , time                 >= 1.5.0.1  && < 1.10
     , transformers         >= 0.4.2.0  && < 0.6
     , wai                  >= 3.2.1.2  && < 3.3

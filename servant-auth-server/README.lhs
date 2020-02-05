@@ -89,9 +89,9 @@ protected _ = throwAll err401
 type Unprotected =
  "login"
      :> ReqBody '[JSON] Login
-     :> PostNoContent '[JSON] (Headers '[ Header "Set-Cookie" SetCookie
-                                        , Header "Set-Cookie" SetCookie]
-                                       NoContent)
+     :> Verb 'POST 204 '[JSON] (Headers '[ Header "Set-Cookie" SetCookie
+                                         , Header "Set-Cookie" SetCookie]
+                                         NoContent)
   :<|> Raw
 
 unprotected :: CookieSettings -> JWTSettings -> Server Unprotected

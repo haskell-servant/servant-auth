@@ -7,7 +7,7 @@ module Servant.Auth where
 
 import           Data.Proxy          (Proxy(..))
 import           Servant.API         ((:>))
-import           Servant.Utils.Links (HasLink (..))
+import           Servant.Links       (HasLink (..))
 
 -- * Authentication
 

@@ -37,7 +37,7 @@ library
   build-depends:
       base         >= 4.9     && < 4.14
     , servant-docs >= 0.11.2  && < 0.12
-    , servant      >= 0.13    && < 0.17
+    , servant      >= 0.13    && < 0.18
     , servant-auth == 0.3.*
     , lens         >= 4.16.1  && <4.19
   exposed-modules:
