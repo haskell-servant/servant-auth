@@ -7,6 +7,11 @@ and this project adheres to [PVP Versioning](https://pvp.haskell.org/).
 
 ## [Unreleased]
 
+## [0.4.5.1] - 2020-02-06
+
+## Changed
+- #158 servant 0.17 support [@phadej]
+
 ## [0.4.5.0] - 2019-12-28
 
 ## Changed
