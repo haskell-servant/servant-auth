@@ -1,3 +1,3 @@
-module Servant.Auth.Client (Token(..)) where
+module Servant.Auth.Client (Token(..), Bearer) where
 
-import Servant.Auth.Client.Internal (Token(..))
+import Servant.Auth.Client.Internal (Bearer, Token(..))

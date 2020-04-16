@@ -19,20 +19,21 @@ import           Servant.Auth
 import           Servant.Client.Core
 import           Data.Sequence ((<|))
 
--- | A compact JWT Token.
+-- | A simple bearer token.
 newtype Token = Token { getToken :: BS.ByteString }
   deriving (Eq, Show, Read, Generic, IsString)
 
-type family HasJWT xs :: Constraint where
-  HasJWT (JWT ': xs) = ()
-  HasJWT (x ': xs)   = HasJWT xs
-  HasJWT '[]         = JWTAuthNotEnabled
+type family HasBearer xs :: Constraint where
+  HasBearer (Bearer ': xs) = ()
+  HasBearer (JWT ': xs) = ()
+  HasBearer (x ': xs)   = HasBearer xs
+  HasBearer '[]         = BearerAuthNotEnabled
 
-class JWTAuthNotEnabled
+class BearerAuthNotEnabled
 
--- | @'HasJWT' auths@ is nominally a redundant constraint, but ensures we're not
+-- | @'HasBearer' auths@ is nominally a redundant constraint, but ensures we're not
 -- trying to send a token to an API that doesn't accept them.
-instance (HasJWT auths, HasClient m api) => HasClient m (Auth auths a :> api) where
+instance (HasBearer auths, HasClient m api) => HasClient m (Auth auths a :> api) where
   type Client m (Auth auths a :> api) = Token -> Client m api
 
   clientWithRoute m _ req (Token token)
@@ -44,3 +45,20 @@ instance (HasJWT auths, HasClient m api) => HasClient m (Auth auths a :> api) wh
 #if MIN_VERSION_servant_client_core(0,14,0)
   hoistClientMonad pm _ nt cl = hoistClientMonad pm (Proxy :: Proxy api) nt . cl
 #endif
+
+
+-- * Authentication combinators
+
+-- | A Bearer token in the the Authorization header:
+--
+--    @Authorization: Bearer <token>@
+--
+-- This can be any token recognized by the server, for example,
+-- a JSON Web Token (JWT).
+--
+-- Note that, since the exact way the token is validated is not specified,
+-- this combinator can only be used in the client. The server would not know
+-- how to validate it, while the client does not care.
+-- If you want to implement Bearer authentication in your server, you have to
+-- choose a specific combinator, such as 'JWT'.
+data Bearer
