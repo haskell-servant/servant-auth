@@ -49,7 +49,7 @@ instance (HasBearer auths, HasClient m api) => HasClient m (Auth auths a :> api)
 
 -- * Authentication combinators
 
--- | A Bearer token in the the Authorization header:
+-- | A Bearer token in the Authorization header:
 --
 --    @Authorization: Bearer <token>@
 --
