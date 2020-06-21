@@ -20,9 +20,9 @@ import           Servant                  (AddHeader, addHeader)
 import           System.Entropy           (getEntropy)
 import           Web.Cookie
 
+import Servant.Auth.JWT                          (FromJWT (decodeJWT), ToJWT)
 import Servant.Auth.Server.Internal.ConfigTypes
-import Servant.Auth.Server.Internal.JWT         (FromJWT (decodeJWT), ToJWT,
-                                                 makeJWT)
+import Servant.Auth.Server.Internal.JWT          (makeJWT)
 import Servant.Auth.Server.Internal.Types
 
 

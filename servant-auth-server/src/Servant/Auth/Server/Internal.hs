@@ -9,6 +9,7 @@ import           Servant             ((:>), Handler, HasServer (..),
                                       Proxy (..),
                                       HasContextEntry(getContextEntry))
 import           Servant.Auth
+import           Servant.Auth.JWT    (ToJWT)
 
 import Servant.Auth.Server.Internal.AddSetCookie
 import Servant.Auth.Server.Internal.Class

@@ -5,11 +5,12 @@ import Servant.Auth
 import Data.Monoid
 import Servant hiding (BasicAuth)
 
+import Servant.Auth.JWT
 import Servant.Auth.Server.Internal.Types
 import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth.Server.Internal.BasicAuth
 import Servant.Auth.Server.Internal.Cookie
-import Servant.Auth.Server.Internal.JWT
+import Servant.Auth.Server.Internal.JWT (jwtAuthCheck)
 
 -- | @IsAuth a ctx v@ indicates that @a@ is an auth type that expects all
 -- elements of @ctx@ to be the in the Context and whose authentication check
