@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Servant.Auth.Server.Internal.Cookie where
 
 import           Blaze.ByteString.Builder (toByteString)
@@ -120,11 +121,17 @@ applySessionCookieSettings :: CookieSettings -> SetCookie -> SetCookie
 applySessionCookieSettings cookieSettings setCookie = setCookie
   { setCookieName = sessionCookieName cookieSettings
   , setCookieSameSite = case cookieSameSite cookieSettings of
-      AnySite -> Nothing
+      AnySite -> anySite
       SameSiteStrict -> Just sameSiteStrict
       SameSiteLax -> Just sameSiteLax
   , setCookieHttpOnly = True
   }
+  where
+#if MIN_VERSION_cookie(0,4,5)
+    anySite = Just sameSiteNone
+#else
+    anySite = Nothing
+#endif
 
 -- | For a JWT-serializable session, returns a function that decorates a
 -- provided response object with XSRF and session cookies. This should be used
