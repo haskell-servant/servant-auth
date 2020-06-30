@@ -3,12 +3,17 @@ module Servant.Auth.Server.Internal.Types where
 
 import Control.Applicative
 import Control.Monad.Reader
+import qualified Data.ByteString                   as BS
 import Control.Monad.Time
 import Data.Monoid          (Monoid (..))
 import Data.Semigroup       (Semigroup (..))
 import Data.Time            (getCurrentTime)
+import Data.Text            (Text)
+import Data.Text.Encoding   (encodeUtf8)
 import GHC.Generics         (Generic)
 import Network.Wai          (Request)
+import Servant              (ServerError(..), err302, err403, err401, throwError)
+import Servant.Server.Internal.DelayedIO (DelayedIO, delayedFailFatal)
 
 import qualified Control.Monad.Fail as Fail
 
@@ -110,3 +115,27 @@ instance Alternative AuthCheck where
 instance MonadPlus AuthCheck where
   mzero = mempty
   mplus = (<>)
+
+-- * AuthErrorHandler
+
+-- | How to handle AuthResult failures.
+newtype AuthErrorHandler = AuthErrorHandler
+  { getAuthErrorHandler :: forall a. AuthResult a -> DelayedIO a }
+
+-- | An AuthErrorHandler that returns a 403 in case of 'BadPassword' or
+-- 'NoSuchUser', and redirects to the provided page in case of 'Indefinite'.
+-- Likely the page will be a login page.
+redirectWhenNotLoggedIn :: Text -> AuthErrorHandler
+redirectWhenNotLoggedIn redirectUrl = AuthErrorHandler $ \result -> case result of
+  Authenticated a -> pure a
+  BadPassword -> delayedFailFatal err403
+  NoSuchUser -> delayedFailFatal err403
+  Indefinite -> delayedFailFatal err302 { errHeaders = [ ("Location", encodeUtf8 redirectUrl) ] }
+
+authErrorHandler401 :: AuthErrorHandler
+authErrorHandler401 = AuthErrorHandler $ \result -> case result of
+  Authenticated a -> pure a
+  BadPassword -> delayedFailFatal err403
+  NoSuchUser -> delayedFailFatal err403
+  Indefinite -> delayedFailFatal err401
+

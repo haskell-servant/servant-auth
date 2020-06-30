@@ -44,18 +44,11 @@ data Auth (auths :: [*]) val
 
 What `Auth [Auth1, Auth2] Something :> API` means is that `API` is protected by
 *either* `Auth1` *or* `Auth2`, and the result of authentication will be of type
-`AuthResult Something`, where :
+`Something` (which is what your handlers will see).
 
-~~~ haskell
-data AuthResult val
-  = BadPassword
-  | NoSuchUser
-  | Authenticated val
-  | Indefinite
-~~~
 
-Your handlers will get a value of type `AuthResult Something`, and can decide
-what to do with it.
+If:
+
 
 ~~~ haskell
 
@@ -79,12 +72,10 @@ type Protected
 
 
 -- | 'Protected' will be protected by 'auths', which we still have to specify.
-protected :: Servant.Auth.Server.AuthResult User -> Server Protected
--- If we get an "Authenticated v", we can trust the information in v, since
--- it was signed by a key we trust.
-protected (Servant.Auth.Server.Authenticated user) = return (name user) :<|> return (email user)
--- Otherwise, we return a 401.
-protected _ = throwAll err401
+protected :: User -> Server Protected
+-- We can trust that the User is accurate, since the information was signed by
+-- a key we trust
+protected user = return (name user) :<|> return (email user)
 
 type Unprotected =
  "login"
@@ -105,7 +96,7 @@ server cs jwts = protected :<|> unprotected cs jwts
 ~~~
 
 The code is common to all authentications. In order to pick one or more specific
-authentication methods, all we need to do is provide the expect configuration
+authentication methods, we need to do is provide the expected configuration
 parameters.
 
 ## API tokens
@@ -121,11 +112,18 @@ mainWithJWT = do
   -- We generate the key for signing tokens. This would generally be persisted,
   -- and kept safely
   myKey <- generateKey
-  -- Adding some configurations. All authentications require CookieSettings to
-  -- be in the context.
+  -- Adding some configurations. This is specific to JWT
   let jwtCfg = defaultJWTSettings myKey
-      cfg = defaultCookieSettings :. jwtCfg :. EmptyContext
-      --- Here we actually make concrete
+  -- All authentications also require an AuthErrorHandler to be in the context.
+  -- That determines how to deal with authentications that failed (because
+  -- secrets were not present, or because they were incorrect, or because they don't
+  -- work for the specific type). In this case, we user authErrorHandler401,
+  -- which returns 401 for no secrets, 403 otherwise
+      authErrHandler = authErrorHandler401
+  -- Here we put everything inside the Servant Context. For technical reasons,
+  -- all authentications require CookieSettings to be in the context
+      cfg = defaultCookieSettings :. authErrHandler :. jwtCfg :. EmptyContext
+  -- Here we actually make concrete the auth type
       api = Proxy :: Proxy (API '[JWT])
   _ <- forkIO $ run 7249 $ serveWithContext api cfg (server defaultCookieSettings jwtCfg)
 
@@ -213,7 +211,7 @@ mainWithCookies = do
   -- Adding some configurations. 'Cookie' requires, in addition to
   -- CookieSettings, JWTSettings (for signing), so everything is just as before
   let jwtCfg = defaultJWTSettings myKey
-      cfg = defaultCookieSettings :. jwtCfg :. EmptyContext
+      cfg = defaultCookieSettings :. authErrorHandler401 :. jwtCfg :. EmptyContext
       --- Here is the actual change
       api = Proxy :: Proxy (API '[Cookie])
   run 7249 $ serveWithContext api cfg (server defaultCookieSettings jwtCfg)
