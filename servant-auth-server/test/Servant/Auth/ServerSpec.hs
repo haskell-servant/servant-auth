@@ -465,7 +465,7 @@ appWithCookie :: AreAuths auths '[CookieSettings, AuthErrorHandler, JWTSettings,
 appWithCookie api ccfg = serveWithContext api ctx $ server ccfg
   where
     ctx = ccfg
-       :. redirectWhenNotLoggedIn "http://foo.com"
+       :. authErrorHandler401
        :. jwtCfg
        :. theKey
        :. EmptyContext
