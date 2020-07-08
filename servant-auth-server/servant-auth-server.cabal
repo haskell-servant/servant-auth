@@ -46,6 +46,7 @@ library
     , memory                  >= 0.14.16  && < 0.16
     , monad-time              >= 0.3.1.0  && < 0.4
     , mtl                     >= 2.2.2    && < 2.3
+    , network-uri             >= 2.6      && < 2.7
     , servant                 >= 0.13     && < 0.18
     , servant-auth            == 0.3.*
     , servant-server          >= 0.13     && < 0.18
