@@ -30,7 +30,7 @@ jwtAuthCheck config = do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict token
     valKeys <- liftIO $ validationKeys config
     Jose.verifyClaims
-      (jwtSettingsToJwtValidationSettings config)
+      (validationSettings config)
       valKeys
       unverifiedJWT
   case verifiedJWT of

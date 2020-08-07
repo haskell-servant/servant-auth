@@ -73,9 +73,6 @@ module Servant.Auth.Server
     FromJWT (..),
     ToJWT (..),
 
-    -- ** Related types
-    IsMatch (..),
-
     -- ** Settings
     JWTSettings (..),
     defaultJWTSettings,

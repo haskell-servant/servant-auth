@@ -4,16 +4,13 @@ module Servant.Auth.Server.Internal.ConfigTypes
   )
 where
 
-import Crypto.JOSE as Jose
-import Crypto.JWT as Jose
+import qualified Crypto.JOSE as Jose
+import qualified Crypto.JWT as Jose
 import qualified Data.ByteString as BS
 import Data.Default.Class
 import Data.Time
 import GHC.Generics (Generic)
 import Servant.API (IsSecure (..))
-
-data IsMatch = Matches | DoesNotMatch
-  deriving (Eq, Show, Read, Generic, Ord)
 
 data IsPasswordCorrect = PasswordCorrect | PasswordIncorrect
   deriving (Eq, Show, Read, Generic, Ord)
@@ -35,9 +32,8 @@ data JWTSettings
         jwtAlg :: Maybe Jose.Alg,
         -- | Keys used to validate JWT.
         validationKeys :: IO Jose.JWKSet,
-        -- | An @aud@ predicate. The @aud@ is a string or URI that identifies the
-        -- intended recipient of the JWT.
-        audienceMatches :: Jose.StringOrURI -> IsMatch
+        -- | The validation settings.
+        validationSettings :: Jose.JWTValidationSettings
       }
   deriving (Generic)
 
@@ -48,7 +44,7 @@ defaultJWTSettings k =
     { signingKey = k,
       jwtAlg = Nothing,
       validationKeys = pure $ Jose.JWKSet [k],
-      audienceMatches = const Matches
+      validationSettings = Jose.defaultJWTValidationSettings $ const True
     }
 
 -- | The policies to use when generating cookies.
@@ -122,14 +118,3 @@ defaultXsrfCookieSettings =
       xsrfHeaderName = "X-XSRF-TOKEN",
       xsrfExcludeGet = False
     }
-
-------------------------------------------------------------------------------
--- Internal {{{
-
-jwtSettingsToJwtValidationSettings :: JWTSettings -> Jose.JWTValidationSettings
-jwtSettingsToJwtValidationSettings s =
-  defaultJWTValidationSettings (toBool <$> audienceMatches s)
-  where
-    toBool Matches = True
-    toBool DoesNotMatch = False
--- }}}

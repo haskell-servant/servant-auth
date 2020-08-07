@@ -42,7 +42,7 @@ cookieAuthCheck ccfg jwtCfg = do
   verifiedJWT <- liftIO $ runExceptT $ do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict jwtCookie
     valKeys <- liftIO $ validationKeys jwtCfg
-    Jose.verifyClaims (jwtSettingsToJwtValidationSettings jwtCfg)
+    Jose.verifyClaims (validationSettings jwtCfg)
                       valKeys
                       unverifiedJWT
   case verifiedJWT of

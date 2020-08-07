@@ -16,6 +16,7 @@ import           Crypto.JOSE                         (Alg (HS256, None), Error,
 import           Crypto.JWT                          (Audience (..), ClaimsSet,
                                                       NumericDate (NumericDate),
                                                       SignedJWT,
+                                                      audiencePredicate,
                                                       claimAud, claimNbf,
                                                       signClaims,
                                                       emptyClaimsSet,
@@ -447,8 +448,11 @@ xsrfField :: (XsrfCookieSettings -> a) -> CookieSettings -> a
 xsrfField f = maybe (error "expected XsrfCookieSettings for test") f . cookieXsrfSetting
 
 jwtCfg :: JWTSettings
-jwtCfg = (defaultJWTSettings theKey) { audienceMatches = \x ->
-    if x == "boo" then DoesNotMatch else Matches }
+jwtCfg =
+   let def = defaultJWTSettings theKey
+       aud x =  x /= "boo"
+    in def { validationSettings = validationSettings def & audiencePredicate .~ aud }
+
 
 instance FromBasicAuthData User where
   fromBasicAuthData (BasicAuthData usr pwd) _
