@@ -10,7 +10,7 @@ import           Servant                           (BasicAuthData (..),
                                                     ServerError (..), err401, err403)
 import           Servant.Server.Internal.BasicAuth (decodeBAHdr,
                                                     mkBAChallengerHdr)
-import Servant.Server.Internal.DelayedIO (delayedFailFatal)
+import           Servant.Server.Internal           (delayedFailFatal)
 
 import Servant.Auth.Server.Internal.Types
 

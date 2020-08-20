@@ -1,6 +1,10 @@
 {-# LANGUAGE CPP #-}
 module Servant.Auth.Server.Internal.Types where
 
+#if !MIN_VERSION_servant_server(0,16,0)
+#define ServerError ServantErr
+#endif
+
 import Control.Applicative
 import Control.Monad.Reader
 import qualified Data.ByteString.Char8             as BSC
@@ -12,7 +16,7 @@ import GHC.Generics         (Generic)
 import Network.Wai          (Request)
 import Network.URI          (URI, uriToString)
 import Servant              (ServerError(..), err302, err403, err401)
-import Servant.Server.Internal.DelayedIO (DelayedIO, delayedFailFatal)
+import Servant.Server.Internal (DelayedIO, delayedFailFatal)
 
 import qualified Control.Monad.Fail as Fail
 
