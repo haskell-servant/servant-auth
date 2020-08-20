@@ -118,6 +118,10 @@ instance MonadPlus AuthCheck where
 -- * AuthErrorHandler
 
 -- | How to handle AuthResult failures.
+--
+-- Some AuthErrorHandlers are provided by this library for common use cases.
+-- But you can define your own as well (which can, for instance, do logging
+-- with the authentication result).
 newtype AuthErrorHandler = AuthErrorHandler
   { getAuthErrorHandler :: forall a. AuthResult a -> DelayedIO a }
 
@@ -134,6 +138,8 @@ redirectWhenNotLoggedIn redirectUrl = AuthErrorHandler $ \result -> case result 
   Indefinite -> delayedFailFatal err302
     { errHeaders = [ ("Location", BSC.pack $ uriToString id redirectUrl "") ] }
 
+-- | An AuthErrorHandler that returns a 403 in case of 'BadPassword' or
+-- 'NoSuchUser', and a 401 in case of 'Indefinite'
 authErrorHandler401 :: AuthErrorHandler
 authErrorHandler401 = AuthErrorHandler $ \result -> case result of
   Authenticated a -> pure a

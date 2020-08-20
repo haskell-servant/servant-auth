@@ -68,7 +68,6 @@ library
       Servant.Auth.Server.Internal.Cookie
       Servant.Auth.Server.Internal.FormLogin
       Servant.Auth.Server.Internal.JWT
-      Servant.Auth.Server.Internal.ThrowAll
       Servant.Auth.Server.Internal.Types
       Servant.Auth.Server.SetCookieOrphan
   default-language: Haskell2010

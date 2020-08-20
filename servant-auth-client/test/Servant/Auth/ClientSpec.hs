@@ -113,7 +113,7 @@ mgr = unsafePerformIO $ newManager defaultManagerSettings
 app :: Application
 app = serveWithContext api ctx server
   where
-    ctx = cookieCfg :. jwtCfg :. EmptyContext
+    ctx = authErrorHandler401 :. cookieCfg :. jwtCfg :. EmptyContext
 
 jwtCfg :: JWTSettings
 jwtCfg = defaultJWTSettings theKey
@@ -125,9 +125,8 @@ cookieCfg = defaultCookieSettings
 server :: Server API
 server = getInt
   where
-    getInt :: AuthResult User -> Handler Int
-    getInt (Authenticated u) = return . length $ name  u
-    getInt _ = throwAll err401
+    getInt :: User -> Handler Int
+    getInt = return . length . name
 
 
 -- }}}

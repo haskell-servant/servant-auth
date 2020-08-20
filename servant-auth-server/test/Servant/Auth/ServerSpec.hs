@@ -68,7 +68,6 @@ spec = do
   authSpec
   cookieAuthSpec
   jwtAuthSpec
-  throwAllSpec
   basicAuthSpec
 
 ------------------------------------------------------------------------------
@@ -378,24 +377,6 @@ basicAuthSpec = describe "The BasicAuth combinator"
 
   it "fails with no auth header" $ \port -> do
     get (url port) `shouldHTTPErrorWith` status401
-
--- }}}
-------------------------------------------------------------------------------
--- * ThrowAll {{{
-
-throwAllSpec :: Spec
-throwAllSpec = describe "throwAll" $ do
-
-  it "works for plain values" $ do
-    let t :: Either ServerError Int :<|> Either ServerError Bool :<|> Either ServerError String
-        t = throwAll err401
-    t `shouldBe` throwError err401 :<|> throwError err401 :<|> throwError err401
-
-  it "works for function types" $ property $ \i -> do
-    let t :: Int -> (Either ServerError Bool :<|> Either ServerError String)
-        t = throwAll err401
-        expected _ = throwError err401 :<|> throwError err401
-    t i `shouldBe` expected i
 
 -- }}}
 ------------------------------------------------------------------------------

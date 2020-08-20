@@ -8,9 +8,7 @@ module Servant.Auth.Server
     -- > type Protected = Auth '[JWT, Cookie] User :> Get '[JSON] UserAccountDetails
     -- >
     -- > server :: Server Protected
-    -- > server (Authenticated usr) = ... -- here we know the client really is
-    -- >                                  -- who she claims to be
-    -- > server _ = throwAll err401
+    -- > server usr = ... -- here we know the client really is who she claims to be
     --
     -- Additional configuration happens via 'Context'.
     --
@@ -136,7 +134,6 @@ module Servant.Auth.Server
     ----------------------------------------------------------------------------
 
     -- * Utilies
-    ThrowAll (throwAll),
     generateKey,
     generateSecret,
     fromSecret,
@@ -162,7 +159,6 @@ import Servant.Auth.Server.Internal.Class
 import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth.Server.Internal.Cookie
 import Servant.Auth.Server.Internal.JWT
-import Servant.Auth.Server.Internal.ThrowAll
 import Servant.Auth.Server.Internal.Types
 import Web.Cookie (SetCookie)
 import Prelude hiding (readFile, writeFile)
