@@ -1,6 +1,6 @@
 # servant-auth
 
-[![Build Status](https://travis-ci.org/haskell-servant/servant-auth.svg?branch=master)](https://travis-ci.org/haskell-servant/servant-auth)
+![CI](https://github.com/haskell-servant/servant-auth/workflows/CI/badge.svg)
 
 These packages provides safe and easy-to-use authentication options for
 `servant`. The same API can be protected via:
