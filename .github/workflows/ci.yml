@@ -18,15 +18,11 @@ jobs:
           - "8.4"
           - "8.6"
           - "8.8"
-          # TODO - "8.10"
+          - "8.10"
         exclude:
           - os: macOS-latest
             ghc: 8.8.3
           - os: macOS-latest
-            ghc: 8.6.5
-          - os: windows-latest
-            ghc: 8.8.3
-          - os: windows-latest
             ghc: 8.6.5
 
     steps:
@@ -67,13 +63,13 @@ jobs:
     strategy:
       matrix:
         stack: ["2.3.1"]
-        ghc: ["8.6.5"]
+        ghc: ["8.10.2"]
 
     steps:
     - uses: actions/checkout@v2
       if: github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.ref == 'refs/heads/master'
 
-    - uses: actions/setup-haskell@v1.1
+    - uses: bubba/setup-haskell@2215b2c
       name: Setup Haskell Stack
       with:
         ghc-version: ${{ matrix.ghc }}

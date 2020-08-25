@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Servant.Auth.SwaggerSpec (spec) where
 
 import Control.Lens
@@ -15,7 +16,12 @@ spec = describe "HasSwagger instance" $ do
   let swag = toSwagger (Proxy :: Proxy API)
 
   it "adds security definitions at the top level" $ do
-    length (swag ^. securityDefinitions) `shouldSatisfy` (> 0)
+#if MIN_VERSION_swagger2(2,6,0)
+    let (SecurityDefinitions secDefs) = swag ^. securityDefinitions
+#else
+    let secDefs = swag ^. securityDefinitions
+#endif
+    length secDefs `shouldSatisfy` (> 0)
 
   it "adds security at sub-apis" $ do
     swag ^. security `shouldBe` []

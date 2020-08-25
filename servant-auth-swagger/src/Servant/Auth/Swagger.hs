@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# LANGUAGE CPP #-}
 module Servant.Auth.Swagger
   (
   -- | The purpose of this package is provide the instance for 'servant-auth'
@@ -18,7 +19,7 @@ module Servant.Auth.Swagger
 import Control.Lens    ((&), (<>~))
 import Data.Proxy      (Proxy (Proxy))
 import Data.Swagger    (ApiKeyLocation (..), ApiKeyParams (..),
-                        SecurityRequirement (..), SecurityScheme (..),
+                        SecurityRequirement (..), SecurityScheme (..), SecurityDefinitions(..),
                         SecuritySchemeType (..), allOperations, security,
                         securityDefinitions)
 import GHC.Exts        (fromList)
@@ -31,11 +32,17 @@ import qualified Data.Text as T
 instance (AllHasSecurity xs, HasSwagger api) => HasSwagger (Auth xs r :> api) where
   toSwagger _
     = toSwagger (Proxy :: Proxy api)
-        & securityDefinitions <>~ fromList secs
+        & securityDefinitions <>~ mkSec (fromList secs)
         & allOperations.security <>~ secReqs
     where
       secs = securities (Proxy :: Proxy xs)
       secReqs = [ SecurityRequirement (fromList [(s,[])]) | (s,_) <- secs]
+      mkSec =
+#if MIN_VERSION_swagger2(2,6,0)
+        SecurityDefinitions
+#else
+        id
+#endif
 
 
 class HasSecurity x where
