@@ -1,14 +1,22 @@
 {-# LANGUAGE CPP #-}
 module Servant.Auth.Server.Internal.Types where
 
+#if !MIN_VERSION_servant_server(0,16,0)
+#define ServerError ServantErr
+#endif
+
 import Control.Applicative
 import Control.Monad.Reader
+import qualified Data.ByteString.Char8             as BSC
 import Control.Monad.Time
 import Data.Monoid          (Monoid (..))
 import Data.Semigroup       (Semigroup (..))
 import Data.Time            (getCurrentTime)
 import GHC.Generics         (Generic)
 import Network.Wai          (Request)
+import Network.URI          (URI, uriToString)
+import Servant              (ServerError(..), err302, err403, err401)
+import Servant.Server.Internal (DelayedIO, delayedFailFatal)
 
 import qualified Control.Monad.Fail as Fail
 
@@ -110,3 +118,36 @@ instance Alternative AuthCheck where
 instance MonadPlus AuthCheck where
   mzero = mempty
   mplus = (<>)
+
+-- * AuthErrorHandler
+
+-- | How to handle AuthResult failures.
+--
+-- Some AuthErrorHandlers are provided by this library for common use cases.
+-- But you can define your own as well (which can, for instance, do logging
+-- with the authentication result).
+newtype AuthErrorHandler = AuthErrorHandler
+  { getAuthErrorHandler :: forall a. AuthResult a -> DelayedIO a }
+
+-- | An AuthErrorHandler that returns a 403 in case of 'BadPassword' or
+-- 'NoSuchUser', and redirects to the provided page in case of 'Indefinite'.
+-- Likely the page will be a login page.
+--
+-- Remember that you can use servant's safeLink machinery to produce a 'URI'!
+redirectWhenNotLoggedIn :: URI -> AuthErrorHandler
+redirectWhenNotLoggedIn redirectUrl = AuthErrorHandler $ \result -> case result of
+  Authenticated a -> pure a
+  BadPassword -> delayedFailFatal err403
+  NoSuchUser -> delayedFailFatal err403
+  Indefinite -> delayedFailFatal err302
+    { errHeaders = [ ("Location", BSC.pack $ uriToString id redirectUrl "") ] }
+
+-- | An AuthErrorHandler that returns a 403 in case of 'BadPassword' or
+-- 'NoSuchUser', and a 401 in case of 'Indefinite'
+authErrorHandler401 :: AuthErrorHandler
+authErrorHandler401 = AuthErrorHandler $ \result -> case result of
+  Authenticated a -> pure a
+  BadPassword -> delayedFailFatal err403
+  NoSuchUser -> delayedFailFatal err403
+  Indefinite -> delayedFailFatal err401
+

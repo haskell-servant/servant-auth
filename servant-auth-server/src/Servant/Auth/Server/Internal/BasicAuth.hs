@@ -7,9 +7,10 @@ module Servant.Auth.Server.Internal.BasicAuth where
 
 import qualified Data.ByteString                   as BS
 import           Servant                           (BasicAuthData (..),
-                                                    ServerError (..), err401)
+                                                    ServerError (..), err401, err403)
 import           Servant.Server.Internal.BasicAuth (decodeBAHdr,
                                                     mkBAChallengerHdr)
+import           Servant.Server.Internal           (delayedFailFatal)
 
 import Servant.Auth.Server.Internal.Types
 
@@ -19,26 +20,26 @@ import Servant.Auth.Server.Internal.Types
 wwwAuthenticatedErr :: BS.ByteString -> ServerError
 wwwAuthenticatedErr realm = err401 { errHeaders = [mkBAChallengerHdr realm] }
 
--- | A type holding the configuration for Basic Authentication. 
+-- | A type holding the configuration for Basic Authentication.
 -- It is defined as a type family with no arguments, so that
 -- it can be instantiated to whatever type you need to
 -- authenticate your users (use @type instance BasicAuthCfg = ...@).
--- 
+--
 -- Note that the instantiation is application-wide,
 -- i.e. there can be only one instance.
 -- As a consequence, it should not be instantiated in a library.
--- 
+--
 -- Basic Authentication expects an element of type 'BasicAuthCfg'
 -- to be in the 'Context'; that element is then passed automatically
 -- to the instance of 'FromBasicAuthData' together with the
 -- authentication data obtained from the client.
--- 
+--
 -- If you do not need a configuration for Basic Authentication,
 -- you can use just @BasicAuthCfg = ()@, and recall to also
 -- add @()@ to the 'Context'.
--- A basic but more interesting example is to take as 'BasicAuthCfg' 
+-- A basic but more interesting example is to take as 'BasicAuthCfg'
 -- a list of authorised username/password pairs:
--- 
+--
 -- > deriving instance Eq BasicAuthData
 -- > type instance BasicAuthCfg = [BasicAuthData]
 -- > instance FromBasicAuthData User where
@@ -57,3 +58,15 @@ basicAuthCheck :: FromBasicAuthData usr => BasicAuthCfg -> AuthCheck usr
 basicAuthCheck cfg = AuthCheck $ \req -> case decodeBAHdr req of
   Nothing -> return Indefinite
   Just baData -> fromBasicAuthData baData cfg
+
+-- | An AuthErrorHandler that returns a 403 in case of 'BadPassword' or
+-- 'NoSuchUser', and returns a 401 with a `WWW-Authenticate` header for the
+-- Basic Authentication in case of 'Indefinite'
+--
+-- If you're only using Basic Auth, this is the AuthErrorHandler you want.
+basicAuthErrorHandler :: BS.ByteString -> AuthErrorHandler
+basicAuthErrorHandler realm = AuthErrorHandler $ \result -> case result of
+  Authenticated a -> pure a
+  BadPassword -> delayedFailFatal err403
+  NoSuchUser -> delayedFailFatal err403
+  Indefinite -> delayedFailFatal (wwwAuthenticatedErr realm)

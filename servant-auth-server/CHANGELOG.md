@@ -7,6 +7,12 @@ and this project adheres to [PVP Versioning](https://pvp.haskell.org/).
 
 ## [Unreleased]
 
+## Changed
+
+- #168 Create AuthErrorHandler for using context for errors (now request
+  handlers don't need to consider authentication failures). This also removes
+  `throwAll`, which is no longer necessary [@jkarni]
+
 ## [0.4.5.1] - 2020-02-06
 
 ## Changed
@@ -16,7 +22,7 @@ and this project adheres to [PVP Versioning](https://pvp.haskell.org/).
 
 ## Changed
 - #144 servant 0.16 support and drop GHC 7.10 support [@domenkozar]
-- #148 removed unused constaint in HasServer instance for Auth 
+- #148 removed unused constaint in HasServer instance for Auth
 - #154 GHC 8.8 support [@phadej]
 
 ### Added
