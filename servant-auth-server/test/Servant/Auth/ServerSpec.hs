@@ -16,6 +16,7 @@ import           Crypto.JOSE                         (Alg (HS256, None), Error,
 import           Crypto.JWT                          (Audience (..), ClaimsSet,
                                                       NumericDate (NumericDate),
                                                       SignedJWT,
+                                                      audiencePredicate,
                                                       claimAud, claimNbf,
                                                       signClaims,
                                                       emptyClaimsSet,
@@ -447,8 +448,11 @@ xsrfField :: (XsrfCookieSettings -> a) -> CookieSettings -> a
 xsrfField f = maybe (error "expected XsrfCookieSettings for test") f . cookieXsrfSetting
 
 jwtCfg :: JWTSettings
-jwtCfg = (defaultJWTSettings theKey) { audienceMatches = \x ->
-    if x == "boo" then DoesNotMatch else Matches }
+jwtCfg =
+   let def = defaultJWTSettings theKey
+       aud x =  x /= "boo"
+    in def { validationSettings = validationSettings def & audiencePredicate .~ aud }
+
 
 instance FromBasicAuthData User where
   fromBasicAuthData (BasicAuthData usr pwd) _
@@ -460,29 +464,30 @@ instance FromBasicAuthData User where
 -- have to add it
 type instance BasicAuthCfg = JWK
 
-appWithCookie :: AreAuths auths '[CookieSettings, JWTSettings, JWK] User
+appWithCookie :: AreAuths auths '[CookieSettings, AuthErrorHandler, JWTSettings, JWK] User
   => Proxy (API auths) -> CookieSettings -> Application
 appWithCookie api ccfg = serveWithContext api ctx $ server ccfg
   where
-    ctx = ccfg :. jwtCfg :. theKey :. EmptyContext
+    ctx = ccfg
+       :. authErrorHandler401
+       :. jwtCfg
+       :. theKey
+       :. EmptyContext
 
 -- | Takes a proxy parameter indicating which authentication systems to enable.
-app :: AreAuths auths '[CookieSettings, JWTSettings, JWK] User
+app :: AreAuths auths '[CookieSettings, AuthErrorHandler, JWTSettings, JWK] User
   => Proxy (API auths) -> Application
 app api = appWithCookie api cookieCfg
 
 server :: CookieSettings -> Server (API auths)
 server ccfg =
-    (\authResult -> case authResult of
-        Authenticated usr -> getInt usr
-                        :<|> postInt usr
-                        :<|> getHeaderInt
+    (\user -> getInt user
+         :<|> postInt user
+         :<|> getHeaderInt
 #if MIN_VERSION_servant_server(0,15,0)
-                        :<|> return (S.source ["bytestring"])
+         :<|> return (S.source ["bytestring"])
 #endif
-                        :<|> raw
-        Indefinite -> throwAll err401
-        _ -> throwAll err403
+         :<|> raw
     )
     :<|> getLogin
     :<|> getLogout

@@ -15,7 +15,6 @@ import Servant.Auth.Server.Internal.AddSetCookie
 import Servant.Auth.Server.Internal.Class
 import Servant.Auth.Server.Internal.Cookie
 import Servant.Auth.Server.Internal.ConfigTypes
-import Servant.Auth.Server.Internal.JWT
 import Servant.Auth.Server.Internal.Types
 
 import Servant.Server.Internal (DelayedIO, addAuthCheck, withRequest)
@@ -27,8 +26,9 @@ instance ( n ~ 'S ('S 'Z)
          , ToJWT v
          , HasContextEntry ctxs CookieSettings
          , HasContextEntry ctxs JWTSettings
+         , HasContextEntry ctxs AuthErrorHandler
          ) => HasServer (Auth auths v :> api) ctxs where
-  type ServerT (Auth auths v :> api) m = AuthResult v -> ServerT api m
+  type ServerT (Auth auths v :> api) m = v -> ServerT api m
 
 #if MIN_VERSION_servant_server(0,12,0)
   hoistServerWithContext _ pc nt s = hoistServerWithContext (Proxy :: Proxy api) pc nt . s
@@ -40,17 +40,21 @@ instance ( n ~ 'S ('S 'Z)
           (fmap go subserver `addAuthCheck` authCheck)
 
     where
-      authCheck :: DelayedIO (AuthResult v, SetCookieList ('S ('S 'Z)))
-      authCheck = withRequest $ \req -> liftIO $ do
-        authResult <- runAuthCheck (runAuths (Proxy :: Proxy auths) context) req
-        cookies <- makeCookies authResult
-        return (authResult, cookies)
+      authCheck :: DelayedIO (v, SetCookieList ('S ('S 'Z)))
+      authCheck = withRequest $ \req -> do
+        authResult <- liftIO $ runAuthCheck (runAuths (Proxy :: Proxy auths) context) req
+        cookies <- liftIO $ makeCookies authResult
+        authVal <- authErrHandler authResult
+        return (authVal, cookies)
 
       jwtSettings :: JWTSettings
       jwtSettings = getContextEntry context
 
       cookieSettings :: CookieSettings
       cookieSettings = getContextEntry context
+
+      authErrHandler :: AuthResult v -> DelayedIO v
+      authErrHandler = getAuthErrorHandler $ getContextEntry context
 
       makeCookies :: AuthResult v -> IO (SetCookieList ('S ('S 'Z)))
       makeCookies authResult = do
@@ -64,7 +68,7 @@ instance ( n ~ 'S ('S 'Z)
                 Just jwt -> return $ Just jwt `SetCookieCons` SetCookieNil
             _ -> return $ Nothing `SetCookieCons` SetCookieNil
 
-      go :: (AuthResult v -> ServerT api Handler)
-         -> (AuthResult v, SetCookieList n)
+      go :: (v -> ServerT api Handler)
+         -> (v, SetCookieList n)
          -> ServerT (AddSetCookiesApi n api) Handler
-      go fn (authResult, cookies) = addSetCookies cookies $ fn authResult
+      go fn (authVal, cookies) = addSetCookies cookies $ fn authVal
