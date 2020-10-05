@@ -24,7 +24,7 @@ import Servant.Auth.Server.Internal.Types
 -- | A JWT @AuthCheck@. You likely won't need to use this directly unless you
 -- are protecting a @Raw@ endpoint.
 jwtAuthCheck :: FromJWT usr => JWTSettings -> AuthCheck usr
-jwtAuthCheck config = do
+jwtAuthCheck jwtSettings = do
   req <- ask
   token <- maybe mempty return $ do
     authHdr <- lookup "Authorization" $ requestHeaders req
@@ -32,18 +32,10 @@ jwtAuthCheck config = do
         (mbearer, rest) = BS.splitAt (BS.length bearer) authHdr
     guard (mbearer `constEq` bearer)
     return rest
-  verifiedJWT <- liftIO $ runExceptT $ do
-    unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict token
-    Jose.verifyClaims (jwtSettingsToJwtValidationSettings config)
-                      (validationKeys config)
-                      unverifiedJWT
+  verifiedJWT <- liftIO $ verifyJWT jwtSettings token
   case verifiedJWT of
-    Left (_ :: Jose.JWTError) -> mzero
-    Right v -> case decodeJWT v of
-      Left _ -> mzero
-      Right v' -> return v'
-
-
+    Nothing -> mzero
+    Just v -> return v
 
 -- | Creates a JWT containing the specified data. The data is stored in the
 -- @dat@ claim. The 'Maybe UTCTime' argument indicates the time at which the
@@ -62,3 +54,18 @@ makeJWT v cfg expiry = runExceptT $ do
    addExp claims = case expiry of
      Nothing -> claims
      Just e  -> claims & Jose.claimExp ?~ Jose.NumericDate e
+
+
+verifyJWT :: FromJWT a => JWTSettings -> BS.ByteString -> IO (Maybe a)
+verifyJWT jwtCfg input = do
+  verifiedJWT <- liftIO $ runExceptT $ do
+    unverifiedJWT <- Jose.decodeCompact (BSL.fromStrict input)
+    Jose.verifyClaims
+      (jwtSettingsToJwtValidationSettings jwtCfg)
+      (validationKeys jwtCfg)
+      unverifiedJWT
+  return $ case verifiedJWT of
+    Left (_ :: Jose.JWTError) -> Nothing
+    Right v -> case decodeJWT v of
+      Left _ -> Nothing
+      Right v' -> Just v'

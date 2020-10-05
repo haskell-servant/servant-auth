@@ -23,12 +23,12 @@ import           Web.Cookie
 
 import Servant.Auth.JWT                          (FromJWT (decodeJWT), ToJWT)
 import Servant.Auth.Server.Internal.ConfigTypes
-import Servant.Auth.Server.Internal.JWT          (makeJWT)
+import Servant.Auth.Server.Internal.JWT          (makeJWT, verifyJWT)
 import Servant.Auth.Server.Internal.Types
 
 
 cookieAuthCheck :: FromJWT usr => CookieSettings -> JWTSettings -> AuthCheck usr
-cookieAuthCheck ccfg jwtCfg = do
+cookieAuthCheck ccfg jwtSettings = do
   req <- ask
   jwtCookie <- maybe mempty return $ do
     cookies' <- lookup hCookie $ requestHeaders req
@@ -39,16 +39,10 @@ cookieAuthCheck ccfg jwtCfg = do
       return $ xsrfCookieAuthCheck xsrfCookieCfg req cookies
     -- session cookie *must* be HttpOnly and Secure
     lookup (sessionCookieName ccfg) cookies
-  verifiedJWT <- liftIO $ runExceptT $ do
-    unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict jwtCookie
-    Jose.verifyClaims (jwtSettingsToJwtValidationSettings jwtCfg)
-                      (validationKeys jwtCfg)
-                      unverifiedJWT
+  verifiedJWT <- liftIO $ verifyJWT jwtSettings jwtCookie
   case verifiedJWT of
-    Left (_ :: Jose.JWTError) -> mzero
-    Right v -> case decodeJWT v of
-      Left _ -> mzero
-      Right v' -> return v'
+    Nothing -> mzero
+    Just v -> return v
 
 xsrfCheckRequired :: CookieSettings -> Request -> Maybe XsrfCookieSettings
 xsrfCheckRequired cookieSettings req = do

@@ -132,6 +132,7 @@ module Servant.Auth.Server
   , writeKey
   , readKey
   , makeJWT
+  , verifyJWT
 
   -- ** Re-exports
   , Default(def)
