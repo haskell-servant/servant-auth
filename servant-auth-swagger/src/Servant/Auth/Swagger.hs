@@ -19,7 +19,10 @@ module Servant.Auth.Swagger
 import Control.Lens    ((&), (<>~))
 import Data.Proxy      (Proxy (Proxy))
 import Data.Swagger    (ApiKeyLocation (..), ApiKeyParams (..),
-                        SecurityRequirement (..), SecurityScheme (..), SecurityDefinitions(..),
+                        SecurityRequirement (..), SecurityScheme (..), 
+#if MIN_VERSION_swagger2(2,6,0)
+                        SecurityDefinitions(..),
+#endif
                         SecuritySchemeType (..), allOperations, security,
                         securityDefinitions)
 import GHC.Exts        (fromList)
