@@ -7,9 +7,19 @@ and this project adheres to [PVP Versioning](https://pvp.haskell.org/).
 
 ## [Unreleased]
 
+## [0.4.6.0] - 2020-10-06
+
+## Changed
+
+- expose verifyJWT and use it in two places [@domenkozar]
+- support GHC 8.10 [@domenkozar]
+- move ToJWT/FromJWT to servant-auth [@erewok]
+- #165 fix AnySite with Cookie 3.5.0 [@odr]
+
 ## [0.4.5.1] - 2020-02-06
 
 ## Changed
+
 - #158 servant 0.17 support [@phadej]
 
 ## [0.4.5.0] - 2019-12-28

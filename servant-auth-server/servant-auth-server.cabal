@@ -1,5 +1,5 @@
 name:           servant-auth-server
-version: 0.4.5.1
+version: 0.4.6.0
 synopsis:       servant-server/servant-auth compatibility
 description:    This package provides the required instances for using the @Auth@ combinator
                 in your 'servant' server.
@@ -15,7 +15,7 @@ maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
 license:        BSD3
 license-file:   LICENSE
-tested-with:    GHC == 8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.1
+tested-with:    GHC == 8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.1, GHC==8.10.2
 build-type:     Simple
 cabal-version:  >= 1.10
 extra-source-files:
@@ -47,7 +47,7 @@ library
     , monad-time              >= 0.3.1.0  && < 0.4
     , mtl                     >= 2.2.2    && < 2.3
     , servant                 >= 0.13     && < 0.19
-    , servant-auth            == 0.3.*
+    , servant-auth            == 0.4.*
     , servant-server          >= 0.13     && < 0.19
     , tagged                  >= 0.8.4    && < 0.9
     , text                    >= 1.2.3.0  && < 1.3
