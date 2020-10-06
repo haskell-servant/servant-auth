@@ -1,5 +1,5 @@
 name:           servant-auth-client
-version:        0.4.0.0
+version:        0.4.1.0
 synopsis:       servant-client/servant-auth compatibility
 description:    This package provides instances that allow generating clients from
                 <https://hackage.haskell.org/package/servant servant>
@@ -15,7 +15,7 @@ maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
 license:        BSD3
 license-file:   LICENSE
-tested-with:    GHC == 8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.1
+tested-with:    GHC == 8.2.2, GHC==8.4.4, GHC==8.6.5, GHC==8.8.1, GHC==8.10.2
 build-type:     Simple
 cabal-version:  >= 1.10
 extra-source-files:
@@ -34,7 +34,7 @@ library
       base                >= 4.10     && < 4.15
     , bytestring          >= 0.10.6.0 && < 0.11
     , containers          >= 0.5.6.2  && < 0.7
-    , servant-auth        == 0.3.*
+    , servant-auth        == 0.4.*
     , servant             >= 0.13     && < 0.19
     , servant-client-core >= 0.13     && < 0.19
 

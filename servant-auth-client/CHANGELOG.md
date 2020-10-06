@@ -7,6 +7,10 @@ and this project adheres to [PVP Versioning](https://pvp.haskell.org/).
 
 ## [Unreleased]
 
+## [0.4.1.0] - 2020-10-06
+
+- Support generic Bearer token auth 
+
 ## [0.4.0.0] - 2019-03-08
 
 ## Changed
