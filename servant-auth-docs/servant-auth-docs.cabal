@@ -38,7 +38,7 @@ library
       base         >= 4.10    && < 4.15
     , servant-docs >= 0.11.2  && < 0.12
     , servant      >= 0.13    && < 0.19
-    , servant-auth == 0.3.*
+    , servant-auth == 0.4.*
     , lens         >= 4.16.1  && <4.20
   exposed-modules:
       Servant.Auth.Docs
