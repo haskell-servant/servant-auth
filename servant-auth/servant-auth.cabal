@@ -17,7 +17,7 @@ maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
 license:        BSD3
 license-file:   LICENSE
-tested-with:    GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5, GHC == 8.8.1, GHC == 8.10.2
+tested-with:    GHC==8.6.5, GHC==8.8.4 GHC==8.10.3
 build-type:     Simple
 cabal-version:  >= 1.10
 extra-source-files:
