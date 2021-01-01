@@ -1,4 +1,4 @@
-resolver: nightly-2020-12-14
+resolver: lts-16.27
 packages:
 - servant-auth
 - servant-auth-server

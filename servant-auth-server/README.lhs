@@ -1,6 +1,6 @@
 # servant-auth
 
-![CI](https://github.com/haskell-servant/servant-auth/workflows/CI/badge.svg)
+[![build status](https://img.shields.io/github/workflow/status/haskell-servant/servant-auth/CI/master?style=flat-square&logo=github&label=build%20status)](https://github.com/haskell-servant/servant-auth/actions?query=workflow%3ACI)
 
 These packages provides safe and easy-to-use authentication options for
 `servant`. The same API can be protected via:
@@ -9,13 +9,13 @@ These packages provides safe and easy-to-use authentication options for
 - JWT tokens
 
 
-| Package              | Hackage                                                                                                                           |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| servant-auth         | [![Hackage](https://img.shields.io/hackage/v/servant-auth.svg)](https://hackage.haskell.org/package/servant-auth)                 |
-| servant-auth-server  | [![Hackage](https://img.shields.io/hackage/v/servant-auth-server.svg)](https://hackage.haskell.org/package/servant-auth-server)   |
-| servant-auth-client  | [![Hackage](https://img.shields.io/hackage/v/servant-auth-client.svg)](https://hackage.haskell.org/package/servant-auth-client)   |
-| servant-auth-swagger | [![Hackage](https://img.shields.io/hackage/v/servant-auth-swagger.svg)](https://hackage.haskell.org/package/servant-auth-swagger) |
-| servant-auth-docs    | [![Hackage](https://img.shields.io/hackage/v/servant-auth-docs.svg)](https://hackage.haskell.org/package/servant-auth-docs)       |
+| Package              | Hackage                                                                                                                                                                                               |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| servant-auth         | [![servant-auth](https://img.shields.io/hackage/v/servant-auth?style=flat-square&logo=haskell&label&labelColor=5D4F85)](https://hackage.haskell.org/package/servant-auth)                             |
+| servant-auth-server  | [![servant-auth-server](https://img.shields.io/hackage/v/servant-auth-server.svg?style=flat-square&logo=haskell&label&labelColor=5D4F85)](https://hackage.haskell.org/package/servant-auth-server)    |
+| servant-auth-client  | [![servant-auth-client](https://img.shields.io/hackage/v/servant-auth-client.svg?style=flat-square&logo=haskell&label&labelColor=5D4F85)](https://hackage.haskell.org/package/servant-auth-client)    |
+| servant-auth-swagger | [![servant-auth-swagger](https://img.shields.io/hackage/v/servant-auth-swagger.svg?style=flat-square&logo=haskell&label&labelColor=5D4F85)](https://hackage.haskell.org/package/servant-auth-swagger) |
+| servant-auth-docs    | [![servant-auth-docs](https://img.shields.io/hackage/v/servant-auth-docs.svg?style=flat-square&logo=haskell&label&labelColor=5D4F85)](https://hackage.haskell.org/package/servant-auth-docs)          |
 
 ## How it works
 
