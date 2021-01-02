@@ -5,7 +5,6 @@ on:
   pull_request:
   # ...and when the main branch is updated.
   push:
-    # TODO: Revert this before merging.
     branches: ['master']
   # Build _at least_ once per month to actively check for regressions.
   schedule:
