@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ['ubuntu-latest']
+        os: ['ubuntu-18.04']
         # Check the last 3 (or so) major GHC releases; no need to waste compute.
         ghc: ['8.6.5', '8.8.4', '8.10.3']
 
