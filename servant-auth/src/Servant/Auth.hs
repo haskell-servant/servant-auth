@@ -29,7 +29,7 @@ instance HasLink sub => HasLink (Auth (tag :: [*]) value :> sub) where
 
 -- | A JSON Web Token (JWT) in the the Authorization header:
 --
---    @Authorization: Bearer <token>@
+--    @Authorization: Bearer \<token\>@
 --
 -- Note that while the token is signed, it is not encrypted. Therefore do not
 -- keep in it any information you would not like the client to know.
