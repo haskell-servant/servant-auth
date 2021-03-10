@@ -18,7 +18,7 @@ jobs:
       matrix:
         os: ['ubuntu-latest']
         # Check the last 3 (or so) major GHC releases; no need to waste compute.
-        ghc: ['8.6.5', '8.8.4', '8.10.4', '9.0.1']
+        ghc: ['8.6.5', '8.8.4', '8.10.4']
 
     steps:
       - uses: actions/checkout@v2
