@@ -5,7 +5,7 @@ on:
   pull_request:
   # ...and when the main branch is updated.
   push:
-    # branches: ['master']
+    branches: ['master']
   # Build _at least_ once per month to actively check for regressions.
   schedule:
     - cron: '0 0 1 * *'
