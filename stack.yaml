@@ -1,4 +1,4 @@
-resolver: nightly-2020-12-14
+resolver: nightly-2021-03-09
 packages:
 - servant-auth
 - servant-auth-server
