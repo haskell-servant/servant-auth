@@ -57,9 +57,11 @@ defaultJWTSettings k = JWTSettings
 -- not testing over HTTPS.
 data CookieSettings = CookieSettings
   {
+  -- | If any "Set-Cookie" header will be generated. Default: @True@.
+    cookieIsUsed      :: !Bool
   -- | 'Secure' means browsers will only send cookies over HTTPS. Default:
   -- @Secure@.
-    cookieIsSecure    :: !IsSecure
+  , cookieIsSecure    :: !IsSecure
   -- | How long from now until the cookie expires. Default: @Nothing@.
   , cookieMaxAge      :: !(Maybe DiffTime)
   -- | At what time the cookie expires. Default: @Nothing@.
@@ -81,7 +83,8 @@ instance Default CookieSettings where
 
 defaultCookieSettings :: CookieSettings
 defaultCookieSettings = CookieSettings
-    { cookieIsSecure    = Secure
+    { cookieIsUsed      = True
+    , cookieIsSecure    = Secure
     , cookieMaxAge      = Nothing
     , cookieExpires     = Nothing
     , cookiePath        = Just "/"
