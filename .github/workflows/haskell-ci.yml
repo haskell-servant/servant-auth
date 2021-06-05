@@ -3,9 +3,12 @@ name: CI
 on:
   # Trigger the workflow on every pull request...
   pull_request:
+    branches:
+      - master
   # ...and when the main branch is updated.
   push:
-    branches: ['master']
+    branches:
+      - master
   # Build _at least_ once per month to actively check for regressions.
   schedule:
     - cron: '0 0 1 * *'
@@ -16,9 +19,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ['ubuntu-latest']
+        os:
+          - ubuntu-latest
         # Check the last 3 (or so) major GHC releases; no need to waste compute.
-        ghc: ['8.6.5', '8.8.4', '8.10.4']
+        ghc:
+          - 8.6.5
+          - 8.8.4
+          - 8.10.4
+        cabal:
+          - latest
 
     steps:
       - uses: actions/checkout@v2
@@ -43,8 +52,8 @@ jobs:
           path: |
             ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
             dist-newstyle
-          key: ${{ runner.os }}-cabal-${{ hashFiles('cabal.project.freeze') }}
-
+          key: ${{ runner.os }}-cabal-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}
+          restore-keys: ${{ runner.os }}-cabal-${{ matrix.ghc }}-
 
       - name: Build
         run: |
@@ -63,8 +72,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ['ubuntu-latest']
-        name: ['nightly', 'lts16', 'lts17']
+        os:
+          - ubuntu-latest
+        name:
+          - nightly
+          - lts16
+          - lts17
         include:
           # Check that the build passes with the nightly snapshot.
           - name: 'nightly'
@@ -85,7 +98,8 @@ jobs:
           path: |
             ~/.stack
             .stack-work
-          key: ${{ runner.os }}-stack-${{ hashFiles(matrix.stack_yaml) }}
+          key: ${{ runner.os }}-stack-${{ matrix.stack_yaml }}-${{ hashFiles(matrix.stack_yaml) }}
+          restore-keys: ${{ runner.os }}-stack-${{ matrix.stack_yaml }}-
 
       - uses: haskell/actions/setup@v1
         name: Stack Setup
