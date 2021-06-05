@@ -1,4 +1,8 @@
 - update changelog
+
+
+
+
 - bump version in cabal file 
 - stack sdist servant-auth-server
 - git commit -m "v0.4.0.0"
