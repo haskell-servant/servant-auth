@@ -17,6 +17,8 @@ jobs:
   cabal:
     name: ghc ${{ matrix.ghc }}
     runs-on: ${{ matrix.os }}
+    # Not buildable ATM but it's good to keep an eye on it
+    continue-on-error: ${{ matrix.ghc == '9.0.1' }}
     strategy:
       matrix:
         os:
@@ -26,6 +28,7 @@ jobs:
           - 8.6.5
           - 8.8.4
           - 8.10.4
+          - 9.0.1
         cabal:
           - latest
 
