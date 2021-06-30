@@ -8,10 +8,10 @@ import           Crypto.JWT         as Jose
 import qualified Data.ByteString    as BS
 import           Data.Default.Class
 import           Data.Time
+import           Data.IORef (IORef)
 import           GHC.Generics       (Generic)
 import           Servant.API        (IsSecure(..))
-import Data.IORef (IORef)
-import GHC.IORef (newIORef)
+import           GHC.IORef (newIORef)
 
 data IsMatch = Matches | DoesNotMatch
   deriving (Eq, Show, Read, Generic, Ord)
