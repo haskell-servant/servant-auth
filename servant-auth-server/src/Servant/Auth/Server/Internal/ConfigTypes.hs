@@ -10,6 +10,8 @@ import           Data.Default.Class
 import           Data.Time
 import           GHC.Generics       (Generic)
 import           Servant.API        (IsSecure(..))
+import Data.IORef (IORef)
+import GHC.IORef (newIORef)
 
 data IsMatch = Matches | DoesNotMatch
   deriving (Eq, Show, Read, Generic, Ord)
@@ -33,18 +35,19 @@ data JWTSettings = JWTSettings
   -- | Algorithm used to sign JWT.
   , jwtAlg          :: Maybe Jose.Alg
   -- | Keys used to validate JWT.
-  , validationKeys  :: Jose.JWKSet
+  , validationKeys  :: IORef Jose.JWKSet
   -- | An @aud@ predicate. The @aud@ is a string or URI that identifies the
   -- intended recipient of the JWT.
   , audienceMatches :: Jose.StringOrURI -> IsMatch
   } deriving (Generic)
 
 -- | A @JWTSettings@ where the audience always matches.
-defaultJWTSettings :: Jose.JWK -> JWTSettings
-defaultJWTSettings k = JWTSettings
+defaultJWTSettings :: Jose.JWK -> IO JWTSettings
+defaultJWTSettings k = newIORef (Jose.JWKSet [k]) >>= \keysRef ->
+  return $ JWTSettings
    { signingKey = k
    , jwtAlg = Nothing
-   , validationKeys = Jose.JWKSet [k]
+   , validationKeys = keysRef
    , audienceMatches = const Matches }
 
 -- | The policies to use when generating cookies.

@@ -5,20 +5,17 @@ import           Control.Monad.Except
 import           Control.Monad.Reader
 import qualified Crypto.JOSE          as Jose
 import qualified Crypto.JWT           as Jose
-import           Data.Aeson           (FromJSON, Result (..), ToJSON, fromJSON,
-                                       toJSON)
 import           Data.ByteArray       (constEq)
 import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as BSL
-import qualified Data.HashMap.Strict  as HM
 import           Data.Maybe           (fromMaybe)
-import qualified Data.Text            as T
 import           Data.Time            (UTCTime)
 import           Network.Wai          (requestHeaders)
 
 import Servant.Auth.JWT               (FromJWT(..), ToJWT(..))
 import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth.Server.Internal.Types
+import Data.IORef (readIORef)
 
 
 -- | A JWT @AuthCheck@. You likely won't need to use this directly unless you
@@ -60,9 +57,10 @@ verifyJWT :: FromJWT a => JWTSettings -> BS.ByteString -> IO (Maybe a)
 verifyJWT jwtCfg input = do
   verifiedJWT <- liftIO $ runExceptT $ do
     unverifiedJWT <- Jose.decodeCompact (BSL.fromStrict input)
+    keys <- liftIO . readIORef $ validationKeys jwtCfg
     Jose.verifyClaims
       (jwtSettingsToJwtValidationSettings jwtCfg)
-      (validationKeys jwtCfg)
+      keys
       unverifiedJWT
   return $ case verifiedJWT of
     Left (_ :: Jose.JWTError) -> Nothing
