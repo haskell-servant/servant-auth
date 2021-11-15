@@ -53,16 +53,18 @@ instance ( n ~ 'S ('S 'Z)
       cookieSettings = getContextEntry context
 
       makeCookies :: AuthResult v -> IO (SetCookieList ('S ('S 'Z)))
-      makeCookies authResult = do
-        xsrf <- makeXsrfCookie cookieSettings
-        fmap (Just xsrf `SetCookieCons`) $
-          case authResult of
-            (Authenticated v) -> do
-              ejwt <- makeSessionCookie cookieSettings jwtSettings v
-              case ejwt of
-                Nothing  -> return $ Nothing `SetCookieCons` SetCookieNil
-                Just jwt -> return $ Just jwt `SetCookieCons` SetCookieNil
-            _ -> return $ Nothing `SetCookieCons` SetCookieNil
+      makeCookies authResult = if cookieIsUsed cookieSettings
+        then do
+          xsrf <- makeXsrfCookie cookieSettings
+          fmap (Just xsrf `SetCookieCons`) $
+            case authResult of
+              (Authenticated v) -> do
+                ejwt <- makeSessionCookie cookieSettings jwtSettings v
+                case ejwt of
+                  Nothing  -> return $ Nothing `SetCookieCons` SetCookieNil
+                  Just jwt -> return $ Just jwt `SetCookieCons` SetCookieNil
+              _ -> return $ Nothing `SetCookieCons` SetCookieNil
+        else return $ Nothing `SetCookieCons` (Nothing `SetCookieCons` SetCookieNil)
 
       go :: (AuthResult v -> ServerT api Handler)
          -> (AuthResult v, SetCookieList n)
