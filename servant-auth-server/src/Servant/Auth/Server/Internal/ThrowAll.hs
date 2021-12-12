@@ -14,35 +14,35 @@ import Network.Wai
 
 import qualified Data.ByteString.Char8 as BS
 
-class ThrowAll a where
+class ThrowAll e a where
   -- | 'throwAll' is a convenience function to throw errors across an entire
   -- sub-API
   --
   --
   -- > throwAll err400 :: Handler a :<|> Handler b :<|> Handler c
   -- >    == throwError err400 :<|> throwError err400 :<|> err400
-  throwAll :: ServerError -> a
+  throwAll :: e -> a
 
-instance (ThrowAll a, ThrowAll b) => ThrowAll (a :<|> b) where
+instance (ThrowAll e a, ThrowAll e b) => ThrowAll e (a :<|> b) where
   throwAll e = throwAll e :<|> throwAll e
 
 -- Really this shouldn't be necessary - ((->) a) should be an instance of
 -- MonadError, no?
-instance {-# OVERLAPPING #-} ThrowAll b => ThrowAll (a -> b) where
+instance {-# OVERLAPPING #-} ThrowAll e b => ThrowAll e (a -> b) where
   throwAll e = const $ throwAll e
 
-instance {-# OVERLAPPABLE #-} (MonadError ServerError m) => ThrowAll (m a) where
+instance {-# OVERLAPPABLE #-} (MonadError e m) => ThrowAll e (m a) where
   throwAll = throwError
 
 -- | for @servant <0.11@
-instance {-# OVERLAPPING #-} ThrowAll Application where
+instance {-# OVERLAPPING #-} ThrowAll ServerError Application where
   throwAll e _req respond
       = respond $ responseLBS (mkStatus (errHTTPCode e) (BS.pack $ errReasonPhrase e))
                               (errHeaders e)
                               (errBody e)
 
 -- | for @servant >=0.11@
-instance {-# OVERLAPPING #-} MonadError ServerError m => ThrowAll (Tagged m Application) where
+instance {-# OVERLAPPING #-} MonadError ServerError m => ThrowAll ServerError (Tagged m Application) where
   throwAll e = Tagged $ \_req respond ->
       respond $ responseLBS (mkStatus (errHTTPCode e) (BS.pack $ errReasonPhrase e))
                               (errHeaders e)
